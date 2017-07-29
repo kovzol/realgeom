@@ -1,0 +1,15 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven { url 'http://dev.geogebra.org/maven2' }
+    }
+
+dependencies {
+    runtime "fr.ujf-grenoble:javagiac:54646:natives-linux-amd64"
+}
+
+apply plugin: 'application'
+
+mainClassName = "realgeom.minitest"
