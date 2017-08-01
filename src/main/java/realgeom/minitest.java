@@ -22,5 +22,6 @@ public class minitest {
         gen g=new gen(s,C);
         g=g.eval(1,C);
         System.out.println(g.print(C));
+        System.out.println(ExternalCAS.execute("ls | sort"));
     }
 }
