@@ -1,8 +1,5 @@
 package realgeom;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import com.maplesoft.openmaple.*;
 import com.maplesoft.externalcall.MapleException;
 
@@ -11,18 +8,28 @@ class MapleCAS {
     {
         String a[];
         Engine t;
-        int i;
+        Algebraic ret;
+        JCEngineCallBacks callbacks;
+        callbacks = new JCEngineCallBacks();
+        String output = "";
         a = new String[1];
         a[0] = "java";
         try
         {
-            t = new Engine( a, new EngineCallBacksDefault(), null, null );
-            t.evaluate( command );
+            t = new Engine( a, callbacks, null, null );
+            ret = t.evaluate( command );
         }
         catch ( MapleException e )
         {
             return null;
         }
-        return "done";
+
+        while ( callbacks.numOfLines() > 0 ) {
+            String line = callbacks.getLine();
+            if (line.length() > 0) {
+                output += line.replaceAll("^\\s+","") + "\n";
+                }
+            }
+        return output.substring(0,output.length()-1);
     }
 }
