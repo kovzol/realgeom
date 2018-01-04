@@ -1,15 +1,25 @@
 apply plugin: 'java'
+apply plugin: 'application'
+
+def mapleDir = localMapleInstallationDir
+def mapleJavaDir = "$mapleDir/java"
+def mapleBinDir = "$mapleDir/bin.X86_64_LINUX"
 
 repositories {
     mavenCentral()
     jcenter()
     maven { url 'http://dev.geogebra.org/maven2' }
+    flatDir { dirs mapleJavaDir }
     }
 
 dependencies {
+    compile "com.maplesoft:externalcall"
+    compile "com.maplesoft:Maple"
     runtime "fr.ujf-grenoble:javagiac:54646:natives-linux-amd64"
 }
 
-apply plugin: 'application'
+run {
+    environment "LD_LIBRARY_PATH": mapleBinDir, "MAPLE": mapleDir
+}
 
 mainClassName = "realgeom.minitest"
