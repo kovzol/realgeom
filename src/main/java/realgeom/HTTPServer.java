@@ -36,6 +36,13 @@ public class HTTPServer {
         server.start();
     }
 
+    static void message(HttpExchange t, int retval, String response) throws IOException {
+        t.sendResponseHeaders(retval, response.length());
+        OutputStream os = t.getResponseBody();
+        os.write(response.getBytes());
+        os.close();
+    }
+
     static class TriangleHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
@@ -93,12 +100,36 @@ public class HTTPServer {
                 rhs = parms.get("rhs");
             }
             if (log == Log.VERBOSE) {
-                response += "LOG:log=" + log + ",mode=" + mode + ",cas=" + cas + ",subst=" + subst + ",lhs=" + lhs + ",rhs=" + rhs;
+                response += "LOG: log=" + log + ",mode=" + mode + ",cas=" + cas + ",subst=" + subst + ",lhs=" + lhs + ",rhs=" + rhs;
             }
-            t.sendResponseHeaders(200, response.length());
-            OutputStream os = t.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
+            if (mode == Mode.CHECK) {
+                String min = "";
+                String max = "";
+                String inf = "";
+                String sup = "";
+                if (parms.containsKey("min")) {
+                    min = parms.get("min");
+                    if (parms.containsKey("inf")) {
+                        message(t, 400, response + "\nERROR: min and inf cannot be defined at the same time");
+                        return;
+                    }
+                }
+                if (parms.containsKey("max")) {
+                    max = parms.get("max");
+                    if (parms.containsKey("sup")) {
+                        message(t, 400, response + "\nERROR: max and sup cannot be defined at the same time");
+                        return;
+                    }
+                }
+                if (parms.containsKey("inf")) {
+                    inf = parms.get("inf");
+                }
+                if (parms.containsKey("sup")) {
+                    min = parms.get("sup");
+                }
+                response += "\nLOG: min="+ min+ ",max="+max+",inf="+ inf + ",sup="+sup;
+            }
+            message(t, 200, response);
         }
 
         // Example: http://gonzales.risc.jku.at:8765/triangle?lhs=a+b&rhs=c
