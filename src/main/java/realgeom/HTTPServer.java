@@ -16,22 +16,84 @@ import com.sun.net.httpserver.HttpServer;
 
 public class HTTPServer {
 
+    enum Mode {EXPLORE, CHECK};
+    enum Cas {MAPLE, GIAC, REDLOG, MATHEMATICA, QEPCAD};
+    enum Subst {AUTO, NO};
+    enum Log {VERBOSE, INFO, SILENT}
+
+    // defaults
+    static Mode mode = Mode.EXPLORE;
+    static Cas cas = Cas.MAPLE;
+    static Subst subst = Subst.AUTO;
+    static Log log = Log.INFO;
+    static String lhs = "0";
+    static String rhs = "0";
+
     public static void start(int port) throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-        server.createContext("/test", new MyHandler());
+        server.createContext("/triangle", new TriangleHandler());
         server.setExecutor(null); // creates a default executor
         server.start();
     }
 
-    static class MyHandler implements HttpHandler {
+    static class TriangleHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
+            String response = "";
             Map <String,String>parms = HTTPServer.queryToMap(t.getRequestURI().getQuery());
-            String response = "Welcome!\n";
-            if (parms.containsKey("data")) {
-                response += "data=" + parms.get("data");
-            } else {
-                response += "No data given";
+            // reading parameters
+            if (parms.containsKey("mode")) {
+                if (parms.get("mode").equals("check")) {
+                    mode = Mode.CHECK;
+                }
+                if (parms.get("mode").equals("explore")) {
+                    mode = Mode.EXPLORE;
+                }
+            }
+            if (parms.containsKey("cas")) {
+                if (parms.get("cas").equals("giac")) {
+                    cas = Cas.GIAC;
+                }
+                if (parms.get("cas").equals("maple")) {
+                    cas = Cas.MAPLE;
+                }
+                if (parms.get("cas").equals("mathematica")) {
+                    cas = Cas.MATHEMATICA;
+                }
+                if (parms.get("cas").equals("redlog")) {
+                    cas = Cas.REDLOG;
+                }
+                if (parms.get("cas").equals("qepcad")) {
+                    cas = Cas.QEPCAD;
+                }
+            }
+            if (parms.containsKey("subst")) {
+                if (parms.get("subst").equals("auto")) {
+                    subst = Subst.AUTO;
+                }
+                if (parms.get("subst").equals("no")) {
+                    subst = Subst.NO;
+                }
+            }
+            if (parms.containsKey("log")) {
+                if (parms.get("log").equals("verbose")) {
+                    log = Log.VERBOSE;
+                }
+                if (parms.get("log").equals("info")) {
+                    log = Log.INFO;
+                }
+                if (parms.get("log").equals("silent")) {
+                    log = Log.SILENT;
+                }
+            }
+            if (parms.containsKey("lhs")) {
+                lhs = parms.get("lhs");
+            }
+            if (parms.containsKey("rhs")) {
+                rhs = parms.get("rhs");
+            }
+            if (log == Log.VERBOSE) {
+                response += "LOG:log=" + log + ",mode=" + mode + ",cas=" + cas + ",subst=" + subst + ",lhs=" + lhs + ",rhs=" + rhs;
             }
             t.sendResponseHeaders(200, response.length());
             OutputStream os = t.getResponseBody();
@@ -39,7 +101,7 @@ public class HTTPServer {
             os.close();
         }
 
-        // Example: http://gonzales.risc.jku.at:8765/test/data=1234
+        // Example: http://gonzales.risc.jku.at:8765/triangle?lhs=a+b&rhs=c
     }
 
   /**
