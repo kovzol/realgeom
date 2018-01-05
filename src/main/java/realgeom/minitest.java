@@ -24,5 +24,10 @@ public class minitest {
         System.out.println(g.print(C));
         System.out.println(ExternalCAS.execute("ls | sort"));
         System.out.println(MapleCAS.execute("int(x,x);"));
+        try {
+            HTTPServer.start(8765);
+        } catch (Exception e) {
+            System.err.println("Cannot start HTTP server");
+            }
     }
 }
