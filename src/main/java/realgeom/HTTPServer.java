@@ -1,5 +1,9 @@
 package realgeom;
 
+/**
+ * Listens on a TCP port, parses the GET parameters and forwards them to the computation subsystem.
+ */
+
 /* Taken from https://stackoverflow.com/a/3732328/1044586
  * and http://www.rgagnon.com/javadetails/java-get-url-parameters-using-jdk-http-server.html
  */
@@ -16,18 +20,14 @@ import com.sun.net.httpserver.HttpServer;
 
 public class HTTPServer {
 
-    enum Mode {EXPLORE, CHECK};
-    enum Cas {MAPLE, GIAC, REDLOG, MATHEMATICA, QEPCAD};
-    enum Subst {AUTO, NO};
-    enum Log {VERBOSE, INFO, SILENT}
-
     // defaults
-    static Mode mode = Mode.EXPLORE;
-    static Cas cas = Cas.MAPLE;
-    static Subst subst = Subst.AUTO;
-    static Log log = Log.INFO;
-    static String lhs = "0";
-    static String rhs = "0";
+    public static Mode mode = Mode.EXPLORE;
+    public static Cas cas = Cas.MAPLE;
+    public static Subst subst = Subst.AUTO;
+    public static Log log = Log.INFO;
+    public static String lhs = "0";
+    public static String rhs = "0";
+    public static String timelimit = "300";
 
     public static void start(int port) throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
@@ -36,18 +36,12 @@ public class HTTPServer {
         server.start();
     }
 
-    static void message(HttpExchange t, int retval, String response) throws IOException {
-        t.sendResponseHeaders(retval, response.length());
-        OutputStream os = t.getResponseBody();
-        os.write(response.getBytes());
-        os.close();
-    }
-
     static class TriangleHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
-            String response = "";
-            Map <String,String>parms = HTTPServer.queryToMap(t.getRequestURI().getQuery());
+            long startTime = System.currentTimeMillis();
+            response = "";
+            Map<String, String> parms = HTTPServer.queryToMap(t.getRequestURI().getQuery());
             // reading parameters
             if (parms.containsKey("mode")) {
                 if (parms.get("mode").equals("check")) {
@@ -99,8 +93,16 @@ public class HTTPServer {
             if (parms.containsKey("rhs")) {
                 rhs = parms.get("rhs");
             }
+            if (parms.containsKey("timelimit")) {
+                timelimit = parms.get("timelimit");
+            }
+
             if (log == Log.VERBOSE) {
-                response += "LOG: log=" + log + ",mode=" + mode + ",cas=" + cas + ",subst=" + subst + ",lhs=" + lhs + ",rhs=" + rhs;
+                appendResponse("LOG: log=" + log + ",mode=" + mode + ",cas=" + cas + ",subst=" + subst + ",lhs=" + lhs
+                        + ",rhs=" + rhs + ",timelimit=" + timelimit);
+            }
+            if (mode == Mode.EXPLORE) {
+                appendResponse(Compute.triangleExplore(lhs, rhs, cas, subst, log, timelimit));
             }
             if (mode == Mode.CHECK) {
                 String min = "";
@@ -110,14 +112,16 @@ public class HTTPServer {
                 if (parms.containsKey("min")) {
                     min = parms.get("min");
                     if (parms.containsKey("inf")) {
-                        message(t, 400, response + "\nERROR: min and inf cannot be defined at the same time");
+                        appendResponse("ERROR: min and inf cannot be defined at the same time");
+                        message(t, 400);
                         return;
                     }
                 }
                 if (parms.containsKey("max")) {
                     max = parms.get("max");
                     if (parms.containsKey("sup")) {
-                        message(t, 400, response + "\nERROR: max and sup cannot be defined at the same time");
+                        appendResponse("ERROR: max and sup cannot be defined at the same time");
+                        message(t, 400);
                         return;
                     }
                 }
@@ -127,30 +131,54 @@ public class HTTPServer {
                 if (parms.containsKey("sup")) {
                     min = parms.get("sup");
                 }
-                response += "\nLOG: min="+ min+ ",max="+max+",inf="+ inf + ",sup="+sup;
+                appendResponse("LOG: min=" + min + ",max=" + max + ",inf=" + inf + ",sup=" + sup);
             }
-            message(t, 200, response);
+            int elapsedTime = (int) ((long) System.currentTimeMillis() - startTime);
+            if (log == Log.VERBOSE) {
+                appendResponse("LOG: time=" + ((double) elapsedTime/1000));
+            }
+            message(t, 200);
+
+
         }
+
+        static void message(HttpExchange t, int retval) throws IOException {
+            t.sendResponseHeaders(retval, response.length());
+            OutputStream os = t.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+            System.out.println(response);
+        }
+
+        static String response;
+        public void appendResponse (String message) {
+            if (!"".equals(response)) {
+                response += "\n";
+            }
+            response += message;
+        }
+
+
 
         // Example: http://gonzales.risc.jku.at:8765/triangle?lhs=a+b&rhs=c
     }
 
-  /**
-   * returns the url parameters in a map
-   * @param query
-   * @return map
-   */
-  public static Map<String, String> queryToMap(String query){
-    Map<String, String> result = new HashMap<String, String>();
-    for (String param : query.split("&")) {
-        String pair[] = param.split("=");
-        if (pair.length>1) {
-            result.put(pair[0], pair[1]);
-        }else{
-            result.put(pair[0], "");
+    /**
+     * returns the url parameters in a map
+     * @param query
+     * @return map
+     */
+    public static Map<String, String> queryToMap(String query) {
+        Map<String, String> result = new HashMap<String, String>();
+        for (String param : query.split("&")) {
+            String pair[] = param.split("=");
+            if (pair.length > 1) {
+                result.put(pair[0], pair[1]);
+            } else {
+                result.put(pair[0], "");
+            }
         }
+        return result;
     }
-    return result;
-  }
 
 }

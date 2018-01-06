@@ -5,7 +5,7 @@ to certain computer algebra systems (CAS) by rewriting them, analyzing the
 result, and return the answer to the user in a readable format.
 
 This project is a work-in-progress. We will continuously add new items
-when there are visible steps forward. There is nothing very useful
+when there are visible steps forward. There is not much very useful
 available yet, so please come back later.
 
 ## Credits ##

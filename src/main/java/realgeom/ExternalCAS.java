@@ -21,6 +21,10 @@ public class ExternalCAS {
             in.close();
         } catch (IOException e) {
         }
+        // trim trailing newline
+        if (output.substring(output.length()-1,output.length()).equals("\n")) {
+            return (output.substring(0,output.length()-1)).toString();
+        }
         return output.toString();
     }
 }

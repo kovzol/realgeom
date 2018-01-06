@@ -1,7 +1,7 @@
 package realgeom;
 
 /*
- * The code below is a verbatim copy from the Maple documentation.
+ * The code below is more or less a verbatim copy from the Maple documentation.
  */
 
 /*
@@ -62,13 +62,8 @@ public class JCEngineCallBacks extends EngineCallBacksDefault
     public void textCallBack( Object data, int tag, String output ) 
 	throws MapleException
     {
-	int len;
-
 	/* used variables */
 	data = null;
-
-	/* empty line before the output */
-	addLine( "" );
 
 	/* different options for different tags */
 	switch ( tag )
@@ -78,48 +73,19 @@ public class JCEngineCallBacks extends EngineCallBacksDefault
 		addLine( "Warning, "+output );
 		break;
 
-	    case MAPLE_TEXT_OUTPUT:
-		/* if the length is short enough, try and center the output */
-		len = output.length();
-		if ( len > 78 )
-		{
-		    addLine( output );
-		}
-		else
-		{
-		    len = (78-len)/2;
-		    addLineWithOffset( output, len );
-		}
-		break;
-
 	    default:
 		/* just output the message */
 		addLine( output );
 		break;
 	}
 
-	/* empty line after the output */
-	addLine( "" );
     }
 
     public void errorCallBack( Object data, int offset, String output )
 	throws MapleException
     {
-	if ( offset >= 0 )
-	{
-	    /* if this is a parse error, output a ^ under input line 
-	     * at the reported location */
-	    addLineWithOffset( "^", offset );
-	}
-	else
-	{
-	    /* otherwise just output a blank line */
-	    addLine( "" );
-	}
-
 	/* append "Error" to the message */
 	addLine( "Error, "+output );
-	addLine( "" );
     }
 
     public void statusCallBack( Object data, long bytesUsed, long bytesAlloc, 

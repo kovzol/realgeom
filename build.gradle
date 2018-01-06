@@ -22,4 +22,4 @@ run {
     environment "LD_LIBRARY_PATH": mapleBinDir, "MAPLE": mapleDir
 }
 
-mainClassName = "realgeom.minitest"
+mainClassName = "realgeom.Start"
