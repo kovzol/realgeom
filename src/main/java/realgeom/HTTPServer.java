@@ -20,15 +20,6 @@ import com.sun.net.httpserver.HttpServer;
 
 public class HTTPServer {
 
-    // defaults
-    public static Mode mode = Mode.EXPLORE;
-    public static Cas cas = Cas.MAPLE;
-    public static Subst subst = Subst.AUTO;
-    public static Log log = Log.INFO;
-    public static String lhs = "0";
-    public static String rhs = "0";
-    public static String timelimit = "300";
-
     public static void start(int port) throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext("/triangle", new TriangleHandler());
@@ -41,6 +32,16 @@ public class HTTPServer {
         public void handle(HttpExchange t) throws IOException {
             long startTime = System.currentTimeMillis();
             response = "";
+
+            // defaults
+            Mode mode = Mode.EXPLORE;
+            Cas cas = Cas.MAPLE;
+            Subst subst = Subst.AUTO;
+            Log log = Log.INFO;
+            String lhs = "0";
+            String rhs = "0";
+            String timelimit = "300";
+
             Map<String, String> parms = HTTPServer.queryToMap(t.getRequestURI().getQuery());
             // reading parameters
             if (parms.containsKey("mode")) {
