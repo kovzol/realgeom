@@ -1,5 +1,10 @@
 package realgeom;
 
+/**
+ * Link to external computer algebra systems via a shell call.
+ * Currently Maple and Mathematica use it.
+ */
+
 import java.io.IOException;
 import java.io.InputStream;
 

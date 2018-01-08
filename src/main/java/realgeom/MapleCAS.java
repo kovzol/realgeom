@@ -1,5 +1,9 @@
 package realgeom;
 
+/**
+ *  OpenMaple link. It does not work in a servlet, FIXME.
+ */
+
 import com.maplesoft.openmaple.*;
 import com.maplesoft.externalcall.MapleException;
 

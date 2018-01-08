@@ -72,11 +72,13 @@ public class HTTPServer {
             }
             if (cas == Cas.MAPLE) {
                 tool = Tool.REGULAR_CHAINS; // default
-                if (parms.get("tool").equals("synrac")) {
-                    tool = Tool.SYNRAC;
-                }
-                if (parms.get("tool").equals("regularchains")) {
-                    tool = Tool.REGULAR_CHAINS;
+                if (parms.containsKey("tool")) {
+                    if (parms.get("tool").equals("synrac")) {
+                        tool = Tool.SYNRAC;
+                    }
+                    if (parms.get("tool").equals("regularchains")) {
+                        tool = Tool.REGULAR_CHAINS;
+                    }
                 }
             }
             if (parms.containsKey("subst")) {

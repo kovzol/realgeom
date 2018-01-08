@@ -1,5 +1,9 @@
 package realgeom;
 
+/**
+ * Helper class to load the GIAC computer algebra system.
+ */
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

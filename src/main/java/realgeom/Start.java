@@ -1,5 +1,10 @@
 package realgeom;
 
+/**
+ * The main process. It attempts to connect to various computer algebra subsystems.
+ * If everything is successfull, then a HTTP server will be started.
+ */
+
 import javagiac.*;
 
 public class Start {
@@ -48,7 +53,8 @@ public class Start {
             System.exit(1);
         }
         try {
-            System.out.println("Starting HTTP, press CTRL-C to terminate");
+            System.out.println("Starting HTTP server on port 8765, press CTRL-C to terminate");
+            // this is hardcoded, FIXME
             HTTPServer.start(8765);
         } catch (Exception e) {
             System.err.println("Cannot start HTTP server, exiting");

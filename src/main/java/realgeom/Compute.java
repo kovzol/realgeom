@@ -1,11 +1,7 @@
 package realgeom;
 
 /**
- * Listens on a TCP port, parses the GET parameters and forwards them to the computation subsystem.
- */
-
-/* Taken from https://stackoverflow.com/a/3732328/1044586
- * and http://www.rgagnon.com/javadetails/java-get-url-parameters-using-jdk-http-server.html
+ * It computes the real geometry problem.
  */
 
 public class Compute {
@@ -93,7 +89,28 @@ public class Compute {
             if (log == Log.VERBOSE) {
                 appendResponse("LOG: code=" + code);
             }
-            appendResponse(ExternalCAS.execute("echo \"" + code + "\" | maple -q"));
+            String result = ExternalCAS.execute("echo \"" + code + "\" | maple -q");
+            if (log == Log.VERBOSE) {
+                appendResponse("LOG: result=" + result);
+            }
+            String rewrite = result.replace("\\", "").replace("\n","").replace("`&or`(", "Or[").
+                    replace("`&and`(", "And[").replace("),", "],").replace("=", "==");
+            // convert closing ) to ]
+            int i;
+            int l = rewrite.length();
+            for (i = l - 1 ; rewrite.substring(i,i+1).equals(")"); i--);
+            String b = "";
+            for (int j = i; j < l -1 ; j++) {
+                b += "]";
+            }
+            rewrite = rewrite.substring(0, i + 1) + b;
+            String mathcode = "Quiet[Reduce[" + rewrite + ",m,Reals] // InputForm]";
+            if (log == Log.VERBOSE) {
+                appendResponse("LOG: mathcode=" + mathcode);
+            }
+            String real = ExternalCAS.execute("echo \"" + mathcode + "\" | math | grep Out");
+            real = real.substring("Out[1]//InputForm= ".length());
+            appendResponse(real);
         }
         return response;
     }

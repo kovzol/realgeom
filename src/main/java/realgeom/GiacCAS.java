@@ -1,5 +1,9 @@
 package realgeom;
 
+/**
+ * It evaluates CAS calls via GIAC.
+ */
+
 import javagiac.*;
 
 class GiacCAS {
