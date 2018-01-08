@@ -36,6 +36,7 @@ public class HTTPServer {
             // defaults
             Mode mode = Mode.EXPLORE;
             Cas cas = Cas.MAPLE;
+            Tool tool = Tool.DEFAULT;
             Subst subst = Subst.AUTO;
             Log log = Log.INFO;
             String lhs = "0";
@@ -69,6 +70,15 @@ public class HTTPServer {
                     cas = Cas.QEPCAD;
                 }
             }
+            if (cas == Cas.MAPLE) {
+                tool = Tool.REGULAR_CHAINS; // default
+                if (parms.get("tool").equals("synrac")) {
+                    tool = Tool.SYNRAC;
+                }
+                if (parms.get("tool").equals("regularchains")) {
+                    tool = Tool.REGULAR_CHAINS;
+                }
+            }
             if (parms.containsKey("subst")) {
                 if (parms.get("subst").equals("auto")) {
                     subst = Subst.AUTO;
@@ -99,11 +109,11 @@ public class HTTPServer {
             }
 
             if (log == Log.VERBOSE) {
-                appendResponse("LOG: log=" + log + ",mode=" + mode + ",cas=" + cas + ",subst=" + subst + ",lhs=" + lhs
+                appendResponse("LOG: log=" + log + ",mode=" + mode + ",cas=" + cas + ",tool="+tool+",subst=" + subst + ",lhs=" + lhs
                         + ",rhs=" + rhs + ",timelimit=" + timelimit);
             }
             if (mode == Mode.EXPLORE) {
-                appendResponse(Compute.triangleExplore(lhs, rhs, cas, subst, log, timelimit));
+                appendResponse(Compute.triangleExplore(lhs, rhs, cas, tool, subst, log, timelimit));
             }
             if (mode == Mode.CHECK) {
                 String min = "";

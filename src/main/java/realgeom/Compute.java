@@ -18,12 +18,21 @@ public class Compute {
         return "(" + a + "+" + b + ">" + c + ")";
     }
 
-    static void appendIneqs(String ineq, Cas cas) {
+    static void appendIneqs(String ineq, Cas cas, Tool tool) {
         if (cas == Cas.MAPLE) {
-            if (!"".equals(ineqs)) {
-                ineqs += " &and ";
+            if (tool == Tool.REGULAR_CHAINS) {
+                if (!"".equals(ineqs)) {
+                    ineqs += " &and ";
+                }
+                ineqs += ineq;
             }
-            ineqs += ineq;
+            if (tool == Tool.SYNRAC) {
+                if (!"".equals(ineqs)) {
+                    ineqs = ineqs.substring(0, ineqs.length() - 1) + "," + ineq + ")";
+                } else {
+                    ineqs = "And(" + ineq + ")";
+                }
+            }
         }
     }
 
@@ -38,7 +47,7 @@ public class Compute {
         response += message;
     }
 
-    public static String triangleExplore(String lhs, String rhs, Cas cas, Subst subst, Log log, String timelimit) {
+    public static String triangleExplore(String lhs, String rhs, Cas cas, Tool tool, Subst subst, Log log, String timelimit) {
         String m = "m";
         code = "";
         ineqs = "";
@@ -55,24 +64,32 @@ public class Compute {
         if (subst == Subst.AUTO) {
             a = "1";
         }
-        appendIneqs("(" + m + ">0)", cas);
-        appendIneqs(triangleInequality(a, "b", "c", cas), cas);
-        appendIneqs(triangleInequality("b", "c", a, cas), cas);
-        appendIneqs(triangleInequality("c", a, "b", cas), cas);
-        appendIneqs(eq(lhs, m + "*(" + rhs + ")", cas), cas);
+        appendIneqs("(" + m + ">0)", cas, tool);
+        appendIneqs(triangleInequality(a, "b", "c", cas), cas, tool);
+        appendIneqs(triangleInequality("b", "c", a, cas), cas, tool);
+        appendIneqs(triangleInequality("c", a, "b", cas), cas, tool);
+        appendIneqs(eq(lhs, m + "*(" + rhs + ")", cas), cas, tool);
         if (log == Log.VERBOSE) {
             appendResponse("LOG: ineqs=" + ineqs);
         }
 
         if (cas == Cas.MAPLE) {
-            code += "with(RegularChains):with(SemiAlgebraicSetTools):";
-            code += "loct:=" + timelimit +":";
-            code += "inputform:=" + "&E([";
+            String initcode = "";
+            String commandcode = "";
+            String vars = "[";
             if (subst != Subst.AUTO) {
-                code += "a,";
+                vars += "a,";
             }
-            code += "b,c]), " + ineqs + ":";
-            code += "timelimit(loct,lprint(QuantifierElimination(inputform)));";
+            vars += "b,c]";
+            if (tool == Tool.REGULAR_CHAINS) {
+                initcode = "with(RegularChains):with(SemiAlgebraicSetTools):";
+                commandcode = "QuantifierElimination(&E(" + vars + ")," + ineqs + ")";
+            }
+            if (tool == Tool.SYNRAC) {
+                initcode = "with(SyNRAC):";
+                commandcode = "qe(Ex(" + vars + "," + ineqs + "))";
+            }
+            code = initcode + "timelimit(" + timelimit + ",lprint(" + commandcode + "));";
             if (log == Log.VERBOSE) {
                 appendResponse("LOG: code=" + code);
             }
