@@ -11,6 +11,7 @@ package realgeom;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -112,10 +113,10 @@ public class HTTPServer {
 
             if (log == Log.VERBOSE) {
                 appendResponse("LOG: log=" + log + ",mode=" + mode + ",cas=" + cas + ",tool="+tool+",subst=" + subst + ",lhs=" + lhs
-                        + ",rhs=" + rhs + ",timelimit=" + timelimit);
+                        + ",rhs=" + rhs + ",timelimit=" + timelimit, true);
             }
             if (mode == Mode.EXPLORE) {
-                appendResponse(Compute.triangleExplore(lhs, rhs, cas, tool, subst, log, timelimit));
+                appendResponse(Compute.triangleExplore(lhs, rhs, cas, tool, subst, log, timelimit), false);
             }
             if (mode == Mode.CHECK) {
                 String min = "";
@@ -125,7 +126,7 @@ public class HTTPServer {
                 if (parms.containsKey("min")) {
                     min = parms.get("min");
                     if (parms.containsKey("inf")) {
-                        appendResponse("ERROR: min and inf cannot be defined at the same time");
+                        appendResponse("ERROR: min and inf cannot be defined at the same time", true);
                         message(t, 400);
                         return;
                     }
@@ -133,7 +134,7 @@ public class HTTPServer {
                 if (parms.containsKey("max")) {
                     max = parms.get("max");
                     if (parms.containsKey("sup")) {
-                        appendResponse("ERROR: max and sup cannot be defined at the same time");
+                        appendResponse("ERROR: max and sup cannot be defined at the same time", true);
                         message(t, 400);
                         return;
                     }
@@ -144,11 +145,11 @@ public class HTTPServer {
                 if (parms.containsKey("sup")) {
                     min = parms.get("sup");
                 }
-                appendResponse("LOG: min=" + min + ",max=" + max + ",inf=" + inf + ",sup=" + sup);
+                appendResponse("LOG: min=" + min + ",max=" + max + ",inf=" + inf + ",sup=" + sup, true);
             }
             int elapsedTime = (int) ((long) System.currentTimeMillis() - startTime);
             if (log == Log.VERBOSE) {
-                appendResponse("LOG: time=" + ((double) elapsedTime/1000));
+                appendResponse("LOG: time=" + ((double) elapsedTime/1000), true);
             }
             message(t, 200);
 
@@ -160,15 +161,17 @@ public class HTTPServer {
             OutputStream os = t.getResponseBody();
             os.write(response.getBytes());
             os.close();
-            System.out.println(response);
         }
 
         static String response;
-        public void appendResponse (String message) {
+        public void appendResponse (String message, boolean echo) {
             if (!"".equals(response)) {
                 response += "\n";
             }
             response += message;
+            if (echo) {
+                System.out.println(new Timestamp(System.currentTimeMillis()) + " " + message);
+                }
         }
 
 

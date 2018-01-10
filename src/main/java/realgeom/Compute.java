@@ -4,6 +4,8 @@ package realgeom;
  * It computes the real geometry problem.
  */
 
+import java.sql.Timestamp;
+
 public class Compute {
 
     static String code;
@@ -41,6 +43,7 @@ public class Compute {
             response += "\n";
         }
         response += message;
+        System.out.println(new Timestamp(System.currentTimeMillis()) + " " + message);
     }
 
     public static String triangleExplore(String lhs, String rhs, Cas cas, Tool tool, Subst subst, Log log, String timelimit) {
