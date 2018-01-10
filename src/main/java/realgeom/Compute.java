@@ -96,8 +96,10 @@ public class Compute {
             if (log == Log.VERBOSE) {
                 appendResponse("LOG: result=" + result);
             }
+            // hacky way to convert Maple formula to Mathematica formula
             String rewrite = result.replace("\\", "").replace("\n","").replace("`&or`(", "Or[").
-                    replace("`&and`(", "And[").replace("),", "],").replace("=", "==");
+                    replace("`&and`(", "And[").replace("Or(", "Or[").
+                    replace("And(", "And[").replace("),", "],").replace("=", "==");
             // convert closing ) to ]
             int i;
             int l = rewrite.length();
@@ -107,12 +109,12 @@ public class Compute {
                 b += "]";
             }
             rewrite = rewrite.substring(0, i + 1) + b;
-            String mathcode = "Quiet[Reduce[" + rewrite + ",m,Reals] // InputForm]";
+            String mathcode = "Print[Quiet[Reduce[" + rewrite + ",m,Reals] // InputForm]]";
             if (log == Log.VERBOSE) {
                 appendResponse("LOG: mathcode=" + mathcode);
             }
-            String real = ExternalCAS.execute("echo \"" + mathcode + "\" | math | grep Out");
-            real = real.substring("Out[1]//InputForm= ".length());
+            String real = ExternalCAS.execute("echo \"" + mathcode + "\" | math | grep 'In\\[1\\]:= '");
+            real = real.substring("In[1]:= ".length());
             appendResponse(real);
         }
         return response;
