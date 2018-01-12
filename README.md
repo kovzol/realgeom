@@ -8,7 +8,7 @@ For example, such a problem is comparing (a²+b²+c²) and (a·b+b·c+c·a) in
 a triangle where a, b and c are the lengths of the sides. It can be
 proven that
 
-a·b+b·c+c·a ≦ a²+b²+c² ≦ 2·(a·b+b·c+c·a)
+a·b+b·c+c·a ≦ a²+b²+c² < 2·(a·b+b·c+c·a)
 
 **realgeom** is capable of solving this kind of problem (among many others) by using recent computer
 algebra algorithms from various recent tools. Similar problems have been
