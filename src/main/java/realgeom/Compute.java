@@ -11,6 +11,7 @@ public class Compute {
     private static String code;
     private static String ineqs;
     private static String response;
+    private static Log loglevel;
 
     private static String triangleInequality(String a, String b, String c, Cas cas) {
         return "(" + a + "+" + b + ">" + c + ")";
@@ -38,12 +39,15 @@ public class Compute {
         return "(" + lhs + "=" + rhs + ")";
     }
 
-    private static void appendResponse(String message) {
+    private static void appendResponse(String message, Log minLevel) {
+        System.out.println(new Timestamp(System.currentTimeMillis()) + " " + message);
+        if (loglevel != Log.VERBOSE && minLevel == Log.VERBOSE) {
+            return;
+        }
         if (!"".equals(response)) {
             response += "\n";
         }
         response += message;
-        System.out.println(new Timestamp(System.currentTimeMillis()) + " " + message);
     }
 
     public static String triangleExplore(String lhs, String rhs, Cas cas, Tool tool, Subst subst, Log log, String timelimit) {
@@ -51,13 +55,12 @@ public class Compute {
         code = "";
         ineqs = "";
         response = "";
+        loglevel = log;
 
         if (subst == Subst.AUTO) {
             lhs = GiacCAS.execute("subst(" + lhs + ",a=1)");
             rhs = GiacCAS.execute("subst(" + rhs + ",a=1)");
-            if (log == Log.VERBOSE) {
-                appendResponse("LOG: subst() => lhs=" + lhs + ",rhs=" + rhs);
-            }
+            appendResponse("LOG: subst() => lhs=" + lhs + ",rhs=" + rhs, Log.VERBOSE);
         }
         String a = "a";
         if (subst == Subst.AUTO) {
@@ -68,9 +71,7 @@ public class Compute {
         appendIneqs(triangleInequality("b", "c", a, cas), cas, tool);
         appendIneqs(triangleInequality("c", a, "b", cas), cas, tool);
         appendIneqs(eq(lhs, m + "*(" + rhs + ")", cas), cas, tool);
-        if (log == Log.VERBOSE) {
-            appendResponse("LOG: ineqs=" + ineqs);
-        }
+        appendResponse("LOG: ineqs=" + ineqs, Log.VERBOSE);
 
         if (cas == Cas.MAPLE) {
             String initcode = "";
@@ -89,13 +90,10 @@ public class Compute {
                 commandcode = "qe(Ex(" + vars + "," + ineqs + "))";
             }
             code = initcode + "timelimit(" + timelimit + ",lprint(" + commandcode + "));";
-            if (log == Log.VERBOSE) {
-                appendResponse("LOG: code=" + code);
-            }
+            appendResponse("LOG: code=" + code,Log.VERBOSE);
+
             String result = ExternalCAS.executeMaple(code);
-            if (log == Log.VERBOSE) {
-                appendResponse("LOG: result=" + result);
-            }
+            appendResponse("LOG: result=" + result, Log.VERBOSE);
             // hacky way to convert Maple formula to Mathematica formula
             String rewrite = result.replace("\\", "").replace("\n","").replace("`&or`(", "Or[").
                     replace("`&and`(", "And[").replace("Or(", "Or[").
@@ -113,11 +111,9 @@ public class Compute {
             }
             rewrite = rewrite.substring(0, i + 1) + b;
             String mathcode = "Print[Quiet[Reduce[" + rewrite + ",m,Reals] // InputForm]]";
-            if (log == Log.VERBOSE) {
-                appendResponse("LOG: mathcode=" + mathcode);
-            }
+            appendResponse("LOG: mathcode=" + mathcode, Log.VERBOSE);
             String real = ExternalCAS.executeMathematica(mathcode);
-            appendResponse(real);
+            appendResponse(real, Log.INFO);
         }
         return response;
     }

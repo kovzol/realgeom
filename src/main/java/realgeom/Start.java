@@ -85,6 +85,8 @@ public class Start {
             System.err.println("Unexpected results on self-test, exiting");
             System.exit(1);
         }
+        System.out.println("Running benchmarks...");
+        Benchmark.start("src/test/resources/benchmark.csv","maple/synrac,maple/regularchains", "300");
         try {
             System.out.println("Starting HTTP server on port 8765, press CTRL-C to terminate");
             // this is hardcoded, FIXME
