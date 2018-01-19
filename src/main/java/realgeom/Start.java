@@ -80,8 +80,7 @@ public class Start {
         return true;
     }
 
-    public static void main(String argv[])
-    {
+    public static void main(String argv[]) {
         if (!test()) {
             System.err.println("Unexpected results on self-test, exiting");
             System.exit(1);
