@@ -20,27 +20,29 @@ public class Start {
         }
     }
 
-    private static boolean test() {
+    private static String test() {
+        String supported;
         System.out.println("Testing Giac connection...");
         String input = "1+2";
         String test = GiacCAS.execute(input);
         if (!test.equals("3")) {
-            return false;
+            return "";
         }
 
         System.out.println("Testing shell connection...");
         input = "expr 1 + 2";
         test = ExternalCAS.execute(input);
         if (!test.equals("3")) {
-            return false;
+            return "";
         }
 
         input = "Print[Quiet[Reduce[0 < m-1,m,Reals] // InputForm]]";
         System.out.println("Testing Mathematica connection via shell...");
         test = ExternalCAS.executeMathematica(input);
         if (!test.equals("m > 1")) {
-            return false;
+            return "";
         }
+        supported = "mathematica";
 
         input = "lprint(1+2);";
         System.out.println("Testing Maple connection via shell...");
@@ -56,6 +58,8 @@ public class Start {
         test = ExternalCAS.executeMaple(input);
         if (!test.equals("0 < m-1")) {
             System.out.println("Consider installing RegularChains from http://www.regularchains.org/downloads.html");
+        } else {
+            supported += ",maple/regularchains";
         }
 
         input = "with(SyNRAC):timelimit(300,lprint(qe(Ex([b,c],And((m>0),(1+b>c),(b+c>1),(c+1>b),(1+2*b=m*(c)))))));";
@@ -63,21 +67,24 @@ public class Start {
         test = ExternalCAS.executeMaple(input);
         if (!test.equals("-m < -1")) {
             System.out.println("Consider installing SyNRAC from http://www.fujitsu.com/jp/group/labs/en/resources/tech/announced-tools/synrac/");
+        } else {
+            supported += ",maple/synrac";
         }
 
         System.out.println("All required tests are passed");
-        return true;
+        return supported;
     }
 
     public static void main(String argv[]) {
-        if (!test()) {
+        String supported = test();
+        if (supported.equals("")) {
             System.err.println("Unexpected results on self-test, exiting");
             System.exit(1);
         }
         System.out.println("Running benchmarks, this may take a while...");
         // this is hardcoded, FIXME
         Benchmark.start("src/test/resources/benchmark.csv",
-                "mathematica,maple/synrac,maple/regularchains", "300");
+                supported, "300");
         System.out.println("Starting HTTP server on port 8765, press CTRL-C to terminate");
         try {
             // this is hardcoded, FIXME
