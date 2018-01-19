@@ -1,8 +1,8 @@
 package realgeom;
 
-/**
+/*
  * The main process. It attempts to connect to various computer algebra subsystems.
- * If everything is successfull, then a HTTP server will be started.
+ * If everything is successful, then a HTTP server will be started.
  */
 
 import javagiac.*;
@@ -20,29 +20,63 @@ public class Start {
         }
     }
 
-    public static boolean test() {
+    private static boolean test() {
         System.out.println("Testing Giac connection...");
-        String giacTest = GiacCAS.execute("1+2");
-        if (!giacTest.equals("3")) {
+        String input = "1+2";
+        String test = GiacCAS.execute(input);
+        if (!test.equals("3")) {
             return false;
         }
 
         System.out.println("Testing shell connection...");
-        String shellTest = ExternalCAS.execute("expr 1 + 2");
-        if (!shellTest.equals("3")) {
+        input = "expr 1 + 2";
+        test = ExternalCAS.execute(input);
+        if (!test.equals("3")) {
             return false;
         }
 
-        String mapleInput = "with(RegularChains):with(SemiAlgebraicSetTools):loct:=300"
-                + ":inputform:=&E([b,c]), (m>0) &and (1+b>c) &and (b+c>1) &and (c+1>b) &and (1+b=m*(c))"
-                + ":timelimit(loct,lprint(QuantifierElimination(inputform)));";
+        input = "Print[Quiet[Reduce[0 < m-1,m,Reals] // InputForm]]";
+        System.out.println("Testing Mathematica connection via shell...");
+        test = ExternalCAS.executeMathematica(input);
+        if (!test.equals("m > 1")) {
+            return false;
+        }
+
+        input = "lprint(1+2);";
         System.out.println("Testing Maple connection via shell...");
-        String mapleTest = ExternalCAS.execute("echo \"" + mapleInput + "\" | maple -q");
-        if (!mapleTest.equals("0 < m-1")) {
+        test = ExternalCAS.executeMaple(input);
+        if (!test.equals("3")) {
+            System.err.println("You need a Maple installation on your path");
             return false;
         }
 
-        System.out.println("All tests passed");
+        boolean backend = false;
+        input = "with(RegularChains):with(SemiAlgebraicSetTools)"
+                + ":inputform:=&E([b,c]), (m>0) &and (1+b>c) &and (b+c>1) &and (c+1>b) &and (1+b=m*(c))"
+                + ":timelimit(300,lprint(QuantifierElimination(inputform)));";
+        System.out.println("Testing Maple/RegularChains...");
+        test = ExternalCAS.executeMaple(input);
+        if (test.equals("0 < m-1")) {
+            backend = true;
+        } else {
+            System.out.println("Consider installing RegularChains from http://www.regularchains.org/downloads.html");
+        }
+
+        input = "with(SyNRAC):timelimit(300,lprint(qe(Ex([b,c],And((m>0),(1+b>c),(b+c>1),(c+1>b),(1+2*b=m*(c)))))));";
+        System.out.println("Testing Maple/SyNRAC...");
+        test = ExternalCAS.executeMaple(input);
+        if (test.equals("-m < -1")) {
+            backend = true;
+        } else {
+            System.out.println("Consider installing SyNRAC from http://www.fujitsu.com/jp/group/labs/en/resources/tech/announced-tools/synrac/");
+        }
+
+        if (!backend) {
+            System.err.println("No backends are available");
+            return false;
+        }
+
+        System.out.println("All required tests are passed");
         return true;
     }
 
