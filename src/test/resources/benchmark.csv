@@ -1,0 +1,3 @@
+Task,Mode,LHS,RHS,Expected
+triangle,explore,a+b,c,m > 1
+triangle,explore,a*a+b*b,c*c,m > 1/2
