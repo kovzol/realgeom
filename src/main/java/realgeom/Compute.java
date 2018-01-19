@@ -40,6 +40,9 @@ public class Compute {
     }
 
     private static void appendResponse(String message, Log minLevel) {
+        if (logLevel == Log.SILENT) {
+            return;
+        }
         if (minLevel == Log.VERBOSE && logLevel != Log.VERBOSE) {
             return;
         }
