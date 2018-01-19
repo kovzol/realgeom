@@ -1,6 +1,6 @@
 package realgeom;
 
-/**
+/*
  * It computes the real geometry problem.
  */
 
@@ -8,15 +8,15 @@ import java.sql.Timestamp;
 
 public class Compute {
 
-    static String code;
-    static String ineqs;
-    static String response;
+    private static String code;
+    private static String ineqs;
+    private static String response;
 
-    static String triangleInequality(String a, String b, String c, Cas cas) {
+    private static String triangleInequality(String a, String b, String c, Cas cas) {
         return "(" + a + "+" + b + ">" + c + ")";
     }
 
-    static void appendIneqs(String ineq, Cas cas, Tool tool) {
+    private static void appendIneqs(String ineq, Cas cas, Tool tool) {
         if (cas == Cas.MAPLE) {
             if (tool == Tool.REGULAR_CHAINS) {
                 if (!"".equals(ineqs)) {
@@ -34,11 +34,11 @@ public class Compute {
         }
     }
 
-    static String eq(String lhs, String rhs, Cas cas) {
+    private static String eq(String lhs, String rhs, Cas cas) {
         return "(" + lhs + "=" + rhs + ")";
     }
 
-    static void appendResponse (String message) {
+    private static void appendResponse(String message) {
         if (!"".equals(response)) {
             response += "\n";
         }
@@ -92,7 +92,7 @@ public class Compute {
             if (log == Log.VERBOSE) {
                 appendResponse("LOG: code=" + code);
             }
-            String result = ExternalCAS.execute("echo \"" + code + "\" | maple -q");
+            String result = ExternalCAS.executeMaple(code);
             if (log == Log.VERBOSE) {
                 appendResponse("LOG: result=" + result);
             }
@@ -103,18 +103,20 @@ public class Compute {
             // convert closing ) to ]
             int i;
             int l = rewrite.length();
-            for (i = l - 1 ; rewrite.substring(i,i+1).equals(")"); i--);
-            String b = "";
+            i = l - 1 ;
+            while (rewrite.substring(i,i+1).equals(")")) {
+                i--;
+            }
+            StringBuilder b = new StringBuilder();
             for (int j = i; j < l -1 ; j++) {
-                b += "]";
+                b.append("]");
             }
             rewrite = rewrite.substring(0, i + 1) + b;
             String mathcode = "Print[Quiet[Reduce[" + rewrite + ",m,Reals] // InputForm]]";
             if (log == Log.VERBOSE) {
                 appendResponse("LOG: mathcode=" + mathcode);
             }
-            String real = ExternalCAS.execute("echo \"" + mathcode + "\" | math | grep 'In\\[1\\]:= '");
-            real = real.substring("In[1]:= ".length());
+            String real = ExternalCAS.executeMathematica(mathcode);
             appendResponse(real);
         }
         return response;

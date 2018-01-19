@@ -37,4 +37,23 @@ public class ExternalCAS {
         }
         return output.toString();
     }
+
+    static String executeMaple (String command) {
+        return execute("echo \"" + command + "\" | maple -q");
+    }
+
+    static String executeMathematica (String command) {
+        String output = ExternalCAS.execute("echo \"" + command + "\" | math | grep 'In\\[1\\]:= '");
+        int ltrim = "In[1]:= ".length();
+        if (output.length() < ltrim) {
+            System.err.println("Error executing Mathematica command");
+            return "";
+        }
+        return output.substring(ltrim);
+    }
+
+
+
+
+
 }
