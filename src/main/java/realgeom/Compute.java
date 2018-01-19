@@ -33,10 +33,20 @@ public class Compute {
                 }
             }
         }
+        if (cas == Cas.MATHEMATICA) {
+            if (!"".equals(ineqs)) {
+                ineqs += " \\[And] ";
+            }
+            ineqs += ineq;
+        }
     }
 
     private static String eq(String lhs, String rhs, Cas cas) {
-        return "(" + lhs + "=" + rhs + ")";
+        if (cas == Cas.MAPLE) {
+            return "(" + lhs + "=" + rhs + ")";
+        }
+        // if (cas == Cas.MATHEMATICA)
+        return "" + lhs + " == " + rhs + "";
     }
 
     private static void appendResponse(String message, Log logLevel) {
@@ -75,23 +85,39 @@ public class Compute {
         appendIneqs(eq(lhs, m + "*(" + rhs + ")", cas), cas, tool);
         appendResponse("LOG: ineqs=" + ineqs, Log.VERBOSE);
 
+        if (cas == Cas.MATHEMATICA) {
+            String code;
+            String vars = "{";
+            if (subst != Subst.AUTO) {
+                vars += "a,";
+            }
+            vars += "b,c}";
+
+            // String mathcode = "Print[Quiet[Reduce[" + rewrite + ",m,Reals] // InputForm]]";
+
+            code = "Print[Quiet[Resolve[Exists[" + vars + "," + ineqs + "],Reals] // InputForm]]";
+            appendResponse("LOG: code=" + code,Log.VERBOSE);
+            String result = ExternalCAS.executeMathematica(code);
+            appendResponse(result, Log.INFO);
+        }
+
         if (cas == Cas.MAPLE) {
-            String initcode = "";
-            String commandcode = "";
+            String initCode = "";
+            String commandCode = "";
             String vars = "[";
             if (subst != Subst.AUTO) {
                 vars += "a,";
             }
             vars += "b,c]";
             if (tool == Tool.REGULAR_CHAINS) {
-                initcode = "with(RegularChains):with(SemiAlgebraicSetTools):";
-                commandcode = "QuantifierElimination(&E(" + vars + ")," + ineqs + ")";
+                initCode = "with(RegularChains):with(SemiAlgebraicSetTools):";
+                commandCode = "QuantifierElimination(&E(" + vars + ")," + ineqs + ")";
             }
             if (tool == Tool.SYNRAC) {
-                initcode = "with(SyNRAC):";
-                commandcode = "qe(Ex(" + vars + "," + ineqs + "))";
+                initCode = "with(SyNRAC):";
+                commandCode = "qe(Ex(" + vars + "," + ineqs + "))";
             }
-            code = initcode + "timelimit(" + timelimit + ",lprint(" + commandcode + "));";
+            code = initCode + "timelimit(" + timelimit + ",lprint(" + commandCode + "));";
             appendResponse("LOG: code=" + code,Log.VERBOSE);
 
             String result = ExternalCAS.executeMaple(code);

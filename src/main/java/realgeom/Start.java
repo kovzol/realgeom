@@ -46,34 +46,23 @@ public class Start {
         System.out.println("Testing Maple connection via shell...");
         test = ExternalCAS.executeMaple(input);
         if (!test.equals("3")) {
-            System.err.println("You need a Maple installation on your path");
-            return false;
+            System.out.println("Consider installing Maple");
         }
 
-        boolean backend = false;
         input = "with(RegularChains):with(SemiAlgebraicSetTools)"
                 + ":inputform:=&E([b,c]), (m>0) &and (1+b>c) &and (b+c>1) &and (c+1>b) &and (1+b=m*(c))"
                 + ":timelimit(300,lprint(QuantifierElimination(inputform)));";
         System.out.println("Testing Maple/RegularChains...");
         test = ExternalCAS.executeMaple(input);
-        if (test.equals("0 < m-1")) {
-            backend = true;
-        } else {
+        if (!test.equals("0 < m-1")) {
             System.out.println("Consider installing RegularChains from http://www.regularchains.org/downloads.html");
         }
 
         input = "with(SyNRAC):timelimit(300,lprint(qe(Ex([b,c],And((m>0),(1+b>c),(b+c>1),(c+1>b),(1+2*b=m*(c)))))));";
         System.out.println("Testing Maple/SyNRAC...");
         test = ExternalCAS.executeMaple(input);
-        if (test.equals("-m < -1")) {
-            backend = true;
-        } else {
+        if (!test.equals("-m < -1")) {
             System.out.println("Consider installing SyNRAC from http://www.fujitsu.com/jp/group/labs/en/resources/tech/announced-tools/synrac/");
-        }
-
-        if (!backend) {
-            System.err.println("No backends are available");
-            return false;
         }
 
         System.out.println("All required tests are passed");
@@ -85,9 +74,10 @@ public class Start {
             System.err.println("Unexpected results on self-test, exiting");
             System.exit(1);
         }
-        System.out.println("Running benchmarks...");
+        System.out.println("Running benchmarks, this may take a while...");
         // this is hardcoded, FIXME
-        Benchmark.start("src/test/resources/benchmark.csv","maple/synrac,maple/regularchains", "300");
+        Benchmark.start("src/test/resources/benchmark.csv",
+                "mathematica,maple/synrac,maple/regularchains", "300");
         System.out.println("Starting HTTP server on port 8765, press CTRL-C to terminate");
         try {
             // this is hardcoded, FIXME

@@ -48,9 +48,14 @@ public class Benchmark {
                             tool = Tool.SYNRAC;
                             break;
                         case "maple/regularchains":
+                        case "maple":
                             cas = Cas.MAPLE;
                             tool = Tool.REGULAR_CHAINS;
                             break;
+                        case "mathematica":
+                        case "mathematica/default":
+                            cas = Cas.MATHEMATICA;
+                            tool = Tool.DEFAULT;
                         default:
                             System.err.println("Cannot parse cas/tool " + casTool);
                             return;
