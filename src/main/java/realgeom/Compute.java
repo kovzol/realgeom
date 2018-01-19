@@ -40,15 +40,8 @@ public class Compute {
     }
 
     private static void appendResponse(String message, Log minLevel) {
-        if (logLevel == Log.SILENT) {
-            return;
-        }
-        if (minLevel == Log.VERBOSE && logLevel != Log.VERBOSE) {
-            return;
-        }
-        System.out.println(new Timestamp(System.currentTimeMillis()) + " " + message);
-        if (logLevel != Log.VERBOSE && minLevel == Log.VERBOSE) {
-            return;
+        if (logLevel == Log.VERBOSE || (logLevel == Log.INFO && minLevel != Log.SILENT)) {
+            System.out.println(new Timestamp(System.currentTimeMillis()) + " " + message);
         }
         if (!"".equals(response)) {
             response += "\n";
