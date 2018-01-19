@@ -86,9 +86,10 @@ public class Start {
             System.exit(1);
         }
         System.out.println("Running benchmarks...");
+        // this is hardcoded, FIXME
         Benchmark.start("src/test/resources/benchmark.csv","maple/synrac,maple/regularchains", "300");
+        System.out.println("Starting HTTP server on port 8765, press CTRL-C to terminate");
         try {
-            System.out.println("Starting HTTP server on port 8765, press CTRL-C to terminate");
             // this is hardcoded, FIXME
             HTTPServer.start(8765);
         } catch (Exception e) {
