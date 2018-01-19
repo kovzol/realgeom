@@ -1,8 +1,8 @@
 package realgeom;
 
-/**
- * Link to external computer algebra systems via a shell call.
- * Currently Maple and Mathematica use it.
+/*
+  Link to external computer algebra systems via a shell call.
+  Currently Maple and Mathematica use it.
  */
 
 import java.io.IOException;
@@ -10,7 +10,7 @@ import java.io.InputStream;
 
 public class ExternalCAS {
     static String execute (String command) {
-        StringBuffer output = new StringBuffer();
+        StringBuilder output = new StringBuilder();
         String[] cmd = {
             "/bin/sh",
             "-c",
@@ -25,10 +25,15 @@ public class ExternalCAS {
             }
             in.close();
         } catch (IOException e) {
+            System.err.println("Error on executing external command");
+            return "";
+        }
+        if (output.length()==0) {
+            return "";
         }
         // trim trailing newline
         if (output.substring(output.length()-1,output.length()).equals("\n")) {
-            return (output.substring(0,output.length()-1)).toString();
+            return (output.substring(0,output.length()-1));
         }
         return output.toString();
     }
