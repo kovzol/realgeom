@@ -1,3 +1,5 @@
-Task,Mode,LHS,RHS,Expected
-triangle,explore,a+b,c,m > 1
-triangle,explore,a*a+b*b,c*c,m > 1/2
+Name,Task,Mode,LHS,RHS,Expected
+Test 1,triangle,explore,a+b,c,m > 1
+Test 2,triangle,explore,a*a+b*b,c*c,m > 1/2
+Bottema 1.1,triangle,explore,b*c+c*a+a*b,(a+b+c)^2,"Inequality[1/4, Less, m, LessEqual, 1/3]"
+Bottema 1.5,triangle,explore,(a+b)*(b+c)*(c+a),a^3+b^3+c^3,"Inequality[1, Less, m, LessEqual, 8/3]"
