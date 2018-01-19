@@ -11,7 +11,7 @@ public class Compute {
     private static String code;
     private static String ineqs;
     private static String response;
-    private static Log logLevel;
+    private static Log maxLogLevel;
 
     private static String triangleInequality(String a, String b, String c, Cas cas) {
         return "(" + a + "+" + b + ">" + c + ")";
@@ -39,9 +39,12 @@ public class Compute {
         return "(" + lhs + "=" + rhs + ")";
     }
 
-    private static void appendResponse(String message, Log minLevel) {
-        if (logLevel == Log.VERBOSE || (logLevel == Log.INFO && minLevel != Log.SILENT)) {
+    private static void appendResponse(String message, Log logLevel) {
+        if (maxLogLevel == Log.VERBOSE || (maxLogLevel == Log.INFO && logLevel != Log.SILENT)) {
             System.out.println(new Timestamp(System.currentTimeMillis()) + " " + message);
+        }
+        if (maxLogLevel != Log.VERBOSE && logLevel == Log.VERBOSE) {
+            return;
         }
         if (!"".equals(response)) {
             response += "\n";
@@ -54,7 +57,7 @@ public class Compute {
         code = "";
         ineqs = "";
         response = "";
-        logLevel = log;
+        maxLogLevel = log;
 
         if (subst == Subst.AUTO) {
             lhs = GiacCAS.execute("subst(" + lhs + ",a=1)");
