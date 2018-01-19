@@ -95,7 +95,7 @@ public class Compute {
 
             // String mathcode = "Print[Quiet[Reduce[" + rewrite + ",m,Reals] // InputForm]]";
 
-            code = "Print[Quiet[Resolve[Exists[" + vars + "," + ineqs + "],Reals] // InputForm]]";
+            code = "Print[Quiet[Reduce[Resolve[Exists[" + vars + "," + ineqs + "],Reals],Reals] // InputForm]]";
             appendResponse("LOG: code=" + code,Log.VERBOSE);
             String result = ExternalCAS.executeMathematica(code);
             appendResponse(result, Log.INFO);
