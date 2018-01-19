@@ -56,6 +56,7 @@ public class Benchmark {
                         case "mathematica/default":
                             cas = Cas.MATHEMATICA;
                             tool = Tool.DEFAULT;
+                            break;
                         default:
                             System.err.println("Cannot parse cas/tool " + casTool);
                             return;
