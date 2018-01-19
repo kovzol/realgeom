@@ -94,10 +94,11 @@ public class Compute {
 
             String result = ExternalCAS.executeMaple(code);
             appendResponse("LOG: result=" + result, Log.VERBOSE);
-            // hacky way to convert Maple formula to Mathematica formula
+            // hacky way to convert Maple formula to Mathematica formula FIXME
             String rewrite = result.replace("\\", "").replace("\n","").replace("`&or`(", "Or[").
                     replace("`&and`(", "And[").replace("Or(", "Or[").
-                    replace("And(", "And[").replace("),", "],").replace("=", "==");
+                    replace("And(", "And[").replace("),", "],").replace("=", "==").
+                    replace(">==", ">=").replace("<==", "<=");
             // convert closing ) to ]
             int i;
             int l = rewrite.length();
