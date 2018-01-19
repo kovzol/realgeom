@@ -65,7 +65,7 @@ public class Benchmark {
                         int elapsedTime = (int) (System.currentTimeMillis() - startTime);
                         System.out.print("triangleExplore(lhs=" + lhs + ",rhs=" + rhs +
                                 ",cas=" + cas + ",tool=" + tool + ",subst=" + subst + ")");
-                        System.out.print("=" + response + "(" + ((double) elapsedTime / 1000) + " sec) ");
+                        System.out.print("=" + response + " (" + ((double) elapsedTime / 1000) + " sec) ");
                         if (response.equals(expected)) {
                             System.out.println("SUCCESS");
                         } else {
