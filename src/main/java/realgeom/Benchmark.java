@@ -117,7 +117,7 @@ public class Benchmark {
                             System.out.println("FAIL");
                             table[i].append("error\">");
                         }
-                        table[i].append(time).append("></td>");
+                        table[i].append(time).append("</td>");
                     }
                 }
             }
