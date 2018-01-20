@@ -43,7 +43,7 @@ public class Benchmark {
                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\">" +
                 "</head><body><h1>realgeom benchmark</h1>\n" +
                 "<h2>on " + timestamp + "</h2>";
-        StringBuilder tableHead = new StringBuilder("<table><tr>Name</th>\n");
+        StringBuilder tableHead = new StringBuilder("<table><tr><th>Name</th>\n");
 
         String[] casTools = casToolList.split(",");
 
@@ -55,8 +55,8 @@ public class Benchmark {
         table[0] = new StringBuilder();
         table[1] = new StringBuilder();
 
-        table[0].append("<h2>Automatic substitution (a=1)</h2>");
-        table[1].append("<h2>No substitution</h2>");
+        table[0].append("<h3>Automatic substitution (a=1)</h2>");
+        table[1].append("<h3>No substitution</h2>");
         for (int i = 0; i < 2; ++i) {
             // adding head
             table[i].append(tableHead);
