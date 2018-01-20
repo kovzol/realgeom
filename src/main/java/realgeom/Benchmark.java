@@ -66,7 +66,7 @@ public class Benchmark {
             String name = record.get("Name");
             for (int i = 0; i < 2; ++i) {
                 // opening line
-                table[i].append("<tr><td class=\"ex\"</td>");
+                table[i].append("<tr><td class=\"ex\">").append(name).append("</td>");
             }
             String task = record.get("Task");
             String mode = record.get("Mode");
@@ -125,6 +125,11 @@ public class Benchmark {
                 // closing line
                 table[i].append("</tr>");
             }
+
+        }
+        for (int i = 0; i < 2; ++i) {
+            // closing table
+            table[i].append("</table>");
         }
 
         StringBuilder tail = new StringBuilder();
