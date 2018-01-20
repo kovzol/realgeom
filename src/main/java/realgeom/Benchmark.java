@@ -135,6 +135,7 @@ public class Benchmark {
 
         try {
             out.write(b.toString());
+            out.close();
         } catch (Exception e) {
             System.err.println("Error on writing file " + outputFile);
         }
