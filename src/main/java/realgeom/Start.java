@@ -49,26 +49,26 @@ public class Start {
         test = ExternalCAS.executeMaple(input);
         if (!test.equals("3")) {
             System.out.println("Consider installing Maple");
-        }
-
-        input = "with(RegularChains):with(SemiAlgebraicSetTools)"
-                + ":inputform:=&E([b,c]), (m>0) &and (1+b>c) &and (b+c>1) &and (c+1>b) &and (1+b=m*(c))"
-                + ":timelimit(300,lprint(QuantifierElimination(inputform)));";
-        System.out.println("Testing Maple/RegularChains...");
-        test = ExternalCAS.executeMaple(input);
-        if (!test.equals("0 < m-1")) {
-            System.out.println("Consider installing RegularChains from http://www.regularchains.org/downloads.html");
         } else {
-            supported += ",maple/regularchains";
-        }
+            input = "with(RegularChains):with(SemiAlgebraicSetTools)"
+                    + ":inputform:=&E([b,c]), (m>0) &and (1+b>c) &and (b+c>1) &and (c+1>b) &and (1+b=m*(c))"
+                    + ":timelimit(300,lprint(QuantifierElimination(inputform)));";
+            System.out.println("Testing Maple/RegularChains...");
+            test = ExternalCAS.executeMaple(input);
+            if (!test.equals("0 < m-1")) {
+                System.out.println("Consider installing RegularChains from http://www.regularchains.org/downloads.html");
+            } else {
+                supported += ",maple/regularchains";
+            }
 
-        input = "with(SyNRAC):timelimit(300,lprint(qe(Ex([b,c],And((m>0),(1+b>c),(b+c>1),(c+1>b),(1+2*b=m*(c)))))));";
-        System.out.println("Testing Maple/SyNRAC...");
-        test = ExternalCAS.executeMaple(input);
-        if (!test.equals("-m < -1")) {
-            System.out.println("Consider installing SyNRAC from http://www.fujitsu.com/jp/group/labs/en/resources/tech/announced-tools/synrac/");
-        } else {
-            supported += ",maple/synrac";
+            input = "with(SyNRAC):timelimit(300,lprint(qe(Ex([b,c],And((m>0),(1+b>c),(b+c>1),(c+1>b),(1+2*b=m*(c)))))));";
+            System.out.println("Testing Maple/SyNRAC...");
+            test = ExternalCAS.executeMaple(input);
+            if (!test.equals("-m < -1")) {
+                System.out.println("Consider installing SyNRAC from http://www.fujitsu.com/jp/group/labs/en/resources/tech/announced-tools/synrac/");
+            } else {
+                supported += ",maple/synrac";
+            }
         }
 
         System.out.println("All required tests are passed");
