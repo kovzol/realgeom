@@ -52,6 +52,9 @@ public class Benchmark {
         }
         tableHead.append("</th>");
         StringBuilder[] table = new StringBuilder[2];
+        table[0] = new StringBuilder();
+        table[1] = new StringBuilder();
+
         table[0].append("<h2>Automatic substitution (a=1)</h2>");
         table[1].append("<h2>No substitution</h2>");
         for (int i = 0; i < 2; ++i) {
