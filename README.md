@@ -26,7 +26,7 @@ You need to have the following pieces of software installed:
 Optional:
 
 * Maple
-* recent versions of the RegularChains and/or the SyNRAC library (in Maple)
+* recent versions of the [RegularChains](http://www.regularchains.org/) and/or the [SyNRAC](http://www.fujitsu.com/jp/group/labs/en/resources/tech/announced-tools/synrac/) library (in Maple)
 
 ## Usage ##
 The command `./gradlew run` will download all additional tools you may
