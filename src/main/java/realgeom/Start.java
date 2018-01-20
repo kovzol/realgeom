@@ -5,7 +5,7 @@ package realgeom;
  * If everything is successful, then a HTTP server will be started.
  */
 
-import javagiac.*;
+import java.io.File;
 
 public class Start {
     static {
@@ -83,7 +83,9 @@ public class Start {
         }
         System.out.println("Running benchmarks, this may take a while...");
         // this is hardcoded, FIXME
+        new File("build").mkdirs();
         Benchmark.start("src/test/resources/benchmark.csv",
+                "build/benchmark.html",
                 supported, "300");
         System.out.println("Starting HTTP server on port 8765, press CTRL-C to terminate");
         try {

@@ -1,6 +1,6 @@
 package realgeom;
 
-/**
+/*
  * Helper class to load the GIAC computer algebra system.
  */
 

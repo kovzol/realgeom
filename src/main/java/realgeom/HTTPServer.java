@@ -1,6 +1,6 @@
 package realgeom;
 
-/**
+/*
  * Listens on a TCP port, parses the GET parameters and forwards them to the computation subsystem.
  */
 
@@ -147,7 +147,7 @@ public class HTTPServer {
                 }
                 appendResponse("LOG: min=" + min + ",max=" + max + ",inf=" + inf + ",sup=" + sup, true);
             }
-            int elapsedTime = (int) ((long) System.currentTimeMillis() - startTime);
+            int elapsedTime = (int) (System.currentTimeMillis() - startTime);
             if (log == Log.VERBOSE) {
                 appendResponse("LOG: time=" + ((double) elapsedTime/1000), true);
             }
@@ -164,7 +164,7 @@ public class HTTPServer {
         }
 
         static String response;
-        public void appendResponse (String message, boolean echo) {
+        void appendResponse(String message, boolean echo) {
             if (!"".equals(response)) {
                 response += "\n";
             }
@@ -173,8 +173,6 @@ public class HTTPServer {
                 System.out.println(new Timestamp(System.currentTimeMillis()) + " " + message);
                 }
         }
-
-
 
         // Example: http://gonzales.risc.jku.at:8765/triangle?lhs=a+b&rhs=c
     }
@@ -185,7 +183,7 @@ public class HTTPServer {
      * @return map
      */
     public static Map<String, String> queryToMap(String query) {
-        Map<String, String> result = new HashMap<String, String>();
+        Map<String, String> result = new HashMap<>();
         for (String param : query.split("&")) {
             String pair[] = param.split("=");
             if (pair.length > 1) {

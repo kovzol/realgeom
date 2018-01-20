@@ -8,7 +8,6 @@ import java.sql.Timestamp;
 
 public class Compute {
 
-    private static String code;
     private static String ineqs;
     private static String response;
     private static Log maxLogLevel;
@@ -64,7 +63,7 @@ public class Compute {
 
     public static String triangleExplore(String lhs, String rhs, Cas cas, Tool tool, Subst subst, Log log, String timelimit) {
         String m = "m";
-        code = "";
+        String code;
         ineqs = "";
         response = "";
         maxLogLevel = log;
@@ -86,7 +85,7 @@ public class Compute {
         appendResponse("LOG: ineqs=" + ineqs, Log.VERBOSE);
 
         if (cas == Cas.MATHEMATICA) {
-            String code;
+
             String vars = "{";
             if (subst != Subst.AUTO) {
                 vars += "a,";
