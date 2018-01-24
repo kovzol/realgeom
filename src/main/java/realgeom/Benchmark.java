@@ -5,9 +5,11 @@ package realgeom;
  */
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.sql.Timestamp;
 
 import org.apache.commons.csv.*;
-import java.sql.Timestamp;
 
 public class Benchmark {
 
@@ -38,11 +40,22 @@ public class Benchmark {
         }
 
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+
+        InetAddress ip;
+        String hostname = "noname server";
+
+        try {
+            ip = InetAddress.getLocalHost();
+            hostname = ip.getHostName();
+        } catch (UnknownHostException e) {
+            System.err.println("Cannot get hostname");
+        }
+
         String head = "<!DOCTYPE html><html><head>\n" +
                 "<title>realgeom benchmark</title>\n" +
                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\">" +
                 "</head><body><h1>realgeom benchmark</h1>\n" +
-                "<h2>on " + timestamp + "</h2>";
+                "<h2>on " + timestamp + " at " + hostname + "</h2>";
         StringBuilder tableHead = new StringBuilder("<table><tr><th>Name</th>\n");
 
         String[] casTools = casToolList.split(",");
@@ -55,7 +68,7 @@ public class Benchmark {
         table[0] = new StringBuilder();
         table[1] = new StringBuilder();
 
-        table[0].append("<h3>Automatic substitution (a=1)</h2>");
+        table[0].append("<h3>Automatic substitution</h2>");
         table[1].append("<h3>No substitution</h2>");
         for (int i = 0; i < 2; ++i) {
             // adding head
@@ -117,16 +130,16 @@ public class Benchmark {
                                 if (elapsedTime < 10000) {
                                     // solved in time
                                     System.out.println("ST");
-                                    table[i].append("o1\">");
+                                    table[i].append("st\">");
                                 } else
                                 if (elapsedTime < 300000) {
                                     // solved in 300 sec
                                     System.out.println("S2");
-                                    table[i].append("o2\">");
+                                    table[i].append("s2\">");
                                 } else {
                                     // solved in 1 hour
                                     System.out.println("S3");
-                                    table[i].append("o3\">");
+                                    table[i].append("s3\">");
                                 }
                         } else {
                             System.out.println("FAIL");
