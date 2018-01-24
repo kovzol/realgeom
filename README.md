@@ -27,6 +27,7 @@ Optional:
 
 * Maple
 * recent versions of the [RegularChains](http://www.regularchains.org/) and/or the [SyNRAC](http://www.fujitsu.com/jp/group/labs/en/resources/tech/announced-tools/synrac/) library (in Maple)
+* [QEPCAD](https://github.com/PetterS/qepcad)
 
 ## Usage ##
 The command `./gradlew run` will download all additional tools you may
@@ -52,6 +53,10 @@ in your browser. The interpretation of this result is that the equation
 (a²+b²+c²)=m·(a·b+b·c+c·a)
 has solutions for 1≦m<2.
 
+The benchmark puts HTML output in the *build* folder.
+You may want to see a [demo](demo/benchmark.html) of
+the generated output. 
+
 ## Documentation ##
 It is a work in progress.
 
@@ -60,7 +65,7 @@ It is a work in progress.
 * How to enter the caret (^) symbol? Use %5e instead, e.g. a%5e2 instead of a^2.
 * How to start the program on a different port than 8765? Currently you need to change this manually in the file [Start.java](src/main/java/realgeom/Start.java).
 * Which parameters are accepted? See the file [HTTPServer.java](src/main/java/realgeom/HTTPServer.java) for the current options.
-* Which systems are planned to be supported in the future? RedLog and QEPCAD. See [Cas.java](src/main/java/realgeom/Cas.java) and [Tool.java](src/main/java/realgeom/Tool.java) for more details.
+* Which systems are planned to be supported in the future? Only RedLog for the moment. See [Cas.java](src/main/java/realgeom/Cas.java) and [Tool.java](src/main/java/realgeom/Tool.java) for more details.
 
 ## Credits ##
 **realgeom** internally uses the Java port of the Giac CAS for some

@@ -1,0 +1,132 @@
+h1 {
+text-align: center;
+}
+h2 {
+text-align: center;
+}
+h3 {
+text-align: center;
+}
+pre {
+text-align: center;
+}
+table {
+border-width: 1px;
+border-spacing: 2px;
+border-style: outset;
+border-color: gray;
+background-color: white;
+margin: 50px auto;
+border-collapse:collapse;
+text-align: center;
+font-family: sans-serif;
+}
+table th {
+border-width: 2px;
+padding: 2px;
+border-style: inset;
+border-color: gray;
+background-color: #8cacff;
+-moz-border-radius: ;
+}
+table td {
+border-width: 1px;
+padding: 2px;
+border-style: inset;
+border-color: gray;
+background-color: #eeffee;
+-moz-border-radius: ;
+vertical-align: middle;
+text-align: center;
+}
+table td.ex {
+border-width: 1px;
+padding: 2px;
+border-style: inset;
+border-right-style: none;
+border-color: gray;
+background-color: #eeffee;
+-moz-border-radius: ;
+vertical-align: middle;
+text-align: left;
+}
+
+table td.s3 {
+border-width: 1px;
+padding: 2px;
+border-style: inset;
+border-color: gray;
+background-color: rgba(20,170,20,0.2);
+-moz-border-radius: ;
+}
+
+table td.s2 {
+border-width: 1px;
+padding: 2px;
+border-style: inset;
+border-color: gray;
+background-color: rgba(20,170,20,0.5);
+-moz-border-radius: ;
+}
+
+table td.st {
+border-width: 1px;
+padding: 2px;
+border-style: inset;
+border-color: gray;
+background-color: rgba(20,170,20,0.8);
+-moz-border-radius: ;
+}
+
+table td.error {
+border-width: 1px;
+padding: 2px;
+border-style: inset;
+border-color: gray;
+background-color: black;
+color: white;
+-moz-border-radius: ;
+}
+
+table td.undefined {
+border-width: 1px;
+padding: 2px;
+border-style: inset;
+border-color: gray;
+background-color: #ffffcc;
+-moz-border-radius: ;
+}
+
+table td.untested {
+border-width: 1px;
+padding: 2px;
+border-style: inset;
+border-color: gray;
+background-color: #ffffff;
+-moz-border-radius: ;
+}
+
+table td.timeout {
+border-width: 1px;
+padding: 2px;
+border-style: inset;
+border-color: gray;
+background-color: #ffff80;
+-moz-border-radius: ;
+}
+
+table td.summary {
+border-width: 1px;
+padding: 2px;
+border-style: inset;
+border-color: gray;
+background-color: #ccccdd;
+-moz-border-radius: ;
+}
+
+p {
+-webkit-margin-before: 0em;
+-webkit-margin-after: 0em;
+-webkit-margin-start: 0px;
+-webkit-margin-end: 0px;
+}
