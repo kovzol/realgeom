@@ -55,7 +55,7 @@ has solutions for 1≦m<2.
 
 The benchmark puts HTML output in the *build* folder.
 You may want to see a [demo](demo/benchmark.html) of
-the generated output. 
+the generated output ([rendered version](http://htmlpreview.github.io/?https://github.com/kovzol/realgeom/blob/master/demo/benchmark.html)). 
 
 ## Documentation ##
 It is a work in progress.
