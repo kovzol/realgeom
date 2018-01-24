@@ -52,6 +52,31 @@ public class ExternalCAS {
         return output.substring(ltrim);
     }
 
+    static String executeQepcad (String command) {
+        // System.out.println("qepcad in = " + command);
+        String output = ExternalCAS.execute("echo \"" + command + "\" | qepcad");
+        String[] outputLines = output.split("\n");
+        int i = 0;
+        int l = outputLines.length;
+        if (l==0) {
+            return "";
+        }
+        while (!"An equivalent quantifier-free formula:".equals(outputLines[i]) && i < l) i++;
+        if (i==l-1) {
+            return "";
+        }
+        StringBuilder retval = new StringBuilder();
+        i++;
+        while (!"=====================  The End  =======================".equals(outputLines[i]) && i < l) {
+            if (!"".equals(outputLines[i])) {
+                retval.append(outputLines[i]);
+            }
+            i++;
+        }
+        // System.out.println("qepcad out = " + retval);
+        return retval.toString();
+    }
+
 
 
 

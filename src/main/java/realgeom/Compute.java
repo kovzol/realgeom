@@ -13,16 +13,22 @@ public class Compute {
     private static Log maxLogLevel;
 
     private static String triangleInequality(String a, String b, String c, Cas cas) {
-        return "(" + a + "+" + b + ">" + c + ")";
+        return a + "+" + b + ">" + c;
     }
 
     private static void appendIneqs(String ineq, Cas cas, Tool tool) {
+        if (cas == Cas.QEPCAD) {
+            if (!"".equals(ineqs)) {
+                ineqs += " /\\ ";
+            }
+            ineqs += ineq;
+        }
         if (cas == Cas.MAPLE) {
             if (tool == Tool.REGULAR_CHAINS) {
                 if (!"".equals(ineqs)) {
                     ineqs += " &and ";
                 }
-                ineqs += ineq;
+                ineqs += "(" + ineq + ")";
             }
             if (tool == Tool.SYNRAC) {
                 if (!"".equals(ineqs)) {
@@ -36,16 +42,23 @@ public class Compute {
             if (!"".equals(ineqs)) {
                 ineqs += " \\[And] ";
             }
-            ineqs += ineq;
+            ineqs += "(" + ineq + ")";
         }
     }
 
     private static String eq(String lhs, String rhs, Cas cas) {
-        if (cas == Cas.MAPLE) {
-            return "(" + lhs + "=" + rhs + ")";
+        if (cas == Cas.MAPLE || cas == Cas.QEPCAD) {
+            return lhs + "=" + rhs;
         }
         // if (cas == Cas.MATHEMATICA)
         return "" + lhs + " == " + rhs + "";
+    }
+
+    private static String product(String a, String b, Cas cas) {
+        if (cas == Cas.QEPCAD) {
+            return "(" + a + ") (" + b + ")";
+        }
+        return "(" + a + ")*(" + b + ")";
     }
 
     private static void appendResponse(String message, Log logLevel) {
@@ -59,6 +72,12 @@ public class Compute {
             response += "\n";
         }
         response += message;
+    }
+
+    private static String rewriteMathematica(String formula) {
+        String mathcode = "Print[Quiet[Reduce[" + formula + ",m,Reals] // InputForm]]";
+        appendResponse("LOG: mathcode=" + mathcode, Log.VERBOSE);
+        return ExternalCAS.executeMathematica(mathcode);
     }
 
     public static String triangleExplore(String lhs, String rhs, Cas cas, Tool tool, Subst subst, Log log, String timelimit) {
@@ -77,12 +96,39 @@ public class Compute {
         if (subst == Subst.AUTO) {
             a = "1";
         }
-        appendIneqs("(" + m + ">0)", cas, tool);
+        appendIneqs(m + ">0", cas, tool);
         appendIneqs(triangleInequality(a, "b", "c", cas), cas, tool);
         appendIneqs(triangleInequality("b", "c", a, cas), cas, tool);
         appendIneqs(triangleInequality("c", a, "b", cas), cas, tool);
-        appendIneqs(eq(lhs, m + "*(" + rhs + ")", cas), cas, tool);
+
+        if (cas == Cas.QEPCAD) {
+            lhs = lhs.replace("*", " ");
+            rhs = rhs.replace("*", " ");
+        }
+
+        appendIneqs(eq(lhs, product(m, rhs, cas), cas), cas, tool);
         appendResponse("LOG: ineqs=" + ineqs, Log.VERBOSE);
+
+        if (cas == Cas.QEPCAD) {
+            String exists = "";
+            String vars = "(" + m + ",";
+            if (subst != Subst.AUTO) {
+                vars += "a,";
+                exists += "(Ea)";
+            }
+            exists += "(Eb)(Ec)";
+            vars += "b,c)";
+
+            code = "[]\n" + vars +"\n1\n" + exists + "[" + ineqs + "].\n" +
+                    "assume[" + m + ">0].\nfinish\n";
+            appendResponse("LOG: code=" + code,Log.VERBOSE);
+            String result = ExternalCAS.executeQepcad(code);
+            // hacky way to convert QEPCAD formula to Mathematica formula FIXME
+            String rewrite = result.replace("/\\", "&&").replace("=", "==").
+                    replace(">==", ">=").replace("<==", "<=");
+            String real = rewriteMathematica(rewrite);
+            appendResponse(real, Log.INFO);
+        }
 
         if (cas == Cas.MATHEMATICA) {
 
@@ -91,8 +137,6 @@ public class Compute {
                 vars += "a,";
             }
             vars += "b,c}";
-
-            // String mathcode = "Print[Quiet[Reduce[" + rewrite + ",m,Reals] // InputForm]]";
 
             code = "Print[Quiet[Reduce[Resolve[Exists[" + vars + "," + ineqs + "],Reals],Reals] // InputForm]]";
             appendResponse("LOG: code=" + code,Log.VERBOSE);
@@ -138,9 +182,7 @@ public class Compute {
                 b.append("]");
             }
             rewrite = rewrite.substring(0, i + 1) + b;
-            String mathcode = "Print[Quiet[Reduce[" + rewrite + ",m,Reals] // InputForm]]";
-            appendResponse("LOG: mathcode=" + mathcode, Log.VERBOSE);
-            String real = ExternalCAS.executeMathematica(mathcode);
+            String real = rewriteMathematica(rewrite);
             appendResponse(real, Log.INFO);
         }
         return response;

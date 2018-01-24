@@ -76,7 +76,7 @@ public class Benchmark {
                 String rhs = record.get("RHS");
                 for (String casTool : casTools) {
                     Cas cas;
-                    Tool tool;
+                    Tool tool = Tool.DEFAULT;
                     switch (casTool) {
                         case "maple/synrac":
                             cas = Cas.MAPLE;
@@ -90,7 +90,9 @@ public class Benchmark {
                         case "mathematica":
                         case "mathematica/default":
                             cas = Cas.MATHEMATICA;
-                            tool = Tool.DEFAULT;
+                            break;
+                        case "qepcad":
+                            cas = Cas.QEPCAD;
                             break;
                         default:
                             System.err.println("Cannot parse cas/tool " + casTool);
@@ -111,8 +113,21 @@ public class Benchmark {
                         System.out.print("=" + response + " (" + time + " sec) ");
                         table[i].append("<td class=\"");
                         if (response.equals(expected)) {
-                            System.out.println("SUCCESS");
-                            table[i].append("o1\">");
+                            System.out.print("SUCCESS ");
+                                if (elapsedTime < 10000) {
+                                    // solved in time
+                                    System.out.println("ST");
+                                    table[i].append("o1\">");
+                                } else
+                                if (elapsedTime < 300000) {
+                                    // solved in 300 sec
+                                    System.out.println("S2");
+                                    table[i].append("o2\">");
+                                } else {
+                                    // solved in 1 hour
+                                    System.out.println("S3");
+                                    table[i].append("o3\">");
+                                }
                         } else {
                             System.out.println("FAIL");
                             table[i].append("error\">");

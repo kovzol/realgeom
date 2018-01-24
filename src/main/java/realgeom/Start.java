@@ -71,6 +71,20 @@ public class Start {
             }
         }
 
+        input = "[]\n" +
+                "(m,b,c)\n" +
+                "1\n" +
+                "(Eb)(Ec)[1+b>c /\\ 1+c>b /\\ b+c>1 /\\  (1+b+c)^2=m (b+ c+b c)].\n" +
+                "assume[m>0].\n" +
+                "finish";
+        System.out.println("Testing QEPCAD connection via shell...");
+        test = ExternalCAS.executeQepcad(input);
+        if (!test.equals("m - 4 < 0 /\\ m - 3 >= 0")) {
+            System.out.println("Consider installing QEPCAD (make sure you have a script `qepcad' on your path that correctly starts QEPCAD)");
+        } else {
+            supported += ",qepcad";
+        }
+
         System.out.println("All required tests are passed");
         return supported;
     }
