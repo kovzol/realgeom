@@ -17,7 +17,12 @@ public class Compute {
     }
 
     private static void appendIneqs(String ineq, Cas cas, Tool tool) {
-        if (cas == Cas.QEPCAD) {
+        if (cas == Cas.REDLOG) {
+            if (!"".equals(ineqs)) {
+                ineqs += " and ";
+            }
+            ineqs += ineq;
+        }        if (cas == Cas.QEPCAD) {
             if (!"".equals(ineqs)) {
                 ineqs += " /\\ ";
             }
@@ -47,7 +52,7 @@ public class Compute {
     }
 
     private static String eq(String lhs, String rhs, Cas cas) {
-        if (cas == Cas.MAPLE || cas == Cas.QEPCAD) {
+        if (cas == Cas.MAPLE || cas == Cas.QEPCAD || cas == Cas.REDLOG) {
             return lhs + "=" + rhs;
         }
         // if (cas == Cas.MATHEMATICA)
@@ -109,6 +114,28 @@ public class Compute {
         appendIneqs(eq(lhs, product(m, rhs, cas), cas), cas, tool);
         appendResponse("LOG: ineqs=" + ineqs, Log.VERBOSE);
 
+        if (cas == Cas.REDLOG) {
+            String exists = "ex({";
+            if (subst != Subst.AUTO) {
+                exists += "a,";
+            }
+            exists += "b,c}";
+
+            code = "rlqe(" + exists + ", " + ineqs + "));";
+            appendResponse("LOG: code=" + code,Log.VERBOSE);
+            String result = ExternalCAS.executeRedlog(code);
+            appendResponse("LOG: result=" + result, Log.VERBOSE);
+            // remove trailing $
+            result = result.substring(0, result.length() - 1);
+            // hacky way to convert RedLog formula to Mathematica formula FIXME
+            String rewrite = result.replace(" and ", " && ").replace("=", "==").
+                    replace(">==", ">=").replace("<==", "<=").replace("**", "^").
+                    replace(" or ", " || ").replace("<>","!=");
+            // appendResponse("LOG: rewrite=" + rewrite, Log.INFO);
+            String real = rewriteMathematica(rewrite);
+            appendResponse(real, Log.INFO);
+        }
+
         if (cas == Cas.QEPCAD) {
             String exists = "";
             String vars = "(" + m + ",";
@@ -123,6 +150,7 @@ public class Compute {
                     "assume[" + m + ">0].\nfinish\n";
             appendResponse("LOG: code=" + code,Log.VERBOSE);
             String result = ExternalCAS.executeQepcad(code);
+            appendResponse("LOG: result=" + result, Log.VERBOSE);
             // hacky way to convert QEPCAD formula to Mathematica formula FIXME
             String rewrite = result.replace("/\\", "&&").replace("=", "==").
                     replace(">==", ">=").replace("<==", "<=");

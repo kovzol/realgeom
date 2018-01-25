@@ -77,8 +77,33 @@ public class ExternalCAS {
         return retval.toString();
     }
 
+    static String executeRedlog (String command) {
+        String preamble = "off echo$off nat$rlset r$linelength(100000)$";
+        return executeReduce(preamble + command);
+    }
 
-
-
-
+    static String executeReduce (String command) {
+        // System.out.println("reduce in = " + command);
+        String output = ExternalCAS.execute("echo '" + command + "' | reduce");
+        String[] outputLines = output.split("\n");
+        int i = 0;
+        int l = outputLines.length;
+        if (l==0) {
+            return "";
+        }
+        StringBuilder retval = new StringBuilder();
+        i++;
+        while (i < l) {
+            String line = outputLines[i];
+            if (!"".equals(line) && !"*** End-of-file read ".equals(line)) {
+                int ll = line.length();
+                if (ll<2 || !line.substring(ll-2).equals(": ")) {
+                    retval.append(line);
+                }
+            }
+            i++;
+        }
+        // System.out.println("reduce out = " + retval);
+        return retval.toString();
+    }
 }

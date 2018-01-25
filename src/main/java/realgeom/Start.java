@@ -48,7 +48,7 @@ public class Start {
         System.out.println("Testing Maple connection via shell...");
         test = ExternalCAS.executeMaple(input);
         if (!test.equals("3")) {
-            System.out.println("Consider installing Maple");
+            System.out.println("Consider installing Maple (make sure you have the executable `maple' on your path)");
         } else {
             input = "with(RegularChains):with(SemiAlgebraicSetTools)"
                     + ":inputform:=&E([b,c]), (m>0) &and (1+b>c) &and (b+c>1) &and (c+1>b) &and (1+b=m*(c))"
@@ -85,7 +85,25 @@ public class Start {
             supported += ",qepcad";
         }
 
+        input = "1+2;";
+        System.out.println("Testing Reduce connection via shell...");
+        test = ExternalCAS.executeReduce(input);
+        if (!test.equals("3")) {
+            System.out.println("Consider installing Reduce (make sure you have the executable `reduce' on your path)."
+                    + "\nSee also http://www.redlog.eu/get-redlog/ to have RedLog installed");
+        } else {
+            input = "rlqe(ex({b,c}, 1+b>c and 1+c>b and b+c>1 and a=m*(b+c)));";
+            System.out.println("Testing RedLog connection via shell...");
+            test = ExternalCAS.executeRedlog(input);
+            if (!test.equals("m = 0 and a = 0 or m <> 0 and a*m - m**2 > 0$")) {
+                System.out.println("Consider installing RedLog from http://www.redlog.eu/get-redlog/");
+            } else {
+                supported += ",redlog";
+            }
+        }
+
         System.out.println("All required tests are passed");
+        System.out.println("Supported backends: " + supported);
         return supported;
     }
 

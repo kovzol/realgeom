@@ -25,9 +25,12 @@ You need to have the following pieces of software installed:
 
 Optional:
 
-* Maple
-* recent versions of the [RegularChains](http://www.regularchains.org/) and/or the [SyNRAC](http://www.fujitsu.com/jp/group/labs/en/resources/tech/announced-tools/synrac/) library (in Maple)
+* Maple with the following libraries:
+  * a recent version of [RegularChains](http://www.regularchains.org/) and/or
+  * [SyNRAC](http://www.fujitsu.com/jp/group/labs/en/resources/tech/announced-tools/synrac/)
 * [QEPCAD](https://github.com/PetterS/qepcad)
+* Reduce with
+  * [RedLog](http://www.redlog.eu/)
 
 ## Usage ##
 The command `./gradlew run` will download all additional tools you may
@@ -65,15 +68,14 @@ It is a work in progress.
 * How to enter the caret (^) symbol? Use %5e instead, e.g. a%5e2 instead of a^2.
 * How to start the program on a different port than 8765? Currently you need to change this manually in the file [Start.java](src/main/java/realgeom/Start.java).
 * Which parameters are accepted? See the file [HTTPServer.java](src/main/java/realgeom/HTTPServer.java) for the current options.
-* Which systems are planned to be supported in the future? Only RedLog for the moment. See [Cas.java](src/main/java/realgeom/Cas.java) and [Tool.java](src/main/java/realgeom/Tool.java) for more details.
 
 ## Credits ##
-**realgeom** internally uses the Java port of the Giac CAS for some
-computations, based on the SWIG C++ to Java translator. Automated loading
-of the native JAR package of Giac was borrowed from GeoGebra.
+**realgeom** internally uses the Java port of the [Giac](https://www-fourier.ujf-grenoble.fr/~parisse/giac.html) CAS for some
+computations, based on the [SWIG](http://www.swig.org/) C++ to Java translator. Automated loading
+of the native JAR package of Giac was borrowed from [GeoGebra](http://www.geogebra.org/).
 
-We are thankful to the Research Institute for Symbolic Computations (RISC) at
-the Johannes Kepler University (JKU), Linz, for allowing access to their
+We are thankful to the [Research Institute for Symbolic Computations (RISC)](http://www.risc.jku.at/) at
+the [Johannes Kepler University (JKU)](http://www.jku.at/content), Linz, Austria, for allowing access to their
 computer algebra resources.
 
 ## Authors ##

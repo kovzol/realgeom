@@ -107,6 +107,9 @@ public class Benchmark {
                         case "qepcad":
                             cas = Cas.QEPCAD;
                             break;
+                        case "redlog":
+                            cas = Cas.REDLOG;
+                            break;
                         default:
                             System.err.println("Cannot parse cas/tool " + casTool);
                             return;
