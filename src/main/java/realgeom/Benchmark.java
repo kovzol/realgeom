@@ -128,7 +128,7 @@ public class Benchmark {
                         String time = Double.toString((double) elapsedTime / 1000);
                         System.out.print("=" + response + " (" + time + " sec) ");
                         table[i].append("<td class=\"");
-                        if (elapsedTime > timelimit) {
+                        if (elapsedTime/1000 > timelimit) {
                             System.out.println("FAIL TO");
                             table[i].append("timeout\">");
                         } else if (response.equals(expected)) {
