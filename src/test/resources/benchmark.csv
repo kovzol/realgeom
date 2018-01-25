@@ -18,5 +18,5 @@ Bottema 1.16,triangle,explore,a/(b+c)+b/(c+a)+c/(a+b),1,"Inequality[3/2, LessEqu
 Bottema 1.17,triangle,explore,(s+a)/(b+c)+(s+b)/(c+a)+(s+c)/(a+b),1,"Inequality[15/4, LessEqual, m, Less, 9/2]"
 Bottema 1.18,triangle,explore,(1-a/b)*(1-a/c)+1,(c-a)/b+(b-a)/c,m > 1
 Bottema 1.19,triangle,explore,a^2+b^2+c^2,(a+b+c)^2,"Inequality[1/3, LessEqual, m, Less, 1/2]"
-Bottema 1.23,triangle,explore,(a+b+c)^3,5*(b*c*(b+c)+c*a*(c+a)+a*b*(a+b))-3*a*b*c,"Inequality[4/5, Less, m, LessEqual, 1"
+Bottema 1.23,triangle,explore,(a+b+c)^3,5*(b*c*(b+c)+c*a*(c+a)+a*b*(a+b))-3*a*b*c,"Inequality[4/5, Less, m, LessEqual, 1]"
 Bottema 1.24,triangle,explore,(1+a/b)*(1+a/c),3+(a+b)/c+(a+c)/b,"Inequality[1/5, Less, m, Less, 1]"
