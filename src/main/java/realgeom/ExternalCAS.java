@@ -9,10 +9,12 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class ExternalCAS {
-    static String execute (String command) {
+    static String execute (String command, String timeLimit) {
         StringBuilder output = new StringBuilder();
         String[] cmd = {
-            "/bin/sh",
+            "/usr/bin/timeout",
+            timeLimit,
+            "/bin/bash",
             "-c",
             command
         };
@@ -35,15 +37,17 @@ public class ExternalCAS {
         if (output.substring(output.length()-1,output.length()).equals("\n")) {
             return (output.substring(0,output.length()-1));
         }
+        System.out.println(output);
         return output.toString();
     }
 
-    static String executeMaple (String command) {
-        return execute("echo \"" + command + "\" | maple -q");
+    static String executeMaple (String command, String timeLimit) {
+        // System.out.println("maple command = " + command);
+        return execute("echo \"" + command + "\" | maple -q", timeLimit);
     }
 
-    static String executeMathematica (String command) {
-        String output = ExternalCAS.execute("echo \"" + command + "\" | math | grep 'In\\[1\\]:= '");
+    static String executeMathematica (String command, String timeLimit) {
+        String output = ExternalCAS.execute("echo \"" + command + "\" | math | grep 'In\\[1\\]:= '", timeLimit);
         int ltrim = "In[1]:= ".length();
         if (output.length() < ltrim) {
             System.err.println("Error executing Mathematica command");
@@ -52,16 +56,16 @@ public class ExternalCAS {
         return output.substring(ltrim);
     }
 
-    static String executeQepcad (String command) {
+    static String executeQepcad (String command, String timeLimit) {
         // System.out.println("qepcad in = " + command);
-        String output = ExternalCAS.execute("echo \"" + command + "\" | qepcad");
+        String output = ExternalCAS.execute("echo \"" + command + "\" | qepcad", timeLimit);
         String[] outputLines = output.split("\n");
         int i = 0;
         int l = outputLines.length;
         if (l==0) {
             return "";
         }
-        while (!"An equivalent quantifier-free formula:".equals(outputLines[i]) && i < l) i++;
+        while (!"An equivalent quantifier-free formula:".equals(outputLines[i]) && (i < (l - 1))) i++;
         if (i==l-1) {
             return "";
         }
@@ -77,14 +81,14 @@ public class ExternalCAS {
         return retval.toString();
     }
 
-    static String executeRedlog (String command) {
+    static String executeRedlog (String command, String timeLimit) {
         String preamble = "off echo$off nat$rlset r$linelength(100000)$";
-        return executeReduce(preamble + command);
+        return executeReduce(preamble + command, timeLimit);
     }
 
-    static String executeReduce (String command) {
+    static String executeReduce (String command, String timeLimit) {
         // System.out.println("reduce in = " + command);
-        String output = ExternalCAS.execute("echo '" + command + "' | reduce");
+        String output = ExternalCAS.execute("echo '" + command + "' | reduce", timeLimit);
         String[] outputLines = output.split("\n");
         int i = 0;
         int l = outputLines.length;

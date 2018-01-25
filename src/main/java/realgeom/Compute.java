@@ -79,10 +79,10 @@ public class Compute {
         response += message;
     }
 
-    private static String rewriteMathematica(String formula) {
+    private static String rewriteMathematica(String formula, String timeLimit) {
         String mathcode = "Print[Quiet[Reduce[" + formula + ",m,Reals] // InputForm]]";
         appendResponse("LOG: mathcode=" + mathcode, Log.VERBOSE);
-        return ExternalCAS.executeMathematica(mathcode);
+        return ExternalCAS.executeMathematica(mathcode, timeLimit);
     }
 
     public static String triangleExplore(String lhs, String rhs, Cas cas, Tool tool, Subst subst, Log log, String timelimit) {
@@ -91,6 +91,10 @@ public class Compute {
         ineqs = "";
         response = "";
         maxLogLevel = log;
+
+        // substitutions (see p. 9 in Bottema's book)
+        lhs = GiacCAS.execute("subst(" + lhs + ",s=(a+b+c)/2)");
+        rhs = GiacCAS.execute("subst(" + rhs + ",s=(a+b+c)/2)");
 
         if (subst == Subst.AUTO) {
             lhs = GiacCAS.execute("subst(" + lhs + ",a=1)");
@@ -106,12 +110,18 @@ public class Compute {
         appendIneqs(triangleInequality("b", "c", a, cas), cas, tool);
         appendIneqs(triangleInequality("c", a, "b", cas), cas, tool);
 
-        if (cas == Cas.QEPCAD) {
-            lhs = lhs.replace("*", " ");
-            rhs = rhs.replace("*", " ");
+        String eq = lhs + " = m * (" + rhs + ")";
+        // Convert the equation to a polynomial equation for Maple, QEPCAD and RedLog:
+        if (cas == Cas.MAPLE || cas == Cas.QEPCAD || cas == Cas.REDLOG) {
+            eq = GiacCAS.execute("simplify(denom(lhs(" + eq + "))*denom(rhs(" + eq + "))*(" + eq + "))");
         }
-
-        appendIneqs(eq(lhs, product(m, rhs, cas), cas), cas, tool);
+        if (cas == Cas.QEPCAD) {
+            eq = eq.replace("*", " ");
+        }
+        if (cas == Cas.MATHEMATICA) {
+            eq = eq.replace("=", "==");
+        }
+        appendIneqs(eq, cas, tool);
         appendResponse("LOG: ineqs=" + ineqs, Log.VERBOSE);
 
         if (cas == Cas.REDLOG) {
@@ -123,16 +133,19 @@ public class Compute {
 
             code = "rlqe(" + exists + ", " + ineqs + "));";
             appendResponse("LOG: code=" + code,Log.VERBOSE);
-            String result = ExternalCAS.executeRedlog(code);
+            String result = ExternalCAS.executeRedlog(code, timelimit);
             appendResponse("LOG: result=" + result, Log.VERBOSE);
             // remove trailing $
-            result = result.substring(0, result.length() - 1);
+            int l = result.length();
+            if (l>0) {
+                result = result.substring(0, result.length() - 1);
+            }
             // hacky way to convert RedLog formula to Mathematica formula FIXME
             String rewrite = result.replace(" and ", " && ").replace("=", "==").
                     replace(">==", ">=").replace("<==", "<=").replace("**", "^").
                     replace(" or ", " || ").replace("<>","!=");
             // appendResponse("LOG: rewrite=" + rewrite, Log.INFO);
-            String real = rewriteMathematica(rewrite);
+            String real = rewriteMathematica(rewrite, timelimit);
             appendResponse(real, Log.INFO);
         }
 
@@ -149,12 +162,12 @@ public class Compute {
             code = "[]\n" + vars +"\n1\n" + exists + "[" + ineqs + "].\n" +
                     "assume[" + m + ">0].\nfinish\n";
             appendResponse("LOG: code=" + code,Log.VERBOSE);
-            String result = ExternalCAS.executeQepcad(code);
+            String result = ExternalCAS.executeQepcad(code, timelimit);
             appendResponse("LOG: result=" + result, Log.VERBOSE);
             // hacky way to convert QEPCAD formula to Mathematica formula FIXME
             String rewrite = result.replace("/\\", "&&").replace("=", "==").
                     replace(">==", ">=").replace("<==", "<=");
-            String real = rewriteMathematica(rewrite);
+            String real = rewriteMathematica(rewrite, timelimit);
             appendResponse(real, Log.INFO);
         }
 
@@ -168,7 +181,7 @@ public class Compute {
 
             code = "Print[Quiet[Reduce[Resolve[Exists[" + vars + "," + ineqs + "],Reals],Reals] // InputForm]]";
             appendResponse("LOG: code=" + code,Log.VERBOSE);
-            String result = ExternalCAS.executeMathematica(code);
+            String result = ExternalCAS.executeMathematica(code, timelimit);
             appendResponse(result, Log.INFO);
         }
 
@@ -191,7 +204,7 @@ public class Compute {
             code = initCode + "timelimit(" + timelimit + ",lprint(" + commandCode + "));";
             appendResponse("LOG: code=" + code,Log.VERBOSE);
 
-            String result = ExternalCAS.executeMaple(code);
+            String result = ExternalCAS.executeMaple(code, timelimit);
             appendResponse("LOG: result=" + result, Log.VERBOSE);
             // hacky way to convert Maple formula to Mathematica formula FIXME
             String rewrite = result.replace("\\", "").replace("\n","").replace("`&or`(", "Or[").
@@ -202,15 +215,17 @@ public class Compute {
             int i;
             int l = rewrite.length();
             i = l - 1 ;
-            while (rewrite.substring(i,i+1).equals(")")) {
-                i--;
+            if (i>0) {
+                while (rewrite.substring(i, i + 1).equals(")")) {
+                    i--;
+                }
             }
             StringBuilder b = new StringBuilder();
             for (int j = i; j < l -1 ; j++) {
                 b.append("]");
             }
             rewrite = rewrite.substring(0, i + 1) + b;
-            String real = rewriteMathematica(rewrite);
+            String real = rewriteMathematica(rewrite, timelimit);
             appendResponse(real, Log.INFO);
         }
         return response;
