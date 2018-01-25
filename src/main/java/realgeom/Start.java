@@ -109,7 +109,7 @@ public class Start {
 
     public static void main(String argv[]) {
         // the timeout is hardcoded, FIXME
-        String supported = test("300");
+        String supported = test("10");
         if (supported.equals("")) {
             System.err.println("Unexpected results on self-test, exiting");
             System.exit(1);
@@ -119,7 +119,7 @@ public class Start {
         new File("build").mkdirs();
         Benchmark.start("src/test/resources/benchmark.csv",
                 "build/benchmark.html",
-                supported, "10");
+                supported, 3600);
         System.out.println("Starting HTTP server on port 8765, press CTRL-C to terminate");
         try {
             // this is hardcoded, FIXME

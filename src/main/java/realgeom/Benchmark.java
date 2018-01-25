@@ -13,7 +13,7 @@ import org.apache.commons.csv.*;
 
 public class Benchmark {
 
-    public static void start(String inputFile, String outputFile, String casToolList, String timelimit) {
+    public static void start(String inputFile, String outputFile, String casToolList, int timelimit) {
 
         Reader in;
         try {
@@ -121,14 +121,17 @@ public class Benchmark {
                         }
 
                         long startTime = System.currentTimeMillis();
-                        String response = Compute.triangleExplore(lhs, rhs, cas, tool, subst, Log.SILENT, timelimit);
+                        String response = Compute.triangleExplore(lhs, rhs, cas, tool, subst, Log.SILENT, timelimit + "");
                         int elapsedTime = (int) (System.currentTimeMillis() - startTime);
                         System.out.print(name + ": triangleExplore(lhs=" + lhs + ",rhs=" + rhs +
                                 ",cas=" + cas + ",tool=" + tool + ",subst=" + subst + ")");
                         String time = Double.toString((double) elapsedTime / 1000);
                         System.out.print("=" + response + " (" + time + " sec) ");
                         table[i].append("<td class=\"");
-                        if (response.equals(expected)) {
+                        if (elapsedTime > timelimit) {
+                            System.out.println("FAIL TO");
+                            table[i].append("timeout\">");
+                        } else if (response.equals(expected)) {
                             System.out.print("SUCCESS ");
                                 if (elapsedTime < 10000) {
                                     // solved in time
@@ -145,7 +148,7 @@ public class Benchmark {
                                     table[i].append("s3\">");
                                 }
                         } else {
-                            System.out.println("FAIL");
+                            System.out.println("FAIL ER");
                             table[i].append("error\">");
                         }
                         table[i].append(time).append("</td>");
