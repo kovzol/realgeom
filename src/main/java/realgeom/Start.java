@@ -5,6 +5,8 @@ package realgeom;
  * If everything is successful, then a HTTP server will be started.
  */
 
+import org.apache.commons.cli.*;
+
 import java.io.File;
 
 public class Start {
@@ -108,25 +110,116 @@ public class Start {
     }
 
     public static void main(String argv[]) {
-        // the timeout is hardcoded, FIXME
-        String supported = test("10");
+
+        Options options = new Options();
+
+        Option serverOption = new Option("s", "server", false, "run HTTP server");
+        serverOption.setRequired(false);
+        options.addOption(serverOption);
+
+        Option portOption = new Option("p", "port", true, "HTTP server port number");
+        portOption.setRequired(false);
+        options.addOption(portOption);
+
+        Option benchmarkOption = new Option("b", "benchmark", false, "run benchmark");
+        benchmarkOption.setRequired(false);
+        options.addOption(benchmarkOption);
+
+        Option backendOption = new Option("c", "backends", true, "backends");
+        backendOption.setRequired(false);
+        options.addOption(backendOption);
+
+        Option inputOption = new Option("i", "input", true, "benchmark input file path");
+        inputOption.setRequired(false);
+        options.addOption(inputOption);
+
+        Option outputOption = new Option("o", "output", true, "benchmark output file");
+        outputOption.setRequired(false);
+        options.addOption(outputOption);
+
+        Option timeLimitOption = new Option("t", "timelimit", true, "time limit");
+        timeLimitOption.setRequired(false);
+        options.addOption(timeLimitOption);
+
+        CommandLineParser parser = new DefaultParser();
+        HelpFormatter formatter = new HelpFormatter();
+        CommandLine cmd;
+
+        try {
+            cmd = parser.parse(options, argv);
+        } catch (ParseException e) {
+            System.out.println(e.getMessage());
+            formatter.printHelp("realgeom", options);
+            System.exit(1);
+            return;
+        }
+
+        int timeLimit = 3600;
+        if (cmd.hasOption("t")) {
+            timeLimit = Integer.parseInt(cmd.getOptionValue("timelimit"));
+        }
+        System.out.println("Time limit is set to " + timeLimit + " seconds");
+
+        String supported = test(timeLimit + "");
         if (supported.equals("")) {
             System.err.println("Unexpected results on self-test, exiting");
             System.exit(1);
         }
-        System.out.println("Running benchmarks, this may take a while...");
-        // this is hardcoded, FIXME
-        new File("build").mkdirs();
-        Benchmark.start("src/test/resources/benchmark.csv",
-                "build/benchmark.html",
-                supported, 3600);
-        System.out.println("Starting HTTP server on port 8765, press CTRL-C to terminate");
-        try {
-            // this is hardcoded, FIXME
-            HTTPServer.start(8765);
-        } catch (Exception e) {
-            System.err.println("Cannot start HTTP server, exiting");
-            System.exit(1);
+
+        if (cmd.hasOption("b")) {
+            StringBuilder backends = new StringBuilder(supported);
+            if (cmd.hasOption("c")) {
+                backends = new StringBuilder();
+                String backendsRequested = cmd.getOptionValue("backends");
+                System.out.println("Requested backends: " + backendsRequested);
+                // The result of check should be put in a global array, TODO
+                String[] backendsRequestedList = backendsRequested.split(",");
+                for (String backendRequested : backendsRequestedList) {
+                    if (!supported.contains(backendRequested)) {
+                        System.err.println("Unsupported backend " + backendRequested);
+                    } else {
+                        backends.append(",").append(backendRequested);
+                    }
+                }
+                if ("".equals(backends.toString())) {
+                    System.err.println("No backends are available according to the request");
+                    System.exit(2);
+                }
+                // trim leading ,
+                backends = new StringBuilder(backends.substring(1));
+            }
+
+            String inputFilePath = "src/test/resources/benchmark.csv";
+            if (cmd.hasOption("i")) {
+                inputFilePath = cmd.getOptionValue("input");
+            }
+            System.out.println("Using " + inputFilePath + " as input file");
+
+            String outputFilePath = "build/benchmark.html";
+            if (cmd.hasOption("o")) {
+                outputFilePath = cmd.getOptionValue("output");
+            }
+            System.out.println("Using " + outputFilePath + " as output file");
+
+            System.out.println("Running benchmarks on backends " + backends + ", this may take a while...");
+            Benchmark.start(inputFilePath,
+                    outputFilePath,
+                    backends.toString(), timeLimit);
+            System.out.println("The benchmark has been successfully performed");
+        }
+
+        if (cmd.hasOption("s")) {
+            int port = 8765;
+            if (cmd.hasOption("p")) {
+                port = Integer.parseInt(cmd.getOptionValue("port"));
+            }
+            System.out.println("Starting HTTP server on port " + port + ", press CTRL-C to terminate");
+            try {
+                HTTPServer.start(port);
+            } catch (Exception e) {
+                System.err.println("Cannot start HTTP server, exiting");
+                System.exit(1);
+            }
         }
     }
 }

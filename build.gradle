@@ -9,6 +9,7 @@ repositories {
 
 dependencies {
     compile "org.apache.commons:commons-csv:1.5"
+    compile "commons-cli:commons-cli:1.4"
     runtime "fr.ujf-grenoble:javagiac:54646:natives-linux-amd64"
 }
 

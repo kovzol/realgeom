@@ -1,6 +1,7 @@
 # realgeom, a tool to solve problems in real geometry #
-This tool is a web service which forwards real geometry problems
-to certain computer algebra systems (CAS) by rewriting them, analyzing the
+This tool can solve some real geometry problems
+by using several computer algebra systems (CAS)
+by formalizing the problems, analyzing the
 result, and returning the answer to the user in readable format.
 
 For example, such a problem is comparing (a²+b²+c²) and (a·b+b·c+c·a) in
@@ -16,26 +17,97 @@ posed by the first chapter of the book
 * Bottema, Djordjević, Janić, Mitronović, Vasić:
   _Geometric inequalities_, Wolters-Noordhoff Publishing, Groningen, The Nederlands (1969)
 
+The program offers two ways to solve such problems:
+
+* by working as a web service or
+* reading the list of given problems from a CSV file.
+
+An example database of problems is also available based on
+the book above. 
+
 ## Installation ##
 You need to have the following pieces of software installed:
 
-* Linux
-* Java 7/8 JDK
-* Mathematica
+* Linux (most distributions should work, for example, Debian 8)
+* [Java SE 7/8 JDK](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+* [Mathematica](https://www.wolfram.com/mathematica/)
 
 Optional:
 
-* Maple with the following libraries:
+* [Maple](https://www.maplesoft.com/) with the following libraries:
   * a recent version of [RegularChains](http://www.regularchains.org/) and/or
   * [SyNRAC](http://www.fujitsu.com/jp/group/labs/en/resources/tech/announced-tools/synrac/)
 * [QEPCAD](https://github.com/PetterS/qepcad)
-* Reduce with
+* [Reduce](http://www.reduce-algebra.com/) with
   * [RedLog](http://www.redlog.eu/)
 
 ## Usage ##
-The command `./gradlew run` will download all additional tools you may
-eventually need. After a self-test and running a benchmark it starts
-a web server listening on port 8765. Then you can invoke the software
+The command `./gradlew installDist` will download and compile
+all additional tools you may
+eventually need, or informs you about the further steps.
+Finally the following command will start the program:
+
+    $ build/install/realgeom/bin/realgeom
+
+This should perform a self-test that results in something like this:
+```
+Loading Giac Java interface...
+Time limit is set to 3600 seconds
+Testing Giac connection...
+Testing shell connection...
+Testing Mathematica connection via shell...
+Testing Maple connection via shell...
+Testing Maple/RegularChains...
+Testing Maple/SyNRAC...
+Testing QEPCAD connection via shell...
+Testing Reduce connection via shell...
+Testing RedLog connection via shell...
+All required tests are passed
+Supported backends: mathematica,maple/regularchains,maple/synrac,qepcad,redlog
+```
+By entering
+
+    $ build/install/realgeom/bin/realgeom -h
+    
+you will get some help on the command line options:
+```
+Loading Giac Java interface...
+Unrecognized option: -h
+usage: realgeom
+ -b,--benchmark         run benchmark
+ -c,--backends <arg>    backends
+ -i,--input <arg>       benchmark input file path
+ -o,--output <arg>      benchmark output file
+ -p,--port <arg>        HTTP server port number
+ -s,--server            run HTTP server
+ -t,--timelimit <arg>   time limit
+```
+By default all supported backends will be used unless
+you explicitly give a comma separated list of the
+backends.
+
+## Running the benchmark ##
+Use the option -b to run the benchmark.
+ 
+The default input file is [src/test/resources/benchmark.csv](src/test/resources/benchmark.csv),
+while the default output is the file *build/benchmark.html*.
+You may want to see a [demo](demo/benchmark.html) of
+the generated output ([rendered version](http://htmlpreview.github.io/?https://github.com/kovzol/realgeom/blob/master/demo/benchmark.html)). 
+
+The default time limit is 1 hour, it can be changed by
+defining the maximal amount of seconds with the -t option.
+
+## Running realgeom as a web service ##
+
+Use the option -s to start the program as a web service.
+
+By default a web server will be listening on port 8765, this
+can be changed by using the -p option. (Remember that you may
+not use port numbers less than 1024 on your machine unless
+you have root access. The given port may also be blocked
+by various firewalls.)
+
+Then you can invoke a concrete computation
 by issuing the following HTTP request (from your browser):
 ```
 http://your.domain.or.ip.address:8765/triangle?lhs=a*a+b*b+c*c&rhs=a*b+b*c+c*a&log=verbose
@@ -56,18 +128,14 @@ in your browser. The interpretation of this result is that the equation
 (a²+b²+c²)=m·(a·b+b·c+c·a)
 has solutions for 1≦m<2.
 
-The benchmark puts HTML output in the *build* folder.
-You may want to see a [demo](demo/benchmark.html) of
-the generated output ([rendered version](http://htmlpreview.github.io/?https://github.com/kovzol/realgeom/blob/master/demo/benchmark.html)). 
-
-## Documentation ##
-It is a work in progress.
+(You can use both the -b and -s options. In this case first
+the benchmark will be performed, and only after it will
+be available the connection to the web service.)
 
 ## Frequently asked questions ##
 * My Java is too old, how to work this around? Download a newer Java JDK version and set the JAVA_HOME to the correct installation folder after unzipping it, before typing `./gradlew run`.
-* How to enter the caret (^) symbol? Use %5e instead, e.g. a%5e2 instead of a^2.
-* How to start the program on a different port than 8765? Currently you need to change this manually in the file [Start.java](src/main/java/realgeom/Start.java).
-* Which parameters are accepted? See the file [HTTPServer.java](src/main/java/realgeom/HTTPServer.java) for the current options.
+* How to enter the caret (^) symbol in the web service? Use %5e instead, e.g. a%5e2 instead of a^2.
+* Which parameters are accepted by the web service? See the file [HTTPServer.java](src/main/java/realgeom/HTTPServer.java) for the current options.
 
 ## Credits ##
 **realgeom** internally uses the Java port of the [Giac](https://www-fourier.ujf-grenoble.fr/~parisse/giac.html) CAS for some

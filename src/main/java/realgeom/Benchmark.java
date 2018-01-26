@@ -25,6 +25,9 @@ public class Benchmark {
         BufferedWriter out;
         try {
             File file = new File(outputFile);
+            File parentDir = file.getParentFile();
+            parentDir.mkdirs();
+
             out = new BufferedWriter(new FileWriter(file));
         } catch (Exception e) {
             System.err.println("Error on opening file " + outputFile);
@@ -59,6 +62,8 @@ public class Benchmark {
         StringBuilder tableHead = new StringBuilder("<table><tr><th>Name</th>\n");
 
         String[] casTools = casToolList.split(",");
+        int[][] summary = new int[casTools.length][2];
+        int total = 0;
 
         for (String casTool : casTools) {
             tableHead.append("<th>").append(casTool).append("</th>");
@@ -75,7 +80,9 @@ public class Benchmark {
             table[i].append(tableHead);
         }
 
+        int cascounter = 0;
         for (CSVRecord record : records) {
+            total++;
             String name = record.get("Name");
             for (int i = 0; i < 2; ++i) {
                 // opening line
@@ -84,10 +91,13 @@ public class Benchmark {
             String task = record.get("Task");
             String mode = record.get("Mode");
             String expected = record.get("Expected");
+
             if (task.equals("triangle") && mode.equals("explore")) {
                 String lhs = record.get("LHS");
                 String rhs = record.get("RHS");
+                cascounter = 0;
                 for (String casTool : casTools) {
+                    cascounter++;
                     Cas cas;
                     Tool tool = Tool.DEFAULT;
                     switch (casTool) {
@@ -131,8 +141,10 @@ public class Benchmark {
                         if (elapsedTime/1000 >= timelimit) {
                             System.out.println("FAIL TO");
                             table[i].append("timeout\">");
+                            table[i].append("t/o");
                         } else if (response.equals(expected)) {
                             System.out.print("SUCCESS ");
+                                summary[cascounter-1][i]++;
                                 if (elapsedTime < 10000) {
                                     // solved in time
                                     System.out.println("ST");
@@ -143,15 +155,17 @@ public class Benchmark {
                                     System.out.println("S2");
                                     table[i].append("s2\">");
                                 } else {
-                                    // solved in 1 hour
+                                    // solved within timelimit
                                     System.out.println("S3");
                                     table[i].append("s3\">");
                                 }
+                            table[i].append(time);
                         } else {
                             System.out.println("FAIL ER");
                             table[i].append("error\">");
+                            table[i].append(time);
                         }
-                        table[i].append(time).append("</td>");
+                        table[i].append("</td>");
                     }
                 }
             }
@@ -162,12 +176,17 @@ public class Benchmark {
 
         }
         for (int i = 0; i < 2; ++i) {
-            // closing table
-            table[i].append("</table>");
+            // summary
+            table[i].append("<tr><td class=\"summary\"><b>Summary (of ").append(total).append(")</b></td>");
+            for (int j=0; j<cascounter; ++j) {
+                table[i].append("<td class=\"summary\"><b>").append(summary[j][i]).append("</b></td>");
+            }
+            // closing summary line and table
+            table[i].append("</tr></table>");
         }
 
         StringBuilder tail = new StringBuilder();
-        tail.append("</body></html>");
+        tail.append("</body></html>\n");
 
         StringBuilder b = new StringBuilder();
         b.append(head).append(table[0]).append(table[1]).append(tail);
