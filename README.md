@@ -92,7 +92,8 @@ Use the option -b to run the benchmark.
 The default input file is [src/test/resources/benchmark.csv](src/test/resources/benchmark.csv),
 while the default output is the file *build/benchmark.html*.
 You may want to see a [demo](demo/benchmark.html) of
-the generated output ([rendered version](http://htmlpreview.github.io/?https://github.com/kovzol/realgeom/blob/master/demo/benchmark.html)). 
+the generated output ([rendered version](http://htmlpreview.github.io/?https://github.com/kovzol/realgeom/blob/master/demo/benchmark.html))
+when 20 sec time limit is given.
 
 The default time limit is 1 hour, it can be changed by
 defining the maximal amount of seconds with the -t option.
