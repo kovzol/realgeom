@@ -37,7 +37,7 @@ Optional:
 * [Maple](https://www.maplesoft.com/) with the following libraries:
   * a recent version of [RegularChains](http://www.regularchains.org/) and/or
   * [SyNRAC](http://www.fujitsu.com/jp/group/labs/en/resources/tech/announced-tools/synrac/)
-* [QEPCAD](https://github.com/PetterS/qepcad)
+* [QEPCAD](https://www.usna.edu/CS/qepcadweb/B/QEPCAD.html)
 * [Reduce](http://www.reduce-algebra.com/) with
   * [RedLog](http://www.redlog.eu/)
 
