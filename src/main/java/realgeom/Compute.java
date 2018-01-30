@@ -166,7 +166,8 @@ public class Compute {
             appendResponse("LOG: result=" + result, Log.VERBOSE);
             // hacky way to convert QEPCAD formula to Mathematica formula FIXME
             String rewrite = result.replace("/\\", "&&").replace("=", "==").
-                    replace(">==", ">=").replace("<==", "<=");
+                    replace(">==", ">=").replace("<==", "<=").
+                    replace("TRUE", "True");
             // add missing condition to output
             rewrite += " && m>0";
             String real = rewriteMathematica(rewrite, timelimit);
