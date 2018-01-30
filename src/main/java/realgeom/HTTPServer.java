@@ -21,7 +21,14 @@ import com.sun.net.httpserver.HttpServer;
 
 public class HTTPServer {
 
-    public static void start(int port) throws Exception {
+    public static String defaultTimelimit;
+    public static String defaultQepcadN;
+    public static String defaultQepcadL;
+
+    public static void start(int port, String timelimit, String qepcadN, String qepcadL) throws Exception {
+        defaultTimelimit = timelimit;
+        defaultQepcadN = qepcadN;
+        defaultQepcadL = qepcadL;
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext("/triangle", new TriangleHandler());
         server.setExecutor(null); // creates a default executor
@@ -42,9 +49,9 @@ public class HTTPServer {
             Log log = Log.INFO;
             String lhs = "0";
             String rhs = "0";
-            String timelimit = "300";
-            String qepcadN = "500000000";
-            String qepcadL = "200000";
+            String timelimit = defaultTimelimit;
+            String qepcadN = defaultQepcadN;
+            String qepcadL = defaultQepcadL;
 
             Map<String, String> parms = HTTPServer.queryToMap(t.getRequestURI().getQuery());
             // reading parameters
@@ -160,8 +167,6 @@ public class HTTPServer {
                 appendResponse("LOG: time=" + ((double) elapsedTime/1000), true);
             }
             message(t, 200);
-
-
         }
 
         static void message(HttpExchange t, int retval) throws IOException {
@@ -181,8 +186,6 @@ public class HTTPServer {
                 System.out.println(new Timestamp(System.currentTimeMillis()) + " " + message);
                 }
         }
-
-        // Example: http://gonzales.risc.jku.at:8765/triangle?lhs=a+b&rhs=c
     }
 
     /**
