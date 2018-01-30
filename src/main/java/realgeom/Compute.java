@@ -216,7 +216,7 @@ public class Compute {
             String rewrite = result.replace("\\", "").replace("\n","").replace("`&or`(", "Or[").
                     replace("`&and`(", "And[").replace("Or(", "Or[").
                     replace("And(", "And[").replace("),", "],").replace("=", "==").
-                    replace(">==", ">=").replace("<==", "<=");
+                    replace(">==", ">=").replace("<==", "<=").replace("<>", "!=");
             // convert closing ) to ]
             int i;
             int l = rewrite.length();
