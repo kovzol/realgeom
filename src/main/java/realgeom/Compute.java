@@ -230,6 +230,10 @@ public class Compute {
             for (int j = i; j < l -1 ; j++) {
                 b.append("]");
             }
+            // This is tested only in Bottema 1.24 (specific fix)
+            if (tool == Tool.SYNRAC) {
+                rewrite = rewrite.replace(")", "]");
+            }
             rewrite = rewrite.substring(0, i + 1) + b;
             String real = rewriteMathematica(rewrite, timelimit);
             appendResponse(real, Log.INFO);
