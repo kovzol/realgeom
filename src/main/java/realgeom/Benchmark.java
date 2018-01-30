@@ -13,7 +13,8 @@ import org.apache.commons.csv.*;
 
 public class Benchmark {
 
-    public static void start(String inputFile, String outputFile, String casToolList, int timelimit) {
+    public static void start(String inputFile, String outputFile, String casToolList, int timelimit, String qepcadN,
+                             String qepcadL) {
 
         Reader in;
         try {
@@ -131,7 +132,8 @@ public class Benchmark {
                         }
 
                         long startTime = System.currentTimeMillis();
-                        String response = Compute.triangleExplore(lhs, rhs, cas, tool, subst, Log.SILENT, timelimit + "");
+                        String response = Compute.triangleExplore(lhs, rhs, cas, tool, subst, Log.SILENT,
+                                timelimit + "", qepcadN, qepcadL);
                         int elapsedTime = (int) (System.currentTimeMillis() - startTime);
                         System.out.print(name + ": triangleExplore(lhs=" + lhs + ",rhs=" + rhs +
                                 ",cas=" + cas + ",tool=" + tool + ",subst=" + subst + ")");

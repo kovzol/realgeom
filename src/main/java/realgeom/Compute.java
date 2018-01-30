@@ -85,7 +85,8 @@ public class Compute {
         return ExternalCAS.executeMathematica(mathcode, timeLimit);
     }
 
-    public static String triangleExplore(String lhs, String rhs, Cas cas, Tool tool, Subst subst, Log log, String timelimit) {
+    public static String triangleExplore(String lhs, String rhs, Cas cas, Tool tool, Subst subst, Log log,
+                                         String timelimit, String qepcadN, String qepcadL) {
         String m = "m";
         String code;
         ineqs = "";
@@ -105,7 +106,9 @@ public class Compute {
         if (subst == Subst.AUTO) {
             a = "1";
         }
-        appendIneqs(m + ">0", cas, tool);
+        if (cas != Cas.QEPCAD) {
+            appendIneqs(m + ">0", cas, tool);
+        }
         appendIneqs(triangleInequality(a, "b", "c", cas), cas, tool);
         appendIneqs(triangleInequality("b", "c", a, cas), cas, tool);
         appendIneqs(triangleInequality("c", a, "b", cas), cas, tool);
@@ -162,7 +165,7 @@ public class Compute {
             code = "[]\n" + vars +"\n1\n" + exists + "[" + ineqs + "].\n" +
                     "assume[" + m + ">0].\nfinish\n";
             appendResponse("LOG: code=" + code,Log.VERBOSE);
-            String result = ExternalCAS.executeQepcad(code, timelimit);
+            String result = ExternalCAS.executeQepcad(code, timelimit, qepcadN, qepcadL);
             appendResponse("LOG: result=" + result, Log.VERBOSE);
             // hacky way to convert QEPCAD formula to Mathematica formula FIXME
             String rewrite = result.replace("/\\", "&&").replace("=", "==").

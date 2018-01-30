@@ -22,7 +22,7 @@ public class Start {
         }
     }
 
-    private static String test(String timeLimit) {
+    private static String test(String timeLimit, String qepcadN, String qepcadL) {
         String supported;
         System.out.println("Testing Giac connection...");
         String input = "1+2";
@@ -80,7 +80,7 @@ public class Start {
                 "assume[m>0].\n" +
                 "finish";
         System.out.println("Testing QEPCAD connection via shell...");
-        test = ExternalCAS.executeQepcad(input, timeLimit);
+        test = ExternalCAS.executeQepcad(input, timeLimit, qepcadN, qepcadL);
         if (!test.equals("m - 4 < 0 /\\ m - 3 >= 0")) {
             System.out.println("Consider installing QEPCAD (make sure you have a script `qepcad' on your path that correctly starts QEPCAD)");
         } else {
@@ -141,6 +141,14 @@ public class Start {
         timeLimitOption.setRequired(false);
         options.addOption(timeLimitOption);
 
+        Option qepcadNOption = new Option("N", "qepcadN", true, "garbage collected space in cells (QEPCAD +N)");
+        qepcadNOption.setRequired(false);
+        options.addOption(qepcadNOption);
+
+        Option qepcadLOption = new Option("L", "qepcadL", true, "space for prime list (QEPCAD +L)");
+        qepcadLOption.setRequired(false);
+        options.addOption(qepcadLOption);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd;
@@ -160,7 +168,19 @@ public class Start {
         }
         System.out.println("Time limit is set to " + timeLimit + " seconds");
 
-        String supported = test(timeLimit + "");
+        String qepcadN = "500000000";
+        if (cmd.hasOption("N")) {
+            qepcadN = cmd.getOptionValue("qepcadN");
+        }
+        System.out.println("QEPCAD +N is set to " + qepcadN + " cells");
+
+        String qepcadL = "200000";
+        if (cmd.hasOption("L")) {
+            qepcadL = cmd.getOptionValue("qepcadL");
+        }
+        System.out.println("QEPCAD +L is set to " + qepcadL + " primes");
+
+        String supported = test(timeLimit + "", qepcadN, qepcadL);
         if (supported.equals("")) {
             System.err.println("Unexpected results on self-test, exiting");
             System.exit(1);
@@ -204,7 +224,7 @@ public class Start {
             System.out.println("Running benchmarks on backends " + backends + ", this may take a while...");
             Benchmark.start(inputFilePath,
                     outputFilePath,
-                    backends.toString(), timeLimit);
+                    backends.toString(), timeLimit, qepcadN, qepcadL);
             System.out.println("The benchmark has been successfully performed");
         }
 

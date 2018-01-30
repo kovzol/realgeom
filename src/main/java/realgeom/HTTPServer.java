@@ -43,6 +43,8 @@ public class HTTPServer {
             String lhs = "0";
             String rhs = "0";
             String timelimit = "300";
+            String qepcadN = "500000000";
+            String qepcadL = "200000";
 
             Map<String, String> parms = HTTPServer.queryToMap(t.getRequestURI().getQuery());
             // reading parameters
@@ -110,13 +112,19 @@ public class HTTPServer {
             if (parms.containsKey("timelimit")) {
                 timelimit = parms.get("timelimit");
             }
+            if (parms.containsKey("qepcadn")) {
+                qepcadN = parms.get("qepcadn");
+            }
+            if (parms.containsKey("qepcadl")) {
+                qepcadN = parms.get("qepcadl");
+            }
 
             if (log == Log.VERBOSE) {
                 appendResponse("LOG: log=" + log + ",mode=" + mode + ",cas=" + cas + ",tool="+tool+",subst=" + subst + ",lhs=" + lhs
-                        + ",rhs=" + rhs + ",timelimit=" + timelimit, true);
+                        + ",rhs=" + rhs + ",timelimit=" + timelimit + ",qepcadn=" + qepcadN + ",qepcadl=" + qepcadL, true);
             }
             if (mode == Mode.EXPLORE) {
-                appendResponse(Compute.triangleExplore(lhs, rhs, cas, tool, subst, log, timelimit), false);
+                appendResponse(Compute.triangleExplore(lhs, rhs, cas, tool, subst, log, timelimit, qepcadN, qepcadL), false);
             }
             if (mode == Mode.CHECK) {
                 String min = "";
