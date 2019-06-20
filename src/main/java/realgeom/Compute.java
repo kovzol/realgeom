@@ -240,4 +240,78 @@ public class Compute {
         }
         return response;
     }
+
+    /**
+     * Solve a problem with coordinates. Example call:
+     * http://your.domain.or.ip.address:8765/euclideansolver?lhs=a%2bb-c&rhs=g&polys=(b1-c1)%5e2%2b(b2-c2)%5e2-a%5e2,(a1-c1)%5e2%2b(a2-c2)%5e2-b%5e2,(a1-b1)%5e2%2b(a2-b2)%5e2-c%5e2,(g1-c1)%5e2%2b(g2-c2)%5e2-g%5e2,(a1%2bb1)-2g1,(a2%2bb2)-2g2&vars=a1,a2,b1,b2,c1,c2,g1,g2,a,b,c,g&posvariables=a,b,c,g&triangles=a,b,c&log=verbose&mode=explore
+     */
+
+    public static String euclideanSolverExplore(String lhs, String rhs, String polys,
+					 String inequations, String triangles, String vars, String posvariables,
+					 Cas cas, Tool tool, Subst subst, Log log,
+                                         String timelimit, String qepcadN, String qepcadL) {
+        String m = "m"; // TODO: Use a different dummy variable
+        String code;
+        ineqs = "";
+        response = "";
+        maxLogLevel = log;
+
+        if (cas != Cas.QEPCAD) {
+            appendIneqs(m + ">0", cas, tool);
+        }
+        String[] trianglesArray = triangles.split(";");
+        for (String s : trianglesArray) {
+            String[] variables = s.split(",");
+            appendIneqs(triangleInequality(variables[0], variables[1], variables[2], cas), cas, tool);
+            appendIneqs(triangleInequality(variables[1], variables[2], variables[0], cas), cas, tool);
+            appendIneqs(triangleInequality(variables[2], variables[0], variables[1], cas), cas, tool);
+        }
+             
+        String eq = lhs + " = m * (" + rhs + ")";
+        // Convert the equation to a polynomial equation for Maple, QEPCAD and RedLog:
+        if (cas == Cas.MAPLE || cas == Cas.QEPCAD || cas == Cas.REDLOG) {
+            eq = GiacCAS.execute("simplify(denom(lhs(" + eq + "))*denom(rhs(" + eq + "))*(" + eq + "))");
+        }
+        if (cas == Cas.QEPCAD) {
+            eq = eq.replace("*", " ");
+        }
+        if (cas == Cas.MATHEMATICA) {
+            eq = eq.replace("=", "==");
+        }
+        appendIneqs(eq, cas, tool);
+        appendResponse("LOG: ineqs=" + ineqs, Log.VERBOSE);
+
+        // Currently only Mathematica is implemented, TODO: create implementation for all other systems
+        if (cas == Cas.MATHEMATICA) {
+            String[] posvariablesArray = posvariables.split(",");
+            for (String item : posvariablesArray) appendIneqs(item + ">0", cas, tool);
+            String[] varsArray = vars.split(",");
+            StringBuilder varsubst = new StringBuilder();
+            for (int i = 0; i < Math.min(varsArray.length,4); ++i) {
+                int value = 0;
+                if (i == 2)
+                    value = 1;
+                // 0,0,1,0 according to (0,0) and (1,0)
+                if (i > 0)
+                    varsubst.append(",");
+                varsubst.append(varsArray[i]).append("->").append(value);
+                } // in varsubst we have something like a1->0, a2->0, b1->1, b2->0
+            String polysSubst = "Print[Quiet[{" + polys + "}/.{" + varsubst + "} // InputForm]]";
+            // appendResponse("LOG: polysSubst=" + polysSubst, Log.VERBOSE);
+            String polys2 = ExternalCAS.executeMathematica(polysSubst, timelimit);
+            polys2 = polys2.substring(1,polys2.length() - 1); // removing { and }
+
+            String[] polys2Array = polys2.split(",");
+            for (String s : polys2Array) appendIneqs(s + "==0", cas, tool);
+            // appendResponse("LOG: polys2=" + polys2, Log.VERBOSE);
+
+            code = "Print[Quiet[Reduce[Resolve[Exists[{" + vars + "}," + ineqs + "],Reals],Reals] // InputForm]]";
+            appendResponse("LOG: code=" + code,Log.VERBOSE);
+            String result = ExternalCAS.executeMathematica(code, timelimit);
+            appendResponse(result, Log.INFO);
+        }
+
+        return response;
+    }
+    
 }

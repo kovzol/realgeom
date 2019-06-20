@@ -47,12 +47,15 @@ public class ExternalCAS {
     }
 
     static String executeMathematica (String command, String timeLimit) {
-        String output = ExternalCAS.execute("echo \"" + command + "\" | math | grep 'In\\[1\\]:= '", timeLimit);
+        String output = ExternalCAS.execute("echo \"" + command + "\" | math | tail -n +4 | grep -v \"In\\[2\\]\"", timeLimit);
         int ltrim = "In[1]:= ".length();
         if (output.length() < ltrim) {
             System.err.println("Error executing Mathematica command");
             return "";
         }
+        output = output.replace("\n>", "");
+        output = output.replace("\n", "");
+        // output = output.replace("In[1]:= ", "");
         return output.substring(ltrim);
     }
 
