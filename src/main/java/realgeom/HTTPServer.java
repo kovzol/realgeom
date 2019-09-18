@@ -8,16 +8,16 @@ package realgeom;
  * and http://www.rgagnon.com/javadetails/java-get-url-parameters-using-jdk-http-server.html
  */
 
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
 
 public class HTTPServer {
 
@@ -207,7 +207,6 @@ public class HTTPServer {
             String lhs = "0";
             String rhs = "0";
             String polys = "";
-            String inequations = "";
             String triangles = "";
             String vars = "";
             String posvariables = "";
@@ -281,9 +280,6 @@ public class HTTPServer {
             if (parms.containsKey("polys")) {
                 polys = parms.get("polys");
             }
-            if (parms.containsKey("inequations")) {
-                inequations = parms.get("inequations");
-            }
             if (parms.containsKey("posvariables")) {
                 posvariables = parms.get("posvariables");
             }
@@ -303,12 +299,12 @@ public class HTTPServer {
             if (log == Log.VERBOSE) {
                 appendResponse("LOG: log=" + log + ",mode=" + mode + ",cas=" + cas + ",tool="+tool+",subst=" + subst + ",lhs=" + lhs
                         + ",rhs=" + rhs + ",vars=" + vars + ",posvariables=" + posvariables
-                        + ",polys=" + polys + ",inequations=" + inequations +
+                        + ",polys=" + polys +
                         ",triangles=" + triangles +
                         ",timelimit=" + timelimit + ",qepcadn=" + qepcadN + ",qepcadl=" + qepcadL, true);
             }
             if (mode == Mode.EXPLORE) {
-                appendResponse(Compute.euclideanSolverExplore(lhs, rhs, polys, inequations, triangles, vars, posvariables, cas, tool, subst, log, timelimit, qepcadN, qepcadL), false);
+                appendResponse(Compute.euclideanSolverExplore(lhs, rhs, polys, triangles, vars, posvariables, cas, tool, subst, log, timelimit, qepcadN, qepcadL), false);
             }
             if (mode == Mode.CHECK) {
                 String min = "";

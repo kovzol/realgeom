@@ -247,9 +247,9 @@ public class Compute {
      */
 
     public static String euclideanSolverExplore(String lhs, String rhs, String polys,
-					 String inequations, String triangles, String vars, String posvariables,
-					 Cas cas, Tool tool, Subst subst, Log log,
-                                         String timelimit, String qepcadN, String qepcadL) {
+                                                String triangles, String vars, String posvariables,
+                                                Cas cas, Tool tool, Subst subst, Log log,
+                                                String timelimit, String qepcadN, String qepcadL) {
         String m = "m"; // TODO: Use a different dummy variable
         String code;
         ineqs = "";
@@ -259,14 +259,17 @@ public class Compute {
         if (cas != Cas.QEPCAD) {
             appendIneqs(m + ">0", cas, tool);
         }
-        String[] trianglesArray = triangles.split(";");
-        for (String s : trianglesArray) {
-            String[] variables = s.split(",");
-            appendIneqs(triangleInequality(variables[0], variables[1], variables[2], cas), cas, tool);
-            appendIneqs(triangleInequality(variables[1], variables[2], variables[0], cas), cas, tool);
-            appendIneqs(triangleInequality(variables[2], variables[0], variables[1], cas), cas, tool);
+
+        if (!"".equals(triangles)) {
+            String[] trianglesArray = triangles.split(";");
+            for (String s : trianglesArray) {
+                String[] variables = s.split(",");
+                appendIneqs(triangleInequality(variables[0], variables[1], variables[2], cas), cas, tool);
+                appendIneqs(triangleInequality(variables[1], variables[2], variables[0], cas), cas, tool);
+                appendIneqs(triangleInequality(variables[2], variables[0], variables[1], cas), cas, tool);
+            }
         }
-             
+
         String eq = lhs + " = m * (" + rhs + ")";
         // Convert the equation to a polynomial equation for Maple, QEPCAD and RedLog:
         if (cas == Cas.MAPLE || cas == Cas.QEPCAD || cas == Cas.REDLOG) {
