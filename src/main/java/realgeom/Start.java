@@ -7,14 +7,78 @@ package realgeom;
 
 import org.apache.commons.cli.*;
 
-import java.io.File;
+import java.io.*;
 
 public class Start {
+
+    // Taken from https://stackoverflow.com/a/39542949/1044586
+    private static boolean isWindows       = false;
+    private static boolean isLinux         = false;
+    private static boolean isHpUnix        = false;
+    private static boolean isPiUnix        = false;
+    private static boolean isSolaris       = false;
+    private static boolean isSunOS         = false;
+    private static boolean archDataModel32 = false;
+    private static boolean archDataModel64 = false;
+
     static {
+        final String os = System.getProperty("os.name").toLowerCase();
+        if (os.indexOf("windows") >= 0) {
+            isWindows = true;
+        }
+        if (os.indexOf("linux") >= 0) {
+            isLinux = true;
+        }
+        if (os.indexOf("hp-ux") >= 0) {
+            isHpUnix = true;
+        }
+        if (os.indexOf("hpux") >= 0) {
+            isHpUnix = true;
+        }
+        if (os.indexOf("solaris") >= 0) {
+            isSolaris = true;
+        }
+        if (os.indexOf("sunos") >= 0) {
+            isSunOS = true;
+        }
+        if (System.getProperty("sun.arch.data.model").equals("32")) {
+            archDataModel32 = true;
+        }
+        if (System.getProperty("sun.arch.data.model").equals("64")) {
+            archDataModel64 = true;
+        }
+        if (isLinux) {
+            final File file = new File("/etc", "os-release");
+            try (FileInputStream fis = new FileInputStream(file);
+                BufferedReader br = new BufferedReader(new InputStreamReader(fis))) {
+                String string;
+                while ((string = br.readLine()) != null) {
+                    if (string.toLowerCase().contains("raspbian")) {
+                        if (string.toLowerCase().contains("name")) {
+                            isPiUnix = true;
+                            break;
+                        }
+                    }
+                }
+            } catch (final Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        String libraryName = "javagiac64";
+
+        if (isPiUnix) {
+            libraryName = "javagiac";
+        }
+        if (!isLinux) {
+            System.err.println("Unsupported architecture");
+            System.exit(1);
+        }
+
         try {
             System.out.println("Loading Giac Java interface...");
             MyClassPathLoader loader = new MyClassPathLoader();
-            loader.loadLibrary("javagiac64");
+            loader.loadLibrary(libraryName);
         } catch (UnsatisfiedLinkError e) {
             e.printStackTrace();
             System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
