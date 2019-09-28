@@ -15,3 +15,7 @@ dependencies {
 }
 
 mainClassName = "realgeom.Start"
+
+wrapper {
+    gradleVersion = "5.6.2"
+}

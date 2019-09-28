@@ -15,7 +15,7 @@ public class Start {
     private static boolean isWindows       = false;
     private static boolean isLinux         = false;
     private static boolean isHpUnix        = false;
-    private static boolean isPiUnix        = false;
+    public static boolean isPiUnix        = false;
     private static boolean isSolaris       = false;
     private static boolean isSunOS         = false;
     private static boolean archDataModel32 = false;
