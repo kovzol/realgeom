@@ -297,12 +297,14 @@ public class Compute {
                 // 0,0,1,0 according to (0,0) and (1,0)
                 if (i > 0)
                     varsubst.append(",");
-                varsubst.append(varsArray[i]).append("->").append(value);
+                // varsubst.append(varsArray[i]).append("->").append(value); // Mathematica syntax
+                varsubst.append(varsArray[i]).append("=").append(value);
                 } // in varsubst we have something like a1->0, a2->0, b1->1, b2->0
-            String polysSubst = "Print[Quiet[{" + polys + "}/.{" + varsubst + "} // InputForm]]";
+            // String polysSubst = "Print[Quiet[{" + polys + "}/.{" + varsubst + "} // InputForm]]"; // Mathematica syntax
             // appendResponse("LOG: polysSubst=" + polysSubst, Log.VERBOSE);
-            String polys2 = ExternalCAS.executeMathematica(polysSubst, timelimit);
-            polys2 = polys2.substring(1,polys2.length() - 1); // removing { and }
+            String polys2 = GiacCAS.execute("subst([" + polys + "],[" + varsubst + "])");
+            // String polys2 = ExternalCAS.executeMathematica(polysSubst, timelimit); // Mathematica call
+            polys2 = polys2.substring(1,polys2.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
 
             String[] polys2Array = polys2.split(",");
             for (String s : polys2Array) appendIneqs(s + "==0", cas, tool);
