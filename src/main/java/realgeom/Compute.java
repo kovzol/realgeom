@@ -302,7 +302,16 @@ public class Compute {
                 } // in varsubst we have something like a1->0, a2->0, b1->1, b2->0
             // String polysSubst = "Print[Quiet[{" + polys + "}/.{" + varsubst + "} // InputForm]]"; // Mathematica syntax
             // appendResponse("LOG: polysSubst=" + polysSubst, Log.VERBOSE);
+            appendResponse("LOG: before substitution, polys=" + polys,Log.VERBOSE);
             String polys2 = GiacCAS.execute("subst([" + polys + "],[" + varsubst + "])");
+            String ggInit = "caseval(\"init geogebra\")";
+            String jpDef = "jacobiPrepare(polys,excludevars):=begin local ii, degrees, pos, vars, linvar; vars:=lvar(polys); ii:=0; while (ii<size(polys)-1) do degrees:=degree(polys[ii],vars); if (sum(degrees)=1) begin pos:=find(1,degrees); linvar:=vars[pos[0]]; if (!is_element(linvar,excludevars)) begin substval:=op(solve(polys[ii]=0,linvar)[0])[1]; polys:=remove(0,expand(subs(polys,[linvar],[substval]))); print(polys); ii:=-1; end; end; ii:=ii+1; od; return polys; end";
+            polys2 = polys2.substring(1,polys2.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
+            appendResponse("LOG: before linearization, polys=" + polys2,Log.VERBOSE);
+            String linCode = "[[" + ggInit + "],[" + jpDef + "],jacobiPrepare([" + polys2 + "],[" + "])][2]";
+            appendResponse("LOG: linearization code=" + linCode,Log.VERBOSE);
+            polys2 = GiacCAS.execute(linCode);
+            appendResponse("LOG: after linearization, polys=" + polys2,Log.VERBOSE);
             // String polys2 = ExternalCAS.executeMathematica(polysSubst, timelimit); // Mathematica call
             polys2 = polys2.substring(1,polys2.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
 
@@ -318,5 +327,5 @@ public class Compute {
 
         return response;
     }
-    
+
 }
