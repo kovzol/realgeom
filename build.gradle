@@ -19,3 +19,8 @@ mainClassName = "realgeom.Start"
 wrapper {
     gradleVersion = "5.6.2"
 }
+
+task startServer (dependsOn: installDist, type: Exec) {
+    description 'Starts realgeom server'
+    commandLine 'build/install/realgeom/bin/realgeom', '-s'
+}
