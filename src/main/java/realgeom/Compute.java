@@ -305,13 +305,16 @@ public class Compute {
             appendResponse("LOG: before substitution, polys=" + polys,Log.VERBOSE);
             String polys2 = GiacCAS.execute("subst([" + polys + "],[" + varsubst + "])");
             String ggInit = "caseval(\"init geogebra\")";
-            String jpDef = "jacobiPrepare(polys,excludevars):=begin local ii, degrees, pos, vars, linvar; vars:=lvar(polys); ii:=0; while (ii<size(polys)-1) do degrees:=degree(polys[ii],vars); if (sum(degrees)=1) begin pos:=find(1,degrees); linvar:=vars[pos[0]]; if (!is_element(linvar,excludevars)) begin substval:=op(solve(polys[ii]=0,linvar)[0])[1]; polys:=remove(0,expand(subs(polys,[linvar],[substval]))); print(polys); ii:=-1; end; end; ii:=ii+1; od; return polys; end";
+            // String jpDef = "jacobiPrepare(polys,excludevars):=begin local ii, degrees, pos, vars, linvar; vars:=lvar(polys); ii:=0; while (ii<size(polys)-1) do degrees:=degree(polys[ii],vars); if (sum(degrees)=1) begin pos:=find(1,degrees); linvar:=vars[pos[0]]; if (!is_element(linvar,excludevars)) begin substval:=op(solve(polys[ii]=0,linvar)[0])[1]; polys:=remove(0,expand(subs(polys,[linvar],[substval]))); print(polys); ii:=-1; end; end; ii:=ii+1; od; return polys; end";
+            String jpDef = "jacobiPrepare(polys,excludevars):=begin local ii, degrees, pos, vars, linvar; vars:=lvar(polys); print(\"input: \"+size(polys)+\" eqs in \"+size(vars)+\" vars\"); c:=1; while (c<size(lvar(polys))) do ii:=0; while (ii<size(polys)-1) do degrees:=degree(polys[ii],vars); if ((sum(degrees)=c) and (isLinear(polys[ii]))) begin pos:=find(1,degrees);  if (size(pos)=c) begin linvar:=vars[pos[0]]; if (!is_element(linvar,excludevars)) begin substval:=op(solve(polys[ii]=0,linvar)[0])[1]; polys:=remove(0,expand(subs(polys,[linvar],[substval]))); od; vars:=lvar(polys); ii:=-1; end; end; ii:=ii+1; od; c:=c+1; od; vars:=lvar(polys); print(\"output: \"+size(polys)+\" eqs in \"+size(vars)+\" vars\");  return polys; end";
+            String ilsDef = "isLinearSum(poly):=begin local degrees, vars, ii, ss; vars:=lvar(poly); ii:=1; ss:=size(poly); while (ii<ss) do degrees:=degree(poly[ii], vars); if (sum(degrees)>1) begin return false; end; ii:=ii+1; od; return true; end";
+            String ilDef = "isLinear(poly):=begin if (sommet(poly)==\"+\") begin return isLinearSum(poly); end; return isLinearSum(poly+1234567); end";
             polys2 = polys2.substring(1,polys2.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
-            appendResponse("LOG: before linearization, polys=" + polys2,Log.VERBOSE);
-            String linCode = "[[" + ggInit + "],[" + jpDef + "],jacobiPrepare([" + polys2 + "],[" + "])][2]";
-            appendResponse("LOG: linearization code=" + linCode,Log.VERBOSE);
+            appendResponse("LOG: before delinearization, polys=" + polys2,Log.VERBOSE);
+            String linCode = "[[" + ggInit + "],[" + ilsDef + "],[" + ilDef + "],[" + jpDef + "],jacobiPrepare([" + polys2 + "],[" + "])][4]";
+            appendResponse("LOG: delinearization code=" + linCode,Log.VERBOSE);
             polys2 = GiacCAS.execute(linCode);
-            appendResponse("LOG: after linearization, polys=" + polys2,Log.VERBOSE);
+            appendResponse("LOG: after delinearization, polys=" + polys2,Log.VERBOSE);
             // String polys2 = ExternalCAS.executeMathematica(polysSubst, timelimit); // Mathematica call
             polys2 = polys2.substring(1,polys2.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
 
