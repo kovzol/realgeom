@@ -80,7 +80,7 @@ public class Compute {
     }
 
     private static String rewriteMathematica(String formula, String timeLimit) {
-        String mathcode = "Print[Quiet[Reduce[" + formula + ",m,Reals] // InputForm]]";
+        String mathcode = "Reduce[" + formula + ",m,Reals]";
         appendResponse("LOG: mathcode=" + mathcode, Log.VERBOSE);
         return ExternalCAS.executeMathematica(mathcode, timeLimit);
     }
@@ -185,7 +185,7 @@ public class Compute {
             }
             vars += "b,c}";
 
-            code = "Print[Quiet[Reduce[Resolve[Exists[" + vars + "," + ineqs + "],Reals],Reals] // InputForm]]";
+            code = "Reduce[Resolve[Exists[" + vars + "," + ineqs + "],Reals],Reals]";
             appendResponse("LOG: code=" + code,Log.VERBOSE);
             String result = ExternalCAS.executeMathematica(code, timelimit);
             appendResponse(result, Log.INFO);
@@ -322,7 +322,7 @@ public class Compute {
             for (String s : polys2Array) appendIneqs(s + "==0", cas, tool);
             // appendResponse("LOG: polys2=" + polys2, Log.VERBOSE);
 
-            code = "Print[Quiet[Reduce[Resolve[Exists[{" + vars + "}," + ineqs + "],Reals],Reals] // InputForm]]";
+            code = "Reduce[Resolve[Exists[{" + vars + "}," + ineqs + "],Reals],Reals]";
             appendResponse("LOG: code=" + code,Log.VERBOSE);
             String result = ExternalCAS.executeMathematica(code, timelimit);
             appendResponse(result, Log.INFO);

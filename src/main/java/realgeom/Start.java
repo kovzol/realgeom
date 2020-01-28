@@ -102,8 +102,27 @@ public class Start {
             return "";
         }
 
-        input = "Print[Quiet[Reduce[0 < m-1,m,Reals] // InputForm]]";
-        System.out.println("Testing Mathematica connection via shell...");
+        System.out.println("Starting Mathematica/MathLink...");
+        if (!ExternalCAS.createMathLink()) {
+            return "";
+        }
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(200);
+                    System.out.println("Shutting down...");
+                    ExternalCAS.stopMathLink();
+                    //some cleaning up code...
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        System.out.println("Testing Mathematica connection via MathLink...");
+        // input = "Print[Quiet[Reduce[0 < m-1,m,Reals] // InputForm]]";
+        input = "Reduce[0 < m-1,m,Reals]";
         test = ExternalCAS.executeMathematica(input, timeLimit);
         if (!test.equals("m > 1")) {
             return "";

@@ -8,16 +8,27 @@ package realgeom;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.wolfram.jlink.*;
+
 public class ExternalCAS {
+    private static KernelLink ml;
+
     static String execute (String command, String timeLimit) {
         StringBuilder output = new StringBuilder();
-        String[] cmd = {
-            "/usr/bin/timeout",
-            timeLimit,
-            "/bin/bash",
-            "-c",
-            command
-        };
+        String[] cmd;
+        if (timeLimit != null) {
+            cmd = new String[5];
+            cmd[0] = "/usr/bin/timeout";
+            cmd[1] = timeLimit;
+            cmd[2] = "/bin/bash";
+            cmd[3] = "-c";
+            cmd[4] = command;
+            } else {
+            cmd = new String[3];
+            cmd[0] = "/bin/bash";
+            cmd[1] = "-c";
+            cmd[2] = command;
+            };
         try {
             Process child = Runtime.getRuntime().exec(cmd);
             InputStream in = child.getInputStream();
@@ -46,7 +57,7 @@ public class ExternalCAS {
         return execute("echo \"" + command + "\" | maple -q", timeLimit);
     }
 
-    static String executeMathematica (String command, String timeLimit) {
+    static String executeMathematica_obsolete (String command, String timeLimit) {
         String mathematicaCommand = "math";
         if (Start.isPiUnix) {
             mathematicaCommand = "wolfram";
@@ -62,6 +73,32 @@ public class ExternalCAS {
         output = output.replace("\n", "");
         // output = output.replace("In[1]:= ", "");
         return output.substring(ltrim);
+     }
+
+    static String executeMathematica (String command, String timeLimit) {
+        String ret = ml.evaluateToInputForm(command, 0);
+        // System.out.println("executeMathematica: " + command + " -> " + ret);
+        return ret;
+    }
+
+    static boolean createMathLink () {
+        String mathematicaCommand = "math";
+        if (Start.isPiUnix) {
+            mathematicaCommand = "wolfram";
+            }
+        try {
+            ml = MathLinkFactory.createKernelLink("-linkmode launch -linkname '" + mathematicaCommand + " -mathlink'");
+            ml.discardAnswer();
+            } catch (MathLinkException e) {
+            System.err.println("createMathLink: " + e.toString());
+            return false;
+            }
+        return true;
+    }
+
+    static void stopMathLink () {
+        System.out.println("Stopping MathLink connection...");
+        ml.close();
     }
 
     static String executeQepcad (String command, String timeLimit, String qepcadN, String qepcadL) {

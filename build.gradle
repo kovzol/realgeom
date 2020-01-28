@@ -5,11 +5,13 @@ repositories {
     mavenCentral()
     jcenter()
     maven { url 'http://dev.geogebra.org/maven2' }
+    flatDir { dir jLinksFolder }
     }
 
 dependencies {
     compile "org.apache.commons:commons-csv:1.5"
     compile "commons-cli:commons-cli:1.4"
+    compile ":JLink"
     runtime "fr.ujf-grenoble:javagiac:54646:natives-linux-amd64"
     runtime "fr.ujf-grenoble:javagiac:69259b:natives-linux-arm"
 }
@@ -18,9 +20,4 @@ mainClassName = "realgeom.Start"
 
 wrapper {
     gradleVersion = "5.6.2"
-}
-
-task startServer (dependsOn: installDist, type: Exec) {
-    description 'Starts realgeom server'
-    commandLine 'build/install/realgeom/bin/realgeom', '-s'
 }

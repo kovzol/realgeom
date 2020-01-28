@@ -42,12 +42,14 @@ Optional:
   * [RedLog](http://www.redlog.eu/)
 
 ## Usage ##
+Before compilation you should edit the file `gradle.properties` in the main folder of this program.
+
 The command `./gradlew installDist` will download and compile
 all additional tools you may
 eventually need, or informs you about the further steps.
 Finally the following command will start the program:
 
-    $ build/install/realgeom/bin/realgeom
+    $ ./gradlew run
 
 This should perform a self-test that results in something like this:
 ```
@@ -67,7 +69,7 @@ Supported backends: mathematica,maple/regularchains,maple/synrac,qepcad,redlog
 ```
 By entering
 
-    $ build/install/realgeom/bin/realgeom -h
+    $ ./gradlew run --args="-h"
     
 you will get some help on the command line options:
 ```
@@ -84,7 +86,7 @@ usage: realgeom
 ```
 By default all supported backends will be used unless
 you explicitly give a comma separated list of the
-backends.
+backends. Note that all arguments should be passed in the way given above.
 
 ## Running the benchmark ##
 Use the option -b to run the benchmark.
