@@ -5,7 +5,7 @@ repositories {
     mavenCentral()
     jcenter()
     maven { url 'http://dev.geogebra.org/maven2' }
-    flatDir { dir jLinksFolder }
+    flatDir { dirs jLinksFolder, "/opt/Wolfram/WolframEngine/12.0/SystemFiles/Links/JLink", "/opt/Mathematica12/SystemFiles/Links/JLink" }
     }
 
 dependencies {
