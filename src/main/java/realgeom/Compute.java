@@ -316,7 +316,12 @@ public class Compute {
             polys2 = GiacCAS.execute(linCode);
             appendResponse("LOG: after delinearization, polys=" + polys2,Log.VERBOSE);
             // String polys2 = ExternalCAS.executeMathematica(polysSubst, timelimit); // Mathematica call
+            appendResponse("LOG: before removing unnecessary variables, vars=" + vars,Log.VERBOSE);
             polys2 = polys2.substring(1,polys2.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
+            String minimVarsCode = "lvar([" + polys2 + "])"; // remove unnecessary variables
+            vars = GiacCAS.execute(minimVarsCode);
+            appendResponse("LOG: after removing unnecessary variables, vars=" + vars,Log.VERBOSE);
+            vars = vars.substring(1,vars.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
 
             String[] polys2Array = polys2.split(",");
             for (String s : polys2Array) appendIneqs(s + "==0", cas, tool);
