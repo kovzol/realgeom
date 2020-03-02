@@ -295,6 +295,9 @@ public class HTTPServer {
             if (parms.containsKey("qepcadl")) {
                 qepcadN = parms.get("qepcadl");
             }
+            if (parms.containsKey("timelimit")) {
+                timelimit = parms.get("timelimit");
+            }
 
             if (log == Log.VERBOSE) {
                 appendResponse("LOG: log=" + log + ",mode=" + mode + ",cas=" + cas + ",tool="+tool+",subst=" + subst + ",lhs=" + lhs
