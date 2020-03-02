@@ -76,6 +76,7 @@ public class ExternalCAS {
      }
 
     static String executeMathematica (String command, String timeLimit) {
+        command = "TimeConstrained[" + command + "," + timeLimit + "]";
         String ret = ml.evaluateToInputForm(command, 0);
         // System.out.println("executeMathematica: " + command + " -> " + ret);
         return ret;
