@@ -5,6 +5,7 @@ package realgeom;
  */
 
 import java.sql.Timestamp;
+import java.util.Arrays;
 
 public class Compute {
 
@@ -321,7 +322,7 @@ public class Compute {
             appendResponse("LOG: after removing unnecessary variables, vars=" + vars,Log.VERBOSE);
             vars = vars.substring(1,vars.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
 
-            String[] varsArray = vars.split(",");
+            varsArray = vars.split(",");
             String[] posvariablesArray = posvariables.split(",");
             for (String item : posvariablesArray) {
                 if (Arrays.asList(varsArray).contains(item)) appendIneqs(item + ">0", cas, tool);
