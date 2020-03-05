@@ -286,8 +286,6 @@ public class Compute {
 
         // Currently only Mathematica is implemented, TODO: create implementation for all other systems
         if (cas == Cas.MATHEMATICA) {
-            String[] posvariablesArray = posvariables.split(",");
-            for (String item : posvariablesArray) appendIneqs(item + ">0", cas, tool);
             String[] varsArray = vars.split(",");
             StringBuilder varsubst = new StringBuilder();
             for (int i = 0; i < Math.min(varsArray.length,4); ++i) {
@@ -322,6 +320,12 @@ public class Compute {
             vars = GiacCAS.execute(minimVarsCode);
             appendResponse("LOG: after removing unnecessary variables, vars=" + vars,Log.VERBOSE);
             vars = vars.substring(1,vars.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
+
+            String[] varsArray = vars.split(",");
+            String[] posvariablesArray = posvariables.split(",");
+            for (String item : posvariablesArray) {
+                if (Arrays.asList(varsArray).contains(item)) appendIneqs(item + ">0", cas, tool);
+                }
 
             String[] polys2Array = polys2.split(",");
             for (String s : polys2Array) appendIneqs(s + "==0", cas, tool);
