@@ -339,7 +339,7 @@ public class Compute {
                             "      ii:=0;  \n" +
                             "      while(ii<(size(polys)-1)){ \n" +
                             "          degs:=degree(polys[ii],vars);  \n" +
-                            "          if ((sum(degs)=cc) && (isLinear(polys[ii]))) { \n" +
+                            "          if ((sum(degs)==cc) && (isLinear(polys[ii]))) { \n" +
                             "              pos:=find(1,degs);  \n" +
                             "              if (((size(pos))==cc)) { \n" +
                             "                  p:=0;  \n" +
@@ -357,7 +357,7 @@ public class Compute {
                             "                    };  \n" +
                             "                };  \n" +
                             "            };  \n" +
-                            "          if ((sum(degs)=2) && (not(isLinear(polys[ii])))) { \n" +
+                            "          if ((sum(degs)==2) && (not(isLinear(polys[ii])))) { \n" +
                             "              pos2:=find(2,degs);  \n" +
                             "              qvar:=vars[pos2[0]];  \n" +
                             "              if (is_element(qvar,excludevars)) { \n" +
