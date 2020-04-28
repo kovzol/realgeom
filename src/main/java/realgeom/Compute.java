@@ -292,18 +292,7 @@ public class Compute {
             }
         }
 
-        String eq = lhs + " = m * (" + rhs + ")";
-        // Convert the equation to a polynomial equation for Maple, QEPCAD and RedLog:
-        if (cas == Cas.MAPLE || cas == Cas.QEPCAD || cas == Cas.REDLOG) {
-            eq = GiacCAS.execute("simplify(denom(lhs(" + eq + "))*denom(rhs(" + eq + "))*(" + eq + "))");
-        }
-        if (cas == Cas.QEPCAD) {
-            eq = eq.replace("*", " ");
-        }
-        if (cas == Cas.MATHEMATICA) {
-            eq = eq.replace("=", "==");
-        }
-        appendIneqs(eq, cas, tool);
+        String eq = "(" + lhs + ")-m*(" + rhs + ")";
         appendResponse("LOG: ineqs=" + ineqs, Log.VERBOSE);
 
         // Currently only Mathematica is implemented, TODO: create implementation for all other systems
@@ -399,6 +388,9 @@ public class Compute {
             //         " (poly)->{if (((sommet(poly))==\"+\")) return(isLinearSum(poly)); ,return(isLinearSum(poly+1234567))}");
 
             polys2 = polys2.substring(1, polys2.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
+
+            // Add main equation:
+            polys2 += "," + eq;
             appendResponse("LOG: before delinearization, polys=" + polys2, Log.VERBOSE);
             String linCode = "[[" + ggInit + "],[" + ilsDef + "],[" + ilDef + "],[" + jpDef + "],delinearize([" + polys2 + "],[" + posvariables + ",w1,w2])][4]";
             appendResponse("LOG: delinearization code=" + linCode, Log.VERBOSE);
@@ -411,8 +403,11 @@ public class Compute {
             vars = GiacCAS.execute(minimVarsCode);
             appendResponse("LOG: after removing unnecessary variables, vars=" + vars, Log.VERBOSE);
             vars = vars.substring(1, vars.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
-
+            // Remove m from vars:
+            vars = vars.replace(",m", "").replace("m,", "");
+            appendResponse("LOG: after removing m, vars=" + vars, Log.VERBOSE);
             varsArray = vars.split(",");
+
             String[] posvariablesArray = posvariables.split(",");
             for (String item : posvariablesArray) {
                 if (Arrays.asList(varsArray).contains(item)) appendIneqs(item + ">0", cas, tool);
