@@ -243,6 +243,26 @@ public class Compute {
         return response;
     }
 
+    static String ggbGiac(String in) {
+        String[] ins = in.split("\n");
+        StringBuilder out = new StringBuilder();
+        for (String s : ins) {
+            s = s.replace("->", ":=")
+                    .replace("}", " end ")
+                    .replace("&&", " and ")
+                    .replace("||", " or ")
+                    .replaceAll("\\s+"," ");
+            if (s.startsWith("while") || s.startsWith("{")) {
+                s = s.replace("{", " begin ");
+            } else if (s.startsWith("if")) {
+                s = s.replace("{", " do ");
+            }
+            s = s.replace("{", " begin ");
+            out.append(s);
+        }
+        return out.toString();
+    }
+
     /**
      * Solve a problem with coordinates. Example call:
      * http://your.domain.or.ip.address:8765/euclideansolver?lhs=a%2bb-c&rhs=g&polys=(b1-c1)%5e2%2b(b2-c2)%5e2-a%5e2,(a1-c1)%5e2%2b(a2-c2)%5e2-b%5e2,(a1-b1)%5e2%2b(a2-b2)%5e2-c%5e2,(g1-c1)%5e2%2b(g2-c2)%5e2-g%5e2,(a1%2bb1)-2g1,(a2%2bb2)-2g2&vars=a1,a2,b1,b2,c1,c2,g1,g2,a,b,c,g&posvariables=a,b,c,g&triangles=a,b,c&log=verbose&mode=explore
@@ -305,32 +325,78 @@ public class Compute {
             appendResponse("LOG: before substitution, polys=" + polys, Log.VERBOSE);
             String polys2 = GiacCAS.execute("subst([" + polys + "],[" + varsubst + "])");
             String ggInit = "caseval(\"init geogebra\")";
-            String jpDef = "delinearize(polys,excludevars):=begin local ii, degs, pos, vars, linvar, p, qvar, pos2, keep, cc;" +
-                    "keep:=[]; vars:=lvar(polys); print(\"input: \"+size(polys)+\" eqs in \"+size(vars)+\" vars\"); cc:=1; " +
-                    "while (cc<size(lvar(polys))) do ii:=0; while (ii<size(polys)-1) do degs:=degree(polys[ii],vars); if ((sum(degs)=cc) and (isLinear(polys[ii]))) begin " +
-                    "pos:=find(1,degs); if (size(pos)=cc) begin p:=0; linvar:=vars[pos[p]]; while(is_element(linvar,excludevars) and cc>1 and p<size(pos)-1) begin p:=p+1; linvar:=vars[pos[p]]; end;" +
-                    " if (!is_element(linvar,excludevars) or cc<2) begin if (is_element(linvar,excludevars)) begin keep:=append(keep,polys[ii]); end;" +
-                    " substval:=op(solve(polys[ii]=0,linvar)[0])[1]; polys:=remove(0,expand(subs(polys,[linvar],[substval]))); vars:=lvar(polys); ii:=-1; end; end; end;" +
+            String ilsDef = ggbGiac("isLinearSum\n" +
+                    " (poly)-> \n" +
+                    "{ local degs,vars,ii,ss; \n" +
+                    "  vars:=lvar(poly);  \n" +
+                    "  ii:=1;  \n" +
+                    "  ss:=size(poly);  \n" +
+                    "  while(ii<ss){ \n" +
+                    "      degs:=degree(poly[ii],vars);  \n" +
+                    "      if ((sum(degs))>1) return(false); ;  \n" +
+                    "      ii:=ii+1;  \n" +
+                    "    };; ;  \n" +
+                    "  return(true);  \n" +
+                    "}");
+            String jpDef = ggbGiac(
+                    "delinearize\n" +
+                            " (polys,excludevars)-> \n" +
+                            "{ local ii,degs,pos,vars,linvar,p,qvar,pos2,keep,cc; \n" +
+                            "  keep:=[];  \n" +
+                            "  vars:=lvar(polys);  \n" +
+                            "  print(\"input: \"+size(polys)+\" eqs in \"+size(vars)+\" vars\");  \n" +
+                            "  cc:=1;  \n" +
+                            "  while(cc<(size(lvar(polys)))){ \n" +
+                            "      ii:=0;  \n" +
+                            "      while(ii<(size(polys)-1)){ \n" +
+                            "          degs:=degree(polys[ii],vars);  \n" +
+                            "          if ((sum(degs)=cc) && (isLinear(polys[ii]))) { \n" +
+                            "              pos:=find(1,degs);  \n" +
+                            "              if (((size(pos))==cc)) { \n" +
+                            "                  p:=0;  \n" +
+                            "                  linvar:=vars[pos[p]];  \n" +
+                            "                  while(((is_element(linvar,excludevars)) && (cc>1)) && (p<(size(pos)-1))){ \n" +
+                            "                      p:=p+1;  \n" +
+                            "                      linvar:=vars[pos[p]];  \n" +
+                            "                    };; ;  \n" +
+                            "                  if ((not(is_element(linvar,excludevars))) || (cc<2)) { \n" +
+                            "                      if (is_element(linvar,excludevars)) keep:=append(keep,polys[ii]); ;  \n" +
+                            "                      substval:=(op((solve(polys[ii]=0,linvar))[0]))[1];  \n" +
+                            "                      polys:=remove(0,expand(subs(polys,[linvar],[substval])));  \n" +
+                            "                      vars:=lvar(polys);  \n" +
+                            "                      ii:=-1;  \n" +
+                            "                    };  \n" +
+                            "                };  \n" +
+                            "            };  \n" +
+                            "          if ((sum(degs)=2) && (not(isLinear(polys[ii])))) { \n" +
+                            "              pos2:=find(2,degs);  \n" +
+                            "              qvar:=vars[pos2[0]];  \n" +
+                            "              if (is_element(qvar,excludevars)) { \n" +
+                            "                  print(\"Considering positive roots of \"+polys[ii]=0+\" in variable \"+qvar);  \n" +
+                            "                  print(solve(polys[ii]=0,qvar));  \n" +
+                            "                  substval:=rhs((op(solve(polys[ii]=0,qvar)))[1]);  \n" +
+                            "                  print(\"Positive root is \"+substval);  \n" +
+                            "                  polys:=remove(0,expand(subs(polys,[qvar],[substval])));  \n" +
+                            "                  keep:=append(keep,substval-qvar);  \n" +
+                            "                  vars:=lvar(polys);  \n" +
+                            "                  ii:=-1;  \n" +
+                            "                };  \n" +
+                            "            };  \n" +
+                            "          ii:=ii+1;  \n" +
+                            "        };; ;  \n" +
+                            "      cc:=cc+1;  \n" +
+                            "    };; ;  \n" +
+                            "  polys:=flatten(append(polys,keep));  \n" +
+                            "  vars:=lvar(polys);  \n" +
+                            "  print(\"output: \"+size(polys)+\" eqs in \"+size(vars)+\" vars\");  \n" +
+                            "  return(polys);  \n" +
+                            "}");
 
-                    "if (sum(degs)=2 && !(isLinear(polys[ii]))) begin " +
-                        "pos2:=find(2,degs);" +
-                        "qvar:=vars[pos2[0]];" +
-                        "if (is_element(qvar,excludevars)) begin " +
-                            "print(\"Considering positive roots of \" + (polys[ii]=0) + \" in variable \" + qvar);" +
-                            "print(solve(polys[ii]=0,qvar));" +
-                            "substval:=rhs(op(solve(polys[ii]=0,qvar))[1]);" +
-                            "print(\"Positive root is \" + substval); " +
-                            "polys:=remove(0,expand(subs(polys,[qvar],[substval])));" +
-                            "keep:=append(keep,substval-qvar);" +
-                            "vars:=lvar(polys);" +
-                            "ii:=-1;" +
-                            "end;" +
-                        "end;" +
-
-                    " ii:=ii+1; od; cc:=cc+1; od; polys:=flatten(append(polys,keep)); vars:=lvar(polys); print(\"output: \"+size(polys)+\" eqs in \"+size(vars)+\" vars\");  return polys; end";
-
-            String ilsDef = "isLinearSum(poly):=begin local degs, vars, ii, ss; vars:=lvar(poly); ii:=1; ss:=size(poly); while (ii<ss) do degs:=degree(poly[ii], vars); if (sum(degs)>1) begin return false; end; ii:=ii+1; od; return true; end";
             String ilDef = "isLinear(poly):=begin if (sommet(poly)==\"+\") begin return isLinearSum(poly); end; return isLinearSum(poly+1234567); end";
+
+            // FIXME: One-liner if-clauses are rewritten in Giac without begin/end, unsupported in ggbGiac() yet.
+            // ilDef = ggbGiac("isLinear\n" +
+            //         " (poly)->{if (((sommet(poly))==\"+\")) return(isLinearSum(poly)); ,return(isLinearSum(poly+1234567))}");
 
             polys2 = polys2.substring(1, polys2.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
             appendResponse("LOG: before delinearization, polys=" + polys2, Log.VERBOSE);
