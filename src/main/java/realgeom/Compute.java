@@ -353,9 +353,12 @@ public class Compute {
                             "                  if ((not(is_element(linvar,excludevars))) || (cc<2)) { \n" +
                             "                      if (is_element(linvar,excludevars)) { \n" +
                             "                           keep:=append(keep,polys[ii]); \n" +
+                            "                           print(\"Keeping \" + polys[ii]); \n" +
                             "                         };  \n" +
                             "                      substval:=(op((solve(polys[ii]=0,linvar))[0]))[1];  \n" +
+                            "                      print(\"Removing \" + polys[ii] + \", substituting \" + linvar + \" by \" + substval); \n" +
                             "                      polys:=remove(0,expand(subs(polys,[linvar],[substval])));  \n" +
+                            "                      print(\"New set: \" + polys); \n" +
                             "                      vars:=lvar(polys);  \n" +
                             "                      ii:=-1;  \n" +
                             "                    };  \n" +
