@@ -322,19 +322,21 @@ public class Compute {
                     "  ss:=size(poly);  \n" +
                     "  while(ii<ss){ \n" +
                     "      degs:=degree(poly[ii],vars);  \n" +
-                    "      if ((sum(degs))>1) return(false); ;  \n" +
+                    "      if ((sum(degs))>1) {\n" +
+                    "          return(false); " +
+                    "        };\n" +
                     "      ii:=ii+1;  \n" +
-                    "    };; ;  \n" +
+                    "    };\n" +
                     "  return(true);  \n" +
                     "}");
             String jpDef = ggbGiac(
                     "delinearize\n" +
                             " (polys,excludevars)-> \n" +
                             "{ local ii,degs,pos,vars,linvar,p,qvar,pos2,keep,cc; \n" +
-                            "  keep:=[];  \n" +
-                            "  vars:=lvar(polys);  \n" +
+                            "  keep:=[];\n" +
+                            "  vars:=lvar(polys);\n" +
                             "  print(\"input: \"+size(polys)+\" eqs in \"+size(vars)+\" vars\");  \n" +
-                            "  cc:=1;  \n" +
+                            "  cc:=1;\n" +
                             "  while(cc<(size(lvar(polys)))){ \n" +
                             "      ii:=0;  \n" +
                             "      while(ii<(size(polys)-1)){ \n" +
@@ -347,9 +349,11 @@ public class Compute {
                             "                  while(((is_element(linvar,excludevars)) && (cc>1)) && (p<(size(pos)-1))){ \n" +
                             "                      p:=p+1;  \n" +
                             "                      linvar:=vars[pos[p]];  \n" +
-                            "                    };; ;  \n" +
+                            "                    }; \n" +
                             "                  if ((not(is_element(linvar,excludevars))) || (cc<2)) { \n" +
-                            "                      if (is_element(linvar,excludevars)) keep:=append(keep,polys[ii]); ;  \n" +
+                            "                      if (is_element(linvar,excludevars)) { \n" +
+                            "                           keep:=append(keep,polys[ii]); \n" +
+                            "                         };  \n" +
                             "                      substval:=(op((solve(polys[ii]=0,linvar))[0]))[1];  \n" +
                             "                      polys:=remove(0,expand(subs(polys,[linvar],[substval])));  \n" +
                             "                      vars:=lvar(polys);  \n" +
@@ -357,6 +361,7 @@ public class Compute {
                             "                    };  \n" +
                             "                };  \n" +
                             "            };  \n" +
+                            /*
                             "          if ((sum(degs)==2) && (not(isLinear(polys[ii])))) { \n" +
                             "              pos2:=find(2,degs);  \n" +
                             "              qvar:=vars[pos2[0]];  \n" +
@@ -371,10 +376,11 @@ public class Compute {
                             "                  ii:=-1;  \n" +
                             "                };  \n" +
                             "            };  \n" +
+                            */
                             "          ii:=ii+1;  \n" +
-                            "        };; ;  \n" +
+                            "        }; \n" +
                             "      cc:=cc+1;  \n" +
-                            "    };; ;  \n" +
+                            "    };  \n" +
                             "  polys:=flatten(append(polys,keep));  \n" +
                             "  vars:=lvar(polys);  \n" +
                             "  print(\"output: \"+size(polys)+\" eqs in \"+size(vars)+\" vars\");  \n" +
@@ -384,8 +390,12 @@ public class Compute {
             String ilDef = "isLinear(poly):=begin if (sommet(poly)==\"+\") begin return isLinearSum(poly); end; return isLinearSum(poly+1234567); end";
 
             // FIXME: One-liner if-clauses are rewritten in Giac without begin/end, unsupported in ggbGiac() yet.
-            // ilDef = ggbGiac("isLinear\n" +
-            //         " (poly)->{if (((sommet(poly))==\"+\")) return(isLinearSum(poly)); ,return(isLinearSum(poly+1234567))}");
+            ilDef = ggbGiac("isLinear\n" +
+                     " (poly)->{if (((sommet(poly))==\"+\")) { \n" +
+                     "              return(isLinearSum(poly));\n" +
+                     "            };\n" +
+                     "          return(isLinearSum(poly+1234567));\n" +
+                     "        }");
 
             polys2 = polys2.substring(1, polys2.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
 
