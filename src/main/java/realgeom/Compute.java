@@ -332,18 +332,18 @@ public class Compute {
             String jpDef = ggbGiac(
                     "delinearize\n" +
                             " (polys,excludevars)-> \n" +
-                            "{ local ii,degs,pos,vars,linvar,p,qvar,pos2,keep,cc; \n" +
+                            "{ local ii,degs,pos,vars,linvar,p,qvar,pos2,keep,cc,substval; \n" +
                             "  keep:=[];\n" +
                             "  vars:=lvar(polys);\n" +
-                            "  print(\"input: \"+size(polys)+\" eqs in \"+size(vars)+\" vars\");  \n" +
+                            "  print(\"Input: \"+size(polys)+\" eqs in \"+size(vars)+\" vars\");  \n" +
                             "  cc:=1;\n" +
                             "  while(cc<(size(lvar(polys)))){ \n" +
                             "      ii:=0;  \n" +
                             "      while(ii<(size(polys)-1)){ \n" +
                             "          degs:=degree(polys[ii],vars);  \n" +
-                            "          if ((sum(degs)==cc) && (isLinear(polys[ii]))) { \n" +
+                            "          if ((sum(degs)=cc) && (isLinear(polys[ii]))) { \n" +
                             "              pos:=find(1,degs);  \n" +
-                            "              if (((size(pos))==cc)) { \n" +
+                            "              if (((size(pos))=cc)) { \n" +
                             "                  p:=0;  \n" +
                             "                  linvar:=vars[pos[p]];  \n" +
                             "                  while(((is_element(linvar,excludevars)) && (cc>1)) && (p<(size(pos)-1))){ \n" +
@@ -363,51 +363,104 @@ public class Compute {
                             "                      ii:=-1;  \n" +
                             "                    };  \n" +
                             "                };  \n" +
-                            "            };  \n" +
-                            /*
-                            "          if ((sum(degs)==2) && (not(isLinear(polys[ii])))) { \n" +
-                            "              pos2:=find(2,degs);  \n" +
-                            "              qvar:=vars[pos2[0]];  \n" +
-                            "              if (is_element(qvar,excludevars)) { \n" +
-                            "                  print(\"Considering positive roots of \"+polys[ii]=0+\" in variable \"+qvar);  \n" +
-                            "                  print(solve(polys[ii]=0,qvar));  \n" +
-                            "                  substval:=rhs((op(solve(polys[ii]=0,qvar)))[1]);  \n" +
-                            "                  print(\"Positive root is \"+substval);  \n" +
-                            "                  polys:=remove(0,expand(subs(polys,[qvar],[substval])));  \n" +
-                            "                  keep:=append(keep,substval-qvar);  \n" +
-                            "                  vars:=lvar(polys);  \n" +
-                            "                  ii:=-1;  \n" +
+                            "            }  \n" +
+                            // Quadratic check (FIXME: do that only for rational roots):
+                            "          else { \n" +
+                          //"              print(\"ii=\"+ii + \" size=\" + size(polys));  \n" +
+                            "              if ((sum(degs)=2) && (not(isLinear(polys[ii])))) { \n" +
+                            "                  pos2:=find(2,degs);  \n" +
+                            "                  if (size(pos2)>0) { \n" +
+                            "                      qvar:=vars[pos2[0]];  \n" +
+                            "                      if (is_element(qvar,excludevars)) { \n" +
+                            "                          print(\"Considering positive roots of \"+(polys[ii]=0)+\" in variable \"+qvar);  \n" +
+                            "                          print(solve(polys[ii]=0,qvar));  \n" +
+                            "                          substval:=rhs((op(solve(polys[ii]=0,qvar)))[1]);  \n" +
+                            "                          print(\"Positive root is \"+substval);  \n" +
+                            "                          polys:=remove(0,expand(subs(polys,[qvar],[substval])));  \n" +
+                            "                          print(\"New set: \" + polys); \n" +
+                            "                          keep:=append(keep,substval-qvar);  \n" +
+                            "                          print(\"Keeping \" + (substval-qvar)); \n" +
+                            "                          vars:=lvar(polys);  \n" +
+                            "                          ii:=-1;  \n" +
+                            "                        };  \n" +
+                            "                    };  \n" +
+                          //"                  print(ii);  \n" +
                             "                };  \n" +
                             "            };  \n" +
-                            */
+                            // End of quadratic check.
                             "          ii:=ii+1;  \n" +
                             "        }; \n" +
                             "      cc:=cc+1;  \n" +
+                          //"      print(cc);  \n" +
                             "    };  \n" +
                             "  polys:=flatten(append(polys,keep));  \n" +
                             "  vars:=lvar(polys);  \n" +
-                            "  print(\"output: \"+size(polys)+\" eqs in \"+size(vars)+\" vars\");  \n" +
+                            "  print(\"Output: \"+size(polys)+\" eqs in \"+size(vars)+\" vars\");  \n" +
                             "  return(polys);  \n" +
                             "}");
 
-            String ilDef = "isLinear(poly):=begin if (sommet(poly)==\"+\") begin return isLinearSum(poly); end; return isLinearSum(poly+1234567); end";
+            String ilDef = ggbGiac("isLinear\n" +
+                    " (poly)->{if (((sommet(poly))=\"+\")) { \n" +
+                    "              return(isLinearSum(poly));\n" +
+                    "            };\n" +
+                    "          return(isLinearSum(poly+1234567));\n" +
+                    "        }");
 
-            // FIXME: One-liner if-clauses are rewritten in Giac without begin/end, unsupported in ggbGiac() yet.
-            ilDef = ggbGiac("isLinear\n" +
-                     " (poly)->{if (((sommet(poly))==\"+\")) { \n" +
-                     "              return(isLinearSum(poly));\n" +
-                     "            };\n" +
-                     "          return(isLinearSum(poly+1234567));\n" +
-                     "        }");
+            String rmwDef = ggbGiac("removeW12\n" +
+                    " (polys, m, w1, w2)->{ local ii, vars, w1e, w2e, neweq; \n" +
+                    "                 ii:=0; \n" +
+                    "                 neweq:=0; \n" +
+                    "                 while(ii<(size(polys))) { \n" +
+                    "                     vars:=lvar(polys[ii]); \n" +
+                    "                     if (vars intersect [m,w2,w1] = set[m,w2,w1]) {\n" +
+                    "                         print(\"Remove \" + polys[ii]); \n" +
+                    "                         polys:=suppress(polys,ii); \n" +
+                    "                         neweq:=(w1e)-m*(w2e); \n" +
+                    "                         ii:=ii-1; \n" +
+                    "                         vars:=[]; \n" +
+                    "                       } \n" +
+                    "                     if (vars intersect [w1] != set[]) {\n" +
+                    "                         w1e:=rhs((solve(polys[ii],w1))[0]);\n" +
+                    "                         print(\"Remove \" + polys[ii]); \n" +
+                    "                         polys:=suppress(polys,ii); \n" +
+                    "                         ii:=ii-1; \n" +
+                    "                         vars:=[]; \n" +
+                    "                       } \n" +
+                    "                     if (vars intersect [w2] != set[]) {\n" +
+                    "                         w2e:=rhs((solve(polys[ii],w2))[0]);\n" +
+                    "                         print(\"Remove \" + polys[ii]); \n" +
+                    "                         polys:=suppress(polys,ii); \n" +
+                    "                         ii:=ii-1; \n" +
+                    "                         vars:=[]; \n" +
+                    "                       } \n" +
+                    "                     ii:=ii+1;\n" +
+                    "                   } \n" +
+                    "                 if (neweq != 0) {\n" +
+                    "                     print(\"Add \" + neweq); \n" +
+                    "                     polys:=flatten(append(polys,neweq)); \n" +
+                    "                   } \n" +
+                    "                 return(polys);\n" +
+                    "               }");
 
             polys2 = polys2.substring(1, polys2.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
 
             // Add main equation:
             polys2 += "," + eq;
             appendResponse("LOG: before delinearization, polys=" + polys2, Log.VERBOSE);
-            String linCode = "[[" + ggInit + "],[" + ilsDef + "],[" + ilDef + "],[" + jpDef + "],delinearize([" + polys2 + "],[" + posvariables + ",w1,w2])][4]";
+            String linCode = "[[" + ggInit + "],[" + ilsDef + "],[" + ilDef + "],[" + jpDef + "],[" + rmwDef +
+                    "],";
+            if (lhs.equals("w1") && rhs.equals("w2")) {
+                linCode += "removeW12(delinearize([" + polys2 + "],[" + posvariables + ",w1,w2]),m,w1,w2)][5]";
+            } else {
+                linCode += "delinearize([" + polys2 + "],[" + posvariables + "," + lhs + "," + rhs + "])][5]";
+            }
             appendResponse("LOG: delinearization code=" + linCode, Log.VERBOSE);
             polys2 = GiacCAS.execute(linCode);
+            if (polys2.equals("0")) {
+                appendResponse("ERROR: Giac returned 0", Log.VERBOSE);
+                appendResponse("GIAC ERROR", Log.INFO);
+                return response;
+            }
             appendResponse("LOG: after delinearization, polys=" + polys2, Log.VERBOSE);
             // String polys2 = ExternalCAS.executeMathematica(polysSubst, timelimit); // Mathematica call
             appendResponse("LOG: before removing unnecessary variables, vars=" + vars, Log.VERBOSE);
