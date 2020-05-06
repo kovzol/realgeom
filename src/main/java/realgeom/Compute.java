@@ -376,12 +376,14 @@ public class Compute {
                             "                          print(solve(polys[ii]=0,qvar));  \n" +
                             "                          substval:=rhs((op(solve(polys[ii]=0,qvar)))[1]);  \n" +
                             "                          print(\"Positive root is \"+substval);  \n" +
-                            "                          polys:=remove(0,expand(subs(polys,[qvar],[substval])));  \n" +
-                            "                          print(\"New set: \" + polys); \n" +
-                            "                          keep:=append(keep,substval-qvar);  \n" +
-                            "                          print(\"Keeping \" + (substval-qvar)); \n" +
-                            "                          vars:=lvar(polys);  \n" +
-                            "                          ii:=-1;  \n" +
+                            "                          if (type(substval)==integer || type(substval)==rational) { \n" +
+                            "                              polys:=remove(0,expand(subs(polys,[qvar],[substval])));  \n" +
+                            "                              print(\"New set: \" + polys); \n" +
+                            "                              keep:=append(keep,substval-qvar);  \n" +
+                            "                              print(\"Keeping \" + (substval-qvar)); \n" +
+                            "                              vars:=lvar(polys);  \n" +
+                            "                              ii:=-1;  \n" +
+                            "                            };  \n" +
                             "                        };  \n" +
                             "                    };  \n" +
                           //"                  print(ii);  \n" +
@@ -394,8 +396,9 @@ public class Compute {
                           //"      print(cc);  \n" +
                             "    };  \n" +
                             "  polys:=flatten(append(polys,keep));  \n" +
+                            "  print(\"Set after delinearization: \" + polys); \n" +
                             "  vars:=lvar(polys);  \n" +
-                            "  print(\"Output: \"+size(polys)+\" eqs in \"+size(vars)+\" vars\");  \n" +
+                            "  print(\"Delinearization output: \"+size(polys)+\" eqs in \"+size(vars)+\" vars\");  \n" +
                             "  return(polys);  \n" +
                             "}");
 
@@ -412,24 +415,29 @@ public class Compute {
                     "                 neweq:=0; \n" +
                     "                 while(ii<(size(polys))) { \n" +
                     "                     vars:=lvar(polys[ii]); \n" +
-                    "                     if (vars intersect [m,w2,w1] = set[m,w2,w1]) {\n" +
+                    "                     if (vars intersect [w1] != set[] && vars intersect [m] == set[]) {\n" +
+                    "                         w1e:=rhs((solve(polys[ii]=0,w1))[0]);\n" +
+                    "                         print(\"Remove \" + polys[ii]); \n" +
+                    "                         polys:=suppress(polys,ii); \n" +
+                    "                         ii:=ii-1; \n" +
+                    "                         vars:=[]; \n" +
+                    "                       } \n" +
+                    "                     if (vars intersect [w2] != set[] && vars intersect [m] == set[]) {\n" +
+                    "                         w2e:=rhs((solve(polys[ii]=0,w2))[0]);\n" +
+                    "                         print(\"Remove \" + polys[ii]); \n" +
+                    "                         polys:=suppress(polys,ii); \n" +
+                    "                         ii:=ii-1; \n" +
+                    "                         vars:=[]; \n" +
+                    "                       } \n" +
+                    "                     ii:=ii+1;\n" +
+                    "                   } \n" +
+                    "                 ii:=0; \n" +
+                    "                 while(ii<(size(polys))) { \n" +
+                    "                     vars:=lvar(polys[ii]); \n" +
+                    "                     if (vars intersect [m] == set[m]) {\n" +
                     "                         print(\"Remove \" + polys[ii]); \n" +
                     "                         polys:=suppress(polys,ii); \n" +
                     "                         neweq:=(w1e)-m*(w2e); \n" +
-                    "                         ii:=ii-1; \n" +
-                    "                         vars:=[]; \n" +
-                    "                       } \n" +
-                    "                     if (vars intersect [w1] != set[]) {\n" +
-                    "                         w1e:=rhs((solve(polys[ii],w1))[0]);\n" +
-                    "                         print(\"Remove \" + polys[ii]); \n" +
-                    "                         polys:=suppress(polys,ii); \n" +
-                    "                         ii:=ii-1; \n" +
-                    "                         vars:=[]; \n" +
-                    "                       } \n" +
-                    "                     if (vars intersect [w2] != set[]) {\n" +
-                    "                         w2e:=rhs((solve(polys[ii],w2))[0]);\n" +
-                    "                         print(\"Remove \" + polys[ii]); \n" +
-                    "                         polys:=suppress(polys,ii); \n" +
                     "                         ii:=ii-1; \n" +
                     "                         vars:=[]; \n" +
                     "                       } \n" +
