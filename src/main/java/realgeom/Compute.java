@@ -491,7 +491,7 @@ public class Compute {
             for (String s : polys2Array) appendIneqs(s + "==0", cas, tool);
             // appendResponse("LOG: polys2=" + polys2, Log.VERBOSE);
 
-            code = "ToRadicals[Reduce[Resolve[Exists[{" + vars + "}," + ineqs + "],Reals],Reals],Cubics->False,Quartics->False]";
+            code = "ToRadicals[Reduce[Resolve[Exists[{" + vars + "}," + ineqs + "],Reals],Reals],Cubics->False]";
             appendResponse("LOG: code=" + code, Log.VERBOSE);
             String result = ExternalCAS.executeMathematica(code, timelimit);
             appendResponse(result, Log.INFO);
