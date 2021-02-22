@@ -30,10 +30,10 @@ You need to have the following pieces of software installed:
 
 * Linux (most distributions should work, for example, Debian 8)
 * [Java SE 7/8 JDK](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
-* [Mathematica](https://www.wolfram.com/mathematica/)
 
 Optional:
 
+* [Mathematica](https://www.wolfram.com/mathematica/) (recommended)
 * [Maple](https://www.maplesoft.com/) with the following libraries:
   * a recent version of [RegularChains](http://www.regularchains.org/) and/or
   * [SyNRAC](http://www.fujitsu.com/jp/group/labs/en/resources/tech/announced-tools/synrac/)
@@ -146,6 +146,12 @@ of the native JAR package of Giac was borrowed from [GeoGebra](http://www.geogeb
 We are thankful to the [Research Institute for Symbolic Computations (RISC)](http://www.risc.jku.at/) at
 the [Johannes Kepler University (JKU)](http://www.jku.at/content), Linz, Austria, for allowing access to their
 computer algebra resources.
+
+## Note on Mathematica runtime ##
+For technical convenience this source tree contains Mathematica's `JLink.jar` and the shared library
+`libJLinkNativeLibrary.so`.
+These are required to compile and start **realgeom** properly. To be able to use Mathematica, however,
+you need a license and a full installation.
 
 ## Authors ##
 * Róbert Vajda <vajdar@math.u-szeged.hu>

@@ -23,22 +23,22 @@ public class Start {
 
     static {
         final String os = System.getProperty("os.name").toLowerCase();
-        if (os.indexOf("windows") >= 0) {
+        if (os.contains("windows")) {
             isWindows = true;
         }
-        if (os.indexOf("linux") >= 0) {
+        if (os.contains("linux")) {
             isLinux = true;
         }
-        if (os.indexOf("hp-ux") >= 0) {
+        if (os.contains("hp-ux")) {
             isHpUnix = true;
         }
-        if (os.indexOf("hpux") >= 0) {
+        if (os.contains("hpux")) {
             isHpUnix = true;
         }
-        if (os.indexOf("solaris") >= 0) {
+        if (os.contains("solaris")) {
             isSolaris = true;
         }
-        if (os.indexOf("sunos") >= 0) {
+        if (os.contains("sunos")) {
             isSunOS = true;
         }
         if (System.getProperty("sun.arch.data.model").equals("32")) {
@@ -87,7 +87,7 @@ public class Start {
     }
 
     private static String test(String timeLimit, String qepcadN, String qepcadL) {
-        String supported;
+        String supported = "";
         System.out.println("Testing Giac connection...");
         String input = "1+2";
         String test = GiacCAS.execute(input);
@@ -103,31 +103,34 @@ public class Start {
         }
 
         System.out.println("Starting Mathematica/MathLink...");
-        if (!ExternalCAS.createMathLink()) {
-            return "";
-        }
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                try {
-                    Thread.sleep(200);
-                    System.out.println("Shutting down...");
-                    ExternalCAS.stopMathLink();
-                    //some cleaning up code...
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    e.printStackTrace();
-                }
-            }
-        });
+        if (ExternalCAS.createMathLink()) {
 
-        System.out.println("Testing Mathematica connection via MathLink...");
-        // input = "Print[Quiet[Reduce[0 < m-1,m,Reals] // InputForm]]";
-        input = "Reduce[0 < m-1,m,Reals]";
-        test = ExternalCAS.executeMathematica(input, timeLimit);
-        if (!test.equals("m > 1")) {
-            return "";
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                public void run() {
+                    try {
+                        Thread.sleep(200);
+                        System.out.println("Shutting down...");
+                        ExternalCAS.stopMathLink();
+                        //some cleaning up code...
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            System.out.println("Testing Mathematica connection via MathLink...");
+            // input = "Print[Quiet[Reduce[0 < m-1,m,Reals] // InputForm]]";
+            input = "Reduce[0 < m-1,m,Reals]";
+            test = ExternalCAS.executeMathematica(input, timeLimit);
+            if (test.equals("m > 1")) {
+                supported = "mathematica";
+            }
+
         }
-        supported = "mathematica";
+        if (supported.equals("")) {
+            System.out.println("Mathematica is not available. Consider installing it");
+        }
 
         input = "lprint(1+2);";
         System.out.println("Testing Maple connection via shell...");
@@ -174,7 +177,7 @@ public class Start {
         System.out.println("Testing Reduce connection via shell...");
         test = ExternalCAS.executeReduce(input, timeLimit);
         if (!test.equals("3")) {
-            System.out.println("Consider installing Reduce (make sure you have the executable `reduce' on your path)."
+            System.out.println("Consider installing Reduce (make sure you have the executable `reduce' on your path)"
                     + "\nSee also http://www.redlog.eu/get-redlog/ to have RedLog installed");
         } else {
             input = "rlqe(ex({b,c}, 1+b>c and 1+c>b and b+c>1 and a=m*(b+c)));";
@@ -188,6 +191,9 @@ public class Start {
         }
 
         System.out.println("All required tests are passed");
+        if (supported.substring(0,1).equals(",")) {
+           supported = supported.substring(1);
+           }
         System.out.println("Supported backends: " + supported);
         return supported;
     }
