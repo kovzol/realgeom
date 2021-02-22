@@ -415,6 +415,16 @@ public class Compute {
                         "  return(polys);  \n" +
                         "}");
 
+        String rdDef = ggbGiac("removeDivisions\n" +
+                " (polys)->{ local ii; \n" +
+                "             ii:=0; \n" +
+                "             while(ii<(size(polys))) { \n" +
+                "                 polys[ii]:=expand(lcm(denom(coeff(polys[ii])))*(polys[ii])); \n" +
+                "                 ii:=ii+1;\n" +
+                "                 };\n" +
+                "             return(polys); \n" +
+                "        }");
+
         String ilDef = ggbGiac("isLinear\n" +
                 " (poly)->{if (((sommet(poly))=\"+\")) { \n" +
                 "              return(isLinearSum(poly));\n" +
@@ -469,11 +479,11 @@ public class Compute {
         polys2 += "," + eq;
         appendResponse("LOG: before delinearization, polys=" + polys2, Log.VERBOSE);
         String linCode = "[[" + ggInit + "],[" + ilsDef + "],[" + ilDef + "],[" + jpDef + "],[" + rmwDef +
-                "],";
+                "],[" + rdDef + "],";
         if (lhs.equals("w1") && rhs.equals("w2")) {
-            linCode += "removeW12(delinearize([" + polys2 + "],[" + posvariables + ",w1,w2]),m,w1,w2)][5]";
+            linCode += "removeDivisions(removeW12(delinearize([" + polys2 + "],[" + posvariables + ",w1,w2]),m,w1,w2))][6]";
         } else {
-            linCode += "delinearize([" + polys2 + "],[" + posvariables + "," + lhs + "," + rhs + "])][5]";
+            linCode += "removeDivisions(delinearize([" + polys2 + "],[" + posvariables + "," + lhs + "," + rhs + "]))][6]";
         }
         appendResponse("LOG: delinearization code=" + linCode, Log.VERBOSE);
         polys2 = GiacCAS.execute(linCode);
