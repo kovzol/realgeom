@@ -97,6 +97,10 @@ public class Compute {
           giacOutput = giacOutput.replaceAll("list", "");
           giacOutput = giacOutput.substring(1, giacOutput.length() - 1);
           }
+        giacOutput = giacOutput.replaceAll("√", "sqrt");
+        if (giacOutput.indexOf("m") == -1) {
+          giacOutput = "m=" + giacOutput;
+          }
         return giacOutput;
     }
 
@@ -519,11 +523,16 @@ public class Compute {
                     "assume[m>0].\nfinish\n";
             appendResponse("LOG: code=" + code, Log.VERBOSE);
             String result = ExternalCAS.executeQepcad(code, timelimit, qepcadN, qepcadL);
+            if (result.equals("")) {
+               appendResponse("ERROR: empty output", Log.VERBOSE);
+               appendResponse("QEPCAD ERROR", Log.INFO);
+               return response;
+               }
             appendResponse("LOG: result=" + result, Log.VERBOSE);
             // hacky way to convert QEPCAD formula to Mathematica formula FIXME
-            String rewrite = result.replace("/\\", "&&").replace("=", "==").
+            String rewrite = result.replace("/\\", "&&").
                     replace(">==", ">=").replace("<==", "<=").
-                    replace("TRUE", "True");
+                    replace("TRUE", "1=1");
             // add missing condition to output
             rewrite += " && m>0";
             // String real = rewriteMathematica(rewrite, timelimit);
