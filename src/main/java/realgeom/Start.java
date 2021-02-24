@@ -71,7 +71,7 @@ public class Start {
 
         String libraryName = "javagiac64";
 
-        if (isPiUnix) {
+        if (isPiUnix || isMac) {
             libraryName = "javagiac";
         }
         if (!isLinux && !isMac) {
@@ -106,9 +106,9 @@ public class Start {
             return "";
         }
 
-        System.out.println("Starting Mathematica/MathLink...");
-        if (ExternalCAS.createMathLink()) {
+        if (!isMac && ExternalCAS.createMathLink()) {
 
+            System.out.println("Starting Mathematica/MathLink...");
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
                     try {
