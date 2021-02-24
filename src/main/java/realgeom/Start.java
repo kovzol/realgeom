@@ -71,7 +71,7 @@ public class Start {
 
         String libraryName = "javagiac64";
 
-        if (isPiUnix) {
+        if (isPiUnix || isMac) {
             libraryName = "javagiac";
         }
         if (!isLinux && !isMac) {
