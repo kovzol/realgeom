@@ -14,8 +14,9 @@ public class Start {
     // Taken from https://stackoverflow.com/a/39542949/1044586
     private static boolean isWindows       = false;
     private static boolean isLinux         = false;
+    private static boolean isMac           = false;
     private static boolean isHpUnix        = false;
-    public static boolean isPiUnix        = false;
+    public static boolean isPiUnix         = false;
     private static boolean isSolaris       = false;
     private static boolean isSunOS         = false;
     private static boolean archDataModel32 = false;
@@ -28,6 +29,9 @@ public class Start {
         }
         if (os.contains("linux")) {
             isLinux = true;
+        }
+        if (os.contains("mac")) {
+            isMac = true;
         }
         if (os.contains("hp-ux")) {
             isHpUnix = true;
@@ -70,7 +74,7 @@ public class Start {
         if (isPiUnix) {
             libraryName = "javagiac";
         }
-        if (!isLinux) {
+        if (!isLinux && !isMac) {
             System.err.println("Unsupported architecture");
             System.exit(1);
         }
@@ -78,7 +82,7 @@ public class Start {
         try {
             System.out.println("Loading Giac Java interface...");
             MyClassPathLoader loader = new MyClassPathLoader();
-            loader.loadLibrary(libraryName);
+            loader.loadLibrary(libraryName, isLinux, isMac);
         } catch (UnsatisfiedLinkError e) {
             e.printStackTrace();
             System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
