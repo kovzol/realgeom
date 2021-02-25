@@ -116,7 +116,8 @@ public class ExternalCAS {
 
     static String executeQepcad (String command, String timeLimit, String qepcadN, String qepcadL) {
         // System.out.println("qepcad in = " + command);
-        String output = ExternalCAS.execute("echo \"" + command + "\" | qepcad +N" + qepcadN + " +L" + qepcadL,
+        String output = ExternalCAS.execute("echo \"" + command + "\" | qepcad +N" + qepcadN + " +L" + qepcadL
+                + " -t " + timeLimit,
                 timeLimit);
         String[] outputLines = output.split("\n");
         int i = 0;
