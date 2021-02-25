@@ -18,11 +18,23 @@ public class ExternalCAS {
         String[] cmd;
         if (timeLimit != null) {
             cmd = new String[5];
-            cmd[0] = "perl";
-            cmd[1] = "-e";
-            cmd[2] = "alarm shift; exec @ARGV";
-            cmd[3] = timeLimit;
-            cmd[4] = command;
+            if (Start.isMac) {
+                // This is actually not always working.
+                // TODO: Use a real timeout implementation instead.
+                // Based on https://stackoverflow.com/a/35512328/1044586
+                // which is, unfortunately, not correct.
+                cmd[0] = "perl";
+                cmd[1] = "-e";
+                cmd[2] = "alarm shift; exec @ARGV";
+                cmd[3] = timeLimit;
+                cmd[4] = command;
+                } else {
+                cmd[0] = "/usr/bin/timeout";
+                cmd[1] = timeLimit;
+                cmd[2] = "/bin/bash";
+                cmd[3] = "-c";
+                cmd[4] = command;
+                }
             } else {
             cmd = new String[3];
             cmd[0] = "/bin/bash";

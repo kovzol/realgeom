@@ -14,7 +14,7 @@ public class Start {
     // Taken from https://stackoverflow.com/a/39542949/1044586
     private static boolean isWindows       = false;
     private static boolean isLinux         = false;
-    private static boolean isMac           = false;
+    public static boolean isMac           = false;
     private static boolean isHpUnix        = false;
     public static boolean isPiUnix         = false;
     private static boolean isSolaris       = false;
