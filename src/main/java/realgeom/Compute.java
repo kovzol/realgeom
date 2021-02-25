@@ -98,9 +98,10 @@ public class Compute {
           giacOutput = giacOutput.substring(1, giacOutput.length() - 1);
           }
         giacOutput = giacOutput.replaceAll("√", "sqrt");
-        if (giacOutput.indexOf("m") == -1) {
-          giacOutput = "m=" + giacOutput;
-          }
+        // This will be done in GeoGebra, not here:
+        // if (giacOutput.indexOf("m") == -1) {
+        //   giacOutput = "m=" + giacOutput;
+        //   }
         return giacOutput;
     }
 
