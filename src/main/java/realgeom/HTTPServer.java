@@ -107,6 +107,11 @@ public class HTTPServer {
             }
             if (parms.containsKey("cas")) {
                 cas = cas(parms.get("cas"));
+                if (cas == null) {
+                    appendResponse("ERROR: the requested CAS is unavailable", true);
+                    message(t, 400);
+                    return;
+                }
             }
             if (cas == null)
                 cas = casDefault(casDefault);
@@ -256,6 +261,11 @@ public class HTTPServer {
             }
             if (parms.containsKey("cas")) {
                 cas = cas(parms.get("cas"));
+                if (cas == null) {
+                    appendResponse("ERROR: the requested CAS is unavailable", true);
+                    message(t, 400);
+                    return;
+                }
             }
             if (cas == null)
                 cas = casDefault(casDefault);
