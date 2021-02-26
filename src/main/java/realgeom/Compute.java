@@ -420,7 +420,8 @@ public class Compute {
                 " (polys)->{ local ii; \n" +
                 "             ii:=0; \n" +
                 "             while(ii<(size(polys))) { \n" +
-                "                 polys[ii]:=expand(lcm(denom(coeff(polys[ii])))*(polys[ii])); \n" +
+                //"                 polys[ii]:=expand(lcm(denom(coeff(polys[ii])))*(polys[ii])); \n" +
+                "                 polys[ii]:=numer(simplify(polys[ii])); \n" +
                 "                 ii:=ii+1;\n" +
                 "                 };\n" +
                 "             return(polys); \n" +
