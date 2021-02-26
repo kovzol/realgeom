@@ -12,8 +12,8 @@ import java.io.*;
 public class Start {
 
     // Taken from https://stackoverflow.com/a/39542949/1044586
-    private static boolean isWindows       = false;
-    private static boolean isLinux         = false;
+    public static boolean isWindows       = false;
+    public static boolean isLinux         = false;
     public static boolean isMac           = false;
     private static boolean isHpUnix        = false;
     public static boolean isPiUnix         = false;
@@ -74,7 +74,7 @@ public class Start {
         if (isPiUnix || isMac) {
             libraryName = "javagiac";
         }
-        if (!isLinux && !isMac) {
+        if (!isLinux && !isMac && !isWindows) {
             System.err.println("Unsupported architecture");
             System.exit(1);
         }
@@ -82,7 +82,7 @@ public class Start {
         try {
             System.out.println("Loading Giac Java interface...");
             MyClassPathLoader loader = new MyClassPathLoader();
-            loader.loadLibrary(libraryName, isLinux, isMac);
+            loader.loadLibrary(libraryName);
         } catch (UnsatisfiedLinkError e) {
             e.printStackTrace();
             System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
@@ -101,12 +101,14 @@ public class Start {
 
         System.out.println("Testing shell connection...");
         input = "expr 1 + 2";
+        if (isWindows)
+            input = "set /a 1+2";
         test = ExternalCAS.execute(input, timeLimit);
         if (!test.equals("3")) {
             return "";
         }
 
-        if (!isMac && ExternalCAS.createMathLink()) {
+        if (!isMac && !isWindows && ExternalCAS.createMathLink()) {
 
             System.out.println("Starting Mathematica/MathLink...");
             Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -169,9 +171,17 @@ public class Start {
                 "(Eb)(Ec)[1+b>c /\\ 1+c>b /\\ b+c>1 /\\  (1+b+c)^2=m (b+c+b c)].\n" +
                 "assume[m>0].\n" +
                 "finish";
+        // An easier one:
+        input = "[]\n" +
+                "(m,v5,v6,v9,v8,v10,w1,v7)\n" +
+                "1\n" +
+                "(Ev5)(Ev6)(Ev9)(Ev8)(Ev10)(Ew1)(Ev7)[v8>0 /\\ v9>0 /\\ v7>0 /\\ v5^2+v6^2-v9^2-2 v5+1=0 /\\ v5^2+v6^2-v8^2=0 /\\ v10 v6-1=0 /\\ v8+v9-w1=0 /\\ -m+w1=0 /\\ 1-v7=0].\n" +
+                "assume[m>0].\n" +
+                "finish";
         System.out.println("Testing QEPCAD connection via shell...");
         test = ExternalCAS.executeQepcad(input, timeLimit, qepcadN, qepcadL);
-        if (!test.equals("m - 4 < 0 /\\ m - 3 >= 0")) {
+        // if (!test.equals("m - 4 < 0 /\\ m - 3 >= 0")) {
+        if (!test.equals("m - 1 > 0")) {
             System.out.println("Consider installing QEPCAD (make sure you have a script `qepcad' on your path that correctly starts QEPCAD)");
         } else {
             supported += ",qepcad";
@@ -262,6 +272,8 @@ public class Start {
         System.out.println("Time limit is set to " + timeLimit + " seconds");
 
         String qepcadN = "500000000";
+        if (isWindows)
+            qepcadN = "50000000";
         if (cmd.hasOption("N")) {
             qepcadN = cmd.getOptionValue("qepcadN");
         }
@@ -328,7 +340,7 @@ public class Start {
             }
             System.out.println("Starting HTTP server on port " + port + ", press CTRL-C to terminate");
             try {
-                HTTPServer.start(port, timeLimit + "", qepcadN, qepcadL);
+                HTTPServer.start(port, timeLimit + "", qepcadN, qepcadL, supported);
             } catch (Exception e) {
                 System.err.println("Cannot start HTTP server, exiting");
                 System.exit(1);

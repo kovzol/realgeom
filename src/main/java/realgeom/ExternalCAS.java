@@ -5,6 +5,8 @@ package realgeom;
   Currently Maple and Mathematica use it.
  */
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -15,31 +17,45 @@ public class ExternalCAS {
 
     static String execute (String command, String timeLimit) {
         StringBuilder output = new StringBuilder();
-        String[] cmd;
+        String[] cmd = null;
         if (timeLimit != null) {
-            cmd = new String[5];
             if (Start.isMac) {
                 // This is actually not always working.
                 // TODO: Use a real timeout implementation instead.
                 // Based on https://stackoverflow.com/a/35512328/1044586
                 // which is, unfortunately, not correct.
+                cmd = new String[5];
                 cmd[0] = "perl";
                 cmd[1] = "-e";
                 cmd[2] = "alarm shift; exec @ARGV";
                 cmd[3] = timeLimit;
                 cmd[4] = command;
-                } else {
+                }
+            if (Start.isLinux) {
+                cmd = new String[5];
                 cmd[0] = "/usr/bin/timeout";
                 cmd[1] = timeLimit;
                 cmd[2] = "/bin/bash";
                 cmd[3] = "-c";
                 cmd[4] = command;
                 }
+            if (Start.isWindows) {
+                // TODO: implement timeout
+                cmd = new String[3];
+                cmd[0] = "cmd";
+                cmd[1] = "/c";
+                cmd[2] = command;
+                }
             } else {
             cmd = new String[3];
-            cmd[0] = "/bin/bash";
-            cmd[1] = "-c";
-            cmd[2] = command;
+            if (Start.isWindows) {
+                cmd[0] = "cmd";
+                cmd[1] = "/c";
+                } else {
+                cmd[0] = "/bin/bash";
+                cmd[1] = "-c";
+                cmd[2] = command;
+                }
             };
         try {
             Process child = Runtime.getRuntime().exec(cmd);
@@ -116,17 +132,43 @@ public class ExternalCAS {
 
     static String executeQepcad (String command, String timeLimit, String qepcadN, String qepcadL) {
         // System.out.println("qepcad in = " + command);
-        String output = ExternalCAS.execute("echo \"" + command + "\" | qepcad +N" + qepcadN + " +L" + qepcadL
-                + " -t " + timeLimit,
-                timeLimit);
-        String[] outputLines = output.split("\n");
+        String output = "";
+        if (Start.isWindows) {
+            File tempFile;
+            try {
+                tempFile = File.createTempFile("qepcad-input-", ".tmp");
+                FileWriter writer = new FileWriter(tempFile);
+                writer.write(command + "\n");
+                writer.close();
+            } catch (IOException e) {
+                return "";
+            }
+            // System.out.println("Using temporary file " + tempFile.getAbsolutePath());
+            output = ExternalCAS.execute("qepcad -noecho +N" + qepcadN
+                   + " < " + tempFile.getAbsolutePath(), timeLimit);
+        } else {
+            output = ExternalCAS.execute("echo \"" + command + "\" | qepcad +N" + qepcadN + " +L" + qepcadL
+                    + " -t " + timeLimit, timeLimit);
+        }
+        // System.out.println(output);
+        String[] outputLines;
+        if (Start.isWindows)
+            outputLines = output.split("\r\n");
+        else
+            outputLines = output.split("\n");
+
         int i = 0;
         int l = outputLines.length;
         if (l==0) {
+            // System.out.println("No output 1");
             return "";
         }
         while (!"An equivalent quantifier-free formula:".equals(outputLines[i]) && (i < (l - 1))) i++;
         if (i==l-1) {
+            // System.out.println("No output 2");
+            // for (int j=0; j<l; ++j) {
+            //     System.out.println(j + " " + outputLines[j]);
+            // }
             return "";
         }
         StringBuilder retval = new StringBuilder();

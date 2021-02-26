@@ -25,16 +25,19 @@ public class MyClassPathLoader {
      *            eg javagiac or javagiac64
      * @return success
      */
-    public boolean loadLibrary(String libname, boolean isLinux, boolean isMac) {
-
+    public boolean loadLibrary(String libname) {
         String extension, prefix;
         // assume Linux
         prefix = "lib";
         extension = "";
-        if (isLinux)
+        if (Start.isLinux)
             extension = ".so";
-        if (isMac)
+        if (Start.isMac)
             extension = ".jnilib";
+        if (Start.isWindows) {
+            prefix = "";
+            extension = ".dll";
+        }
 
         String filename = prefix + libname + extension;
         InputStream ins = ClassLoader.getSystemResourceAsStream(filename);

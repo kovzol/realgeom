@@ -24,17 +24,55 @@ public class HTTPServer {
     public static String defaultTimelimit;
     public static String defaultQepcadN;
     public static String defaultQepcadL;
+    public static String supportedBackends;
 
-    public static void start(int port, String timelimit, String qepcadN, String qepcadL) throws Exception {
+    public static void start(int port, String timelimit, String qepcadN, String qepcadL,
+                             String supported) throws Exception {
         defaultTimelimit = timelimit;
         defaultQepcadN = qepcadN;
         defaultQepcadL = qepcadL;
+        supportedBackends = supported;
+
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext("/triangle", new TriangleHandler());
         server.createContext("/euclideansolver", new EuclideanSolverHandler());
 
         server.setExecutor(null); // creates a default executor
         server.start();
+    }
+
+    static Cas cas(String s) {
+        if (s.equals("giac")
+                && supportedBackends.contains("giac")) {
+            return Cas.GIAC;
+        }
+        if (s.equals("maple")
+                && supportedBackends.contains("maple")) {
+            return Cas.MAPLE;
+        }
+        if (s.equals("mathematica")
+                && supportedBackends.contains("mathematica")) {
+            return Cas.MATHEMATICA;
+        }
+        if (s.equals("redlog")
+                && supportedBackends.contains("redlog")) {
+            return Cas.REDLOG;
+        }
+        if (s.equals("qepcad")
+                && supportedBackends.contains("qepcad")) {
+            return Cas.QEPCAD;
+        }
+        return null;
+    }
+
+    static Cas casDefault(String s) {
+        Cas c = cas(s);
+        if (c == null) {
+            // The expected default is unsupported:
+            String[] backends = supportedBackends.split(",");
+            return cas(backends[0]); // use the first one among the supported ones
+        }
+        return c;
     }
 
     static class TriangleHandler implements HttpHandler {
@@ -44,8 +82,8 @@ public class HTTPServer {
             response = "";
 
             // defaults
+            String casDefault = "maple";
             Mode mode = Mode.EXPLORE;
-            Cas cas = Cas.MAPLE;
             Tool tool = Tool.DEFAULT;
             Subst subst = Subst.AUTO;
             Log log = Log.INFO;
@@ -54,6 +92,8 @@ public class HTTPServer {
             String timelimit = defaultTimelimit;
             String qepcadN = defaultQepcadN;
             String qepcadL = defaultQepcadL;
+
+            Cas cas = null;
 
             Map<String, String> parms = HTTPServer.queryToMap(t.getRequestURI().getQuery());
             // reading parameters
@@ -66,22 +106,10 @@ public class HTTPServer {
                 }
             }
             if (parms.containsKey("cas")) {
-                if (parms.get("cas").equals("giac")) {
-                    cas = Cas.GIAC;
-                }
-                if (parms.get("cas").equals("maple")) {
-                    cas = Cas.MAPLE;
-                }
-                if (parms.get("cas").equals("mathematica")) {
-                    cas = Cas.MATHEMATICA;
-                }
-                if (parms.get("cas").equals("redlog")) {
-                    cas = Cas.REDLOG;
-                }
-                if (parms.get("cas").equals("qepcad")) {
-                    cas = Cas.QEPCAD;
-                }
+                cas = cas(parms.get("cas"));
             }
+            if (cas == null)
+                cas = casDefault(casDefault);
             if (cas == Cas.MAPLE) {
                 tool = Tool.REGULAR_CHAINS; // default
                 if (parms.containsKey("tool")) {
@@ -200,7 +228,7 @@ public class HTTPServer {
 
             // defaults
             Mode mode = null;
-            Cas cas = Cas.MATHEMATICA;
+            String casDefault = "mathematica";
             Tool tool = Tool.DEFAULT;
             Subst subst = Subst.AUTO;
             Log log = Log.INFO;
@@ -214,6 +242,8 @@ public class HTTPServer {
             String qepcadN = defaultQepcadN;
             String qepcadL = defaultQepcadL;
 
+            Cas cas = null;
+
             Map<String, String> parms = HTTPServer.queryToMap(t.getRequestURI().getQuery());
             // reading parameters
             if (parms.containsKey("mode")) {
@@ -225,22 +255,10 @@ public class HTTPServer {
                 }
             }
             if (parms.containsKey("cas")) {
-                if (parms.get("cas").equals("giac")) {
-                    cas = Cas.GIAC;
-                }
-                if (parms.get("cas").equals("maple")) {
-                    cas = Cas.MAPLE;
-                }
-                if (parms.get("cas").equals("mathematica")) {
-                    cas = Cas.MATHEMATICA;
-                }
-                if (parms.get("cas").equals("redlog")) {
-                    cas = Cas.REDLOG;
-                }
-                if (parms.get("cas").equals("qepcad")) {
-                    cas = Cas.QEPCAD;
-                }
+                cas = cas(parms.get("cas"));
             }
+            if (cas == null)
+                cas = casDefault(casDefault);
             if (cas == Cas.MAPLE) {
                 tool = Tool.REGULAR_CHAINS; // default
                 if (parms.containsKey("tool")) {

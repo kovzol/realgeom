@@ -15,6 +15,8 @@ dependencies {
     runtime "fr.ujf-grenoble:javagiac:69689:natives-linux-amd64"
     runtime "fr.ujf-grenoble:javagiac:69689:natives-macosx-universal"
     runtime "fr.ujf-grenoble:javagiac:69689:natives-linux-arm"
+    runtime "fr.ujf-grenoble:javagiac:69689:natives-windows-i586"
+    runtime "fr.ujf-grenoble:javagiac:69689:natives-windows-amd64"
 }
 
 mainClassName = "realgeom.Start"
