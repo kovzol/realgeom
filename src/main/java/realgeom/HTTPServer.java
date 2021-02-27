@@ -43,23 +43,23 @@ public class HTTPServer {
 
     static Cas cas(String s) {
         if (s.equals("giac")
-                && supportedBackends.contains("giac")) {
+                && (supportedBackends.contains("giac") || Start.dryRun)) {
             return Cas.GIAC;
         }
         if (s.equals("maple")
-                && supportedBackends.contains("maple")) {
+                && (supportedBackends.contains("maple")  || Start.dryRun)) {
             return Cas.MAPLE;
         }
         if (s.equals("mathematica")
-                && supportedBackends.contains("mathematica")) {
+                && (supportedBackends.contains("mathematica") || Start.dryRun)) {
             return Cas.MATHEMATICA;
         }
         if (s.equals("redlog")
-                && supportedBackends.contains("redlog")) {
+                && (supportedBackends.contains("redlog") || Start.dryRun)) {
             return Cas.REDLOG;
         }
         if (s.equals("qepcad")
-                && supportedBackends.contains("qepcad")) {
+                && (supportedBackends.contains("qepcad") || Start.dryRun)) {
             return Cas.QEPCAD;
         }
         return null;
