@@ -56,7 +56,7 @@ public class ExternalCAS {
                 cmd[1] = "-c";
                 cmd[2] = command;
                 }
-            };
+            }
         try {
             Process child = Runtime.getRuntime().exec(cmd);
             InputStream in = child.getInputStream();
@@ -138,7 +138,7 @@ public class ExternalCAS {
         // System.out.println("qepcad in = " + command);
         if (Start.dryRun)
             return "";
-        String output = "";
+        String output;
         if (Start.isWindows) {
             File tempFile;
             try {
