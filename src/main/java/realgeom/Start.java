@@ -69,11 +69,12 @@ public class Start {
             }
         }
 
-        String libraryName = "javagiac64";
-
-        if (isPiUnix || isMac) {
-            libraryName = "javagiac";
+        String libraryName = "javagiac";
+        if ("AMD64".equals(System.getenv("PROCESSOR_ARCHITECTURE"))
+                || "amd64".equals(System.getProperty("os.arch"))) {
+            libraryName = "javagiac64";
         }
+
         if (!isLinux && !isMac && !isWindows) {
             System.err.println("Unsupported architecture");
             System.exit(1);
