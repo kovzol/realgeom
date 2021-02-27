@@ -42,8 +42,6 @@ Optional:
   * [RedLog](http://www.redlog.eu/)
 
 ## Usage ##
-Before compilation you should edit the file `gradle.properties` in the main folder of this program.
-
 The command `./gradlew installDist` will download and compile
 all additional tools you may
 eventually need, or informs you about the further steps.
