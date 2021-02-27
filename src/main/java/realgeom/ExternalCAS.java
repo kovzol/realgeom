@@ -81,6 +81,8 @@ public class ExternalCAS {
     }
 
     static String executeMaple (String command, String timeLimit) {
+        if (Start.dryRun)
+            return "";
         // System.out.println("maple command = " + command);
         return execute("echo \"" + command + "\" | maple -q", timeLimit);
     }
@@ -104,6 +106,8 @@ public class ExternalCAS {
      }
 
     static String executeMathematica (String command, String timeLimit) {
+        if (Start.dryRun)
+            return "";
         command = "TimeConstrained[" + command + "," + timeLimit + "]";
         String ret = ml.evaluateToInputForm(command, 0);
         // System.out.println("executeMathematica: " + command + " -> " + ret);
@@ -132,6 +136,8 @@ public class ExternalCAS {
 
     static String executeQepcad (String command, String timeLimit, String qepcadN, String qepcadL) {
         // System.out.println("qepcad in = " + command);
+        if (Start.dryRun)
+            return "";
         String output = "";
         if (Start.isWindows) {
             File tempFile;
@@ -184,11 +190,15 @@ public class ExternalCAS {
     }
 
     static String executeRedlog (String command, String timeLimit) {
+        if (Start.dryRun)
+            return "";
         String preamble = "off echo$off nat$rlset r$linelength(100000)$";
         return executeReduce(preamble + command, timeLimit);
     }
 
     static String executeReduce (String command, String timeLimit) {
+        if (Start.dryRun)
+            return "";
         // System.out.println("reduce in = " + command);
         String output = ExternalCAS.execute("echo '" + command + "' | reduce", timeLimit);
         String[] outputLines = output.split("\n");

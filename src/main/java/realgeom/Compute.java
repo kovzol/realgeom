@@ -4,6 +4,11 @@ package realgeom;
  * It computes the real geometry problem.
  */
 
+import static realgeom.Start.logfile;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Arrays;
 
@@ -69,8 +74,18 @@ public class Compute {
     }
 
     private static void appendResponse(String message, Log logLevel) {
+        String data = new Timestamp(System.currentTimeMillis()) + " " + message;
+        if (!"".equals(logfile)) {
+            try {
+                FileWriter writer = new FileWriter(logfile, true);
+                writer.write(data + "\n");
+                writer.close();
+            } catch (IOException e) {
+                // We acknowledge silently that the logging is not possible for some reason.
+            }
+        }
         if (maxLogLevel == Log.VERBOSE || (maxLogLevel == Log.INFO && logLevel != Log.SILENT)) {
-            System.out.println(new Timestamp(System.currentTimeMillis()) + " " + message);
+            System.out.println(data);
         }
         if (maxLogLevel != Log.VERBOSE && logLevel == Log.VERBOSE) {
             return;

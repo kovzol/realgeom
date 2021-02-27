@@ -22,6 +22,9 @@ public class Start {
     private static boolean archDataModel32 = false;
     private static boolean archDataModel64 = false;
 
+    public static String logfile = "";
+    public static boolean dryRun = false;
+
     static {
         final String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("windows")) {
@@ -253,6 +256,14 @@ public class Start {
         qepcadLOption.setRequired(false);
         options.addOption(qepcadLOption);
 
+        Option logfileOption = new Option("l", "logfile", true, "filename for logging");
+        logfileOption.setRequired(false);
+        options.addOption(logfileOption);
+
+        Option dryrunOption = new Option("d", "dry-run", false, "do not run heavy computations");
+        dryrunOption.setRequired(false);
+        options.addOption(dryrunOption);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd;
@@ -290,6 +301,14 @@ public class Start {
         if (supported.equals("")) {
             System.err.println("Unexpected results on self-test, exiting");
             System.exit(1);
+        }
+
+        if (cmd.hasOption("d")) {
+            dryRun = true;
+        }
+
+        if (cmd.hasOption("l")) {
+            logfile = cmd.getOptionValue("logfile");
         }
 
         if (cmd.hasOption("b")) {
