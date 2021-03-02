@@ -6,7 +6,6 @@ package realgeom;
 
 import static realgeom.Start.logfile;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -108,7 +107,7 @@ public class Compute {
         appendResponse("LOG: mathcode=" + mathcode, Log.VERBOSE);
         String giacOutput = GiacCAS.execute(mathcode);
         // keep only the middle of "list[...]":
-        if (giacOutput.indexOf("list") > -1) {
+        if (giacOutput.contains("list")) {
           giacOutput = giacOutput.replaceAll("list", "");
           giacOutput = giacOutput.substring(1, giacOutput.length() - 1);
           }
