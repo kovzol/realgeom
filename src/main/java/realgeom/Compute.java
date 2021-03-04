@@ -102,7 +102,37 @@ public class Compute {
     }
 
     private static String rewriteGiac(String formula) {
-        String rewritten = formula.replaceAll("&&", ",");
+        // A typical example:
+        // m^2 + m - 1 >= 0 /\ m^2 - m - 1 <= 0 /\ [ m^2 - m - 1 = 0 \/ m^2 + m - 1 = 0 ]
+
+        // appendResponse("LOG: formula=" + formula, Log.VERBOSE);
+        String[] conjunctions = formula.split(" && ");
+
+        String rewritten = "";
+        for (String c : conjunctions) {
+            if (c.startsWith("[ ") &&
+                    c.endsWith(" ]")) {
+                c = c.substring(2, c.length() - 6); // trim [ ... ]
+            }
+            // appendResponse("LOG: c=" + c, Log.VERBOSE);
+            String[] disjunctions = c.split(" \\\\/ ");
+            String product = "";
+            for (String d : disjunctions) {
+                // appendResponse("LOG: d=" + d, Log.VERBOSE);
+                if (d.endsWith(" = 0")) {
+                    d = d.substring(0, d.length() - 4); // remove = 0
+                }
+                d = "(" + d + ")";
+                product += d + "*";
+                // appendResponse("LOG: product=" + product, Log.VERBOSE);
+            }
+            product = product.substring(0, product.length() - 1); // remove last *
+            // appendResponse("LOG: product=" + product, Log.VERBOSE);
+            rewritten += product + ",";
+            // appendResponse("LOG: rewritten=" + rewritten, Log.VERBOSE);
+        }
+        rewritten = rewritten.substring(0, rewritten.length() - 1); // remove last ,
+
         String mathcode = "solve([" + rewritten + "],m)";
         appendResponse("LOG: mathcode=" + mathcode, Log.VERBOSE);
         String giacOutput = GiacCAS.execute(mathcode);
@@ -112,10 +142,6 @@ public class Compute {
           giacOutput = giacOutput.substring(1, giacOutput.length() - 1);
           }
         giacOutput = giacOutput.replaceAll("√", "sqrt");
-        // This will be done in GeoGebra, not here:
-        // if (giacOutput.indexOf("m") == -1) {
-        //   giacOutput = "m=" + giacOutput;
-        //   }
         return giacOutput;
     }
 
