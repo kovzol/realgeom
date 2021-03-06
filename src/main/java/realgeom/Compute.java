@@ -383,7 +383,7 @@ public class Compute {
                 "    };\n" +
                 "  return(true);  \n" +
                 "}");
-        String jpDef = ggbGiac(
+        String dlDef = ggbGiac(
                 "delinearize\n" +
                         " (polys,excludevars)-> \n" +
                         "{ local ii,degs,pos,vars,linvar,p,qvar,pos2,keep,cc,substval; \n" +
@@ -405,6 +405,7 @@ public class Compute {
                         "                      linvar:=vars[pos[p]];  \n" +
                         "                    }; \n" +
                         "                  if ((not(is_element(linvar,excludevars))) || (cc<2)) { \n" +
+                        //"                      if (is_element(linvar,excludevars) && (cc>1)) { \n" +
                         "                      if (is_element(linvar,excludevars)) { \n" +
                         "                           keep:=append(keep,polys[ii]); \n" +
                         "                           print(\"Keeping \" + polys[ii]); \n" +
@@ -433,8 +434,8 @@ public class Compute {
                         "                          if (type(substval)==integer || type(substval)==rational) { \n" +
                         "                              polys:=remove(0,expand(subs(polys,[qvar],[substval])));  \n" +
                         "                              print(\"New set: \" + polys); \n" +
-                        "                              keep:=append(keep,substval-qvar);  \n" +
-                        "                              print(\"Keeping \" + (substval-qvar)); \n" +
+                        // "                              keep:=append(keep,substval-qvar);  \n" +
+                        // "                              print(\"Keeping \" + (substval-qvar)); \n" +
                         "                              vars:=lvar(polys);  \n" +
                         "                              ii:=-1;  \n" +
                         "                            };  \n" +
@@ -520,7 +521,7 @@ public class Compute {
         // Add main equation:
         polys2 += "," + eq;
         appendResponse("LOG: before delinearization, polys=" + polys2, Log.VERBOSE);
-        String linCode = "[[" + ggInit + "],[" + ilsDef + "],[" + ilDef + "],[" + jpDef + "],[" + rmwDef +
+        String linCode = "[[" + ggInit + "],[" + ilsDef + "],[" + ilDef + "],[" + dlDef + "],[" + rmwDef +
                 "],[" + rdDef + "],";
         if (lhs.equals("w1") && rhs.equals("w2")) {
             linCode += "removeDivisions(removeW12(delinearize([" + polys2 + "],[" + posvariables + ",w1,w2]),m,w1,w2))][6]";
