@@ -235,7 +235,7 @@ public class ExternalCAS {
     }
 
     static String executeQepcadPipe (String[] commands, int[] responseLinesExpected, String timeLimit) {
-        String output = null;
+        String output = "";
         try {
             OutputStream qepcadIn = qepcadChild.getOutputStream();
             for (int i = 0; i < responseLinesExpected.length; ++i) {

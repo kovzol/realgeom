@@ -572,10 +572,24 @@ public class Compute {
                 exists += "(E" + item + ")";
                 }
 
-            code = "[]\n" + vars + "\n1\n" + exists + "[" + ineqs + "].\n" +
-                    "assume[m>0].\nfinish\n";
-            appendResponse("LOG: code=" + code, Log.VERBOSE);
-            String result = ExternalCAS.executeQepcad(code, timelimit, qepcadN, qepcadL);
+            String result;
+            if (Start.qepcadPipe) {
+                String[] codePipe = {"[]", vars, "1", exists + "[" + ineqs + "].",
+                        "assume[m>0].", "go", "go", "go", "sol T"};
+                appendResponse("LOG: code=" + codePipe, Log.VERBOSE);
+                int[] expectedResponseLines = {1, 1, 1, 5, 2, 2, 2, 2, 7};
+                result = ExternalCAS.executeQepcadPipe(codePipe, expectedResponseLines, null);
+                String[] results = result.split("\n");
+                result = results[3];
+                String[] cont = {"continue"};
+                int[] contLines = {1};
+                ExternalCAS.executeQepcadPipe(cont, contLines, null);
+            } else {
+                code = "[]\n" + vars + "\n1\n" + exists + "[" + ineqs + "].\n" +
+                        "assume[m>0].\nfinish\n";
+                appendResponse("LOG: code=" + code, Log.VERBOSE);
+                result = ExternalCAS.executeQepcad(code, timelimit, qepcadN, qepcadL);
+            }
             if (result.equals("")) {
                appendResponse("ERROR: empty output", Log.VERBOSE);
                appendResponse("QEPCAD ERROR", Log.INFO);
