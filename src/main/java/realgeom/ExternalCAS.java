@@ -11,16 +11,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import com.wolfram.jlink.*;
 
 public class ExternalCAS {
     private static KernelLink ml;
 
-    static String execute (String command, String timeLimit) {
+    static String execute (String command, int timeLimit) {
         StringBuilder output = new StringBuilder();
         String[] cmd = null;
-        if (timeLimit != null) {
+        if (timeLimit != 0) {
             if (Start.isMac) {
                 // This is actually not always working.
                 // TODO: Use a real timeout implementation instead.
@@ -30,13 +39,13 @@ public class ExternalCAS {
                 cmd[0] = "perl";
                 cmd[1] = "-e";
                 cmd[2] = "alarm shift; exec @ARGV";
-                cmd[3] = timeLimit;
+                cmd[3] = timeLimit + "";
                 cmd[4] = command;
                 }
             if (Start.isLinux) {
                 cmd = new String[5];
                 cmd[0] = "/usr/bin/timeout";
-                cmd[1] = timeLimit;
+                cmd[1] = timeLimit + "";
                 cmd[2] = "/bin/bash";
                 cmd[3] = "-c";
                 cmd[4] = command;
@@ -82,14 +91,14 @@ public class ExternalCAS {
         return output.toString();
     }
 
-    static String executeMaple (String command, String timeLimit) {
+    static String executeMaple (String command, int timeLimit) {
         if (Start.dryRun)
             return "";
         // System.out.println("maple command = " + command);
         return execute("echo \"" + command + "\" | maple -q", timeLimit);
     }
 
-    static String executeMathematica_obsolete (String command, String timeLimit) {
+    static String executeMathematica_obsolete (String command, int timeLimit) {
         String mathematicaCommand = "math";
         if (Start.isPiUnix) {
             mathematicaCommand = "wolfram";
@@ -107,7 +116,7 @@ public class ExternalCAS {
         return output.substring(ltrim);
      }
 
-    static String executeMathematica (String command, String timeLimit) {
+    static String executeMathematica (String command, int timeLimit) {
         if (Start.dryRun)
             return "";
         command = "TimeConstrained[" + command + "," + timeLimit + "]";
@@ -136,7 +145,7 @@ public class ExternalCAS {
         ml.close();
     }
 
-    static String executeQepcad (String command, String timeLimit, String qepcadN, String qepcadL) {
+    static String executeQepcad (String command, int timeLimit, String qepcadN, String qepcadL) {
         // System.out.println("qepcad in = " + command);
         if (Start.dryRun)
             return "";
@@ -192,9 +201,13 @@ public class ExternalCAS {
     }
 
     // static StringBuilder qepcadOutput;
-    static Process qepcadChild;
+    static ArrayList<Process> qepcadChildren = new ArrayList<Process>();
+    static int qepcadChild = -1;
+    static String qepcadNSaved, qepcadLSaved;
 
     static boolean startQepcadConnection(String qepcadN, String qepcadL) {
+        qepcadNSaved = qepcadN;
+        qepcadLSaved = qepcadL;
         String qepcadCmd = "qepcad -noecho +N" + qepcadN + " +L" + qepcadL;
         String[] cmd = null;
         cmd = new String[3];
@@ -207,73 +220,130 @@ public class ExternalCAS {
         }
         cmd[2] = qepcadCmd;
         try {
-            qepcadChild = Runtime.getRuntime().exec(cmd);
+            System.out.println("exec started...");
+            Process p = Runtime.getRuntime().exec(cmd);
+            System.out.println("waiting 2s...");
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            qepcadChildren.add(p);
+            qepcadChild ++;
+            System.out.println("Starting QEPCAD connection " + qepcadChild);
+            System.out.println("exec succeeded...");
         } catch (IOException e) {
             System.err.println("Error on executing external command '" + qepcadCmd + "'");
             return false;
         }
+        System.out.println("Waiting for QEPCAD output...");
+
         getQepcadOutputUntil("Enter an informal description  between '[' and ']':\n");
+        System.out.println("QEPCAD output received");
         return true;
     }
 
     static String getQepcadOutputUntil(String end) {
         StringBuilder output = new StringBuilder();
-        InputStream qepcadOut = qepcadChild.getInputStream();
-        int c;
+        InputStream qepcadOut = qepcadChildren.get(qepcadChild).getInputStream();
+        int c = -2;
         boolean found = false;
         try {
-            while (!found) {
+            while (!found && (c != -1)) {
                 c = qepcadOut.read();
                 output.append((char) c);
                 found = output.toString().endsWith(end);
             }
         } catch (IOException e) {
             System.err.println("Error on reading QEPCAD output");
-            return null;
+            return "";
+        }
+        if (c == -1) {
+            // startQepcadConnection(qepcadNSaved, qepcadLSaved); // restart because an EOF was detected
+            System.err.println("EOF detected");
+            return "";
         }
         return output.toString();
     }
 
-    static String executeQepcadPipe (String[] commands, int[] responseLinesExpected, String timeLimit) {
-        String output = "";
-        try {
-            OutputStream qepcadIn = qepcadChild.getOutputStream();
-            for (int i = 0; i < responseLinesExpected.length; ++i) {
-                if (i == responseLinesExpected.length - 1) {
-                    output = ""; // reset
+    static String executeQepcadPipe (final String[] commands, final int[] responseLinesExpected, int timeLimit) {
+        String result = "";
+        ExecutorService executor = Executors.newCachedThreadPool();
+        Callable<String> task = new Callable<String>() {
+            public String call() {
+                String output = "";
+                try {
+                    OutputStream qepcadIn = qepcadChildren.get(qepcadChild).getOutputStream();
+                    for (int i = 0; i < responseLinesExpected.length; ++i) {
+                        // if (i == responseLinesExpected.length - 1) {
+                            output = ""; // reset
+                        // }
+                        System.out.println("command=" + commands[i]);
+                        byte[] b = commands[i].getBytes(StandardCharsets.UTF_8);
+                        qepcadIn.write(b);
+                        qepcadIn.write('\n'); // press ENTER
+                        qepcadIn.flush();
+                        for (int j = 0; j < responseLinesExpected[i]; ++j) {
+                            output += getQepcadOutputUntil("\n");
+                        }
+                        System.out.println("output=" + output);
+                    }
+                } catch (IOException e) {
+                    System.err.println("Error on reading QEPCAD output");
+                    return "";
                 }
-                byte[] b = commands[i].getBytes(StandardCharsets.UTF_8);
-                qepcadIn.write(b);
-                qepcadIn.write('\n'); // press ENTER
-                qepcadIn.flush();
-                for (int j = 0; j < responseLinesExpected[i]; ++j) {
-                    output += getQepcadOutputUntil("\n");
-                }
-            }
-        } catch (IOException e) {
-                System.err.println("Error on reading QEPCAD output");
-        }
 
-        // trim trailing newline
-        if (output.substring(output.length() - 1, output.length()).equals("\n")) {
-            return (output.substring(0, output.length() - 1));
+                // trim trailing newline
+                if (output.substring(output.length() - 1, output.length()).equals("\n")) {
+                    return (output.substring(0, output.length() - 1));
+                }
+                System.out.println(output);
+                return output;
+            }
+        };
+        Future<String> future = executor.submit(task);
+        boolean restartNeeded = false;
+        try {
+            result = future.get(timeLimit, TimeUnit.SECONDS);
+        } catch (TimeoutException ex) {
+            System.err.println("Timeout");
+            restartNeeded = true;
+        } catch (InterruptedException e) {
+            System.err.println("Interrupted");
+        } catch (ExecutionException e) {
+            System.err.println("Execution error");
+        } finally {
+            System.err.println("Cancelled");
+            future.cancel(true);
+            if (restartNeeded) {
+                stopQepcadConnection();
+                startQepcadConnection(qepcadNSaved, qepcadLSaved);
+            }
         }
-        System.out.println(output);
-        return output;
+        System.out.println("Before returning result=" + result);
+        return result;
     }
 
     static void stopQepcadConnection() {
-        qepcadChild.destroy();
+        System.out.println("Stopping QEPCAD connection");
+        qepcadChildren.get(qepcadChild).destroy();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            // do nothing
+        }
+
+
     }
 
-    static String executeRedlog (String command, String timeLimit) {
+    static String executeRedlog (String command, int timeLimit) {
         if (Start.dryRun)
             return "";
         String preamble = "off echo$off nat$rlset r$linelength(100000)$";
         return executeReduce(preamble + command, timeLimit);
     }
 
-    static String executeReduce (String command, String timeLimit) {
+    static String executeReduce (String command, int timeLimit) {
         if (Start.dryRun)
             return "";
         // System.out.println("reduce in = " + command);

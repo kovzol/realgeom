@@ -95,7 +95,7 @@ public class Compute {
         response += message;
     }
 
-    private static String rewriteMathematica(String formula, String timeLimit) {
+    private static String rewriteMathematica(String formula, int timeLimit) {
         String mathcode = "Reduce[" + formula + ",m,Reals]";
         appendResponse("LOG: mathcode=" + mathcode, Log.VERBOSE);
         return ExternalCAS.executeMathematica(mathcode, timeLimit);
@@ -146,7 +146,7 @@ public class Compute {
     }
 
     public static String triangleExplore(String lhs, String rhs, Cas cas, Tool tool, Subst subst, Log log,
-                                         String timelimit, String qepcadN, String qepcadL) {
+                                         int timelimit, String qepcadN, String qepcadL) {
         String m = "m";
         String code;
         ineqs = "";
@@ -330,7 +330,7 @@ public class Compute {
     public static String euclideanSolverExplore(String lhs, String rhs, String polys,
                                                 String triangles, String vars, String posvariables,
                                                 Cas cas, Tool tool, Subst subst, Log log,
-                                                String timelimit, String qepcadN, String qepcadL) {
+                                                int timelimit, String qepcadN, String qepcadL) {
         String m = "m"; // TODO: Use a different dummy variable
         String code;
         ineqs = "";
@@ -578,12 +578,16 @@ public class Compute {
                         "assume[m>0].", "go", "go", "go", "sol T"};
                 appendResponse("LOG: code=" + codePipe, Log.VERBOSE);
                 int[] expectedResponseLines = {1, 1, 1, 5, 2, 2, 2, 2, 7};
-                result = ExternalCAS.executeQepcadPipe(codePipe, expectedResponseLines, null);
+                result = ExternalCAS.executeQepcadPipe(codePipe, expectedResponseLines, timelimit);
                 String[] results = result.split("\n");
-                result = results[3];
-                String[] cont = {"continue"};
-                int[] contLines = {1};
-                ExternalCAS.executeQepcadPipe(cont, contLines, null);
+                if (results.length >= 3) {
+                    result = results[3];
+                    String[] cont = {"continue"};
+                    int[] contLines = {1};
+                    ExternalCAS.executeQepcadPipe(cont, contLines, timelimit);
+                } else {
+                    result = "";
+                }
             } else {
                 code = "[]\n" + vars + "\n1\n" + exists + "[" + ineqs + "].\n" +
                         "assume[m>0].\nfinish\n";

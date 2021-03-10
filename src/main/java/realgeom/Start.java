@@ -95,7 +95,7 @@ public class Start {
         }
     }
 
-    private static String test(String timeLimit, String qepcadN, String qepcadL) {
+    private static String test(int timeLimit, String qepcadN, String qepcadL) {
         String supported = "";
         System.out.println("Testing Giac connection...");
         String input = "1+2";
@@ -192,6 +192,7 @@ public class Start {
             supported += ",qepcad";
         }
 
+        System.out.println("Testing QEPCAD connection via pipe...");
         String[] inputs = {"[]",
                 "(m,b,c)",
                 "1",
@@ -200,7 +201,7 @@ public class Start {
                 "go", "go", "go", "sol T"};
         int[] expectedResponseLines = {1,1,1,5,2,2,2,2,7};
         ExternalCAS.startQepcadConnection(qepcadN, qepcadL);
-        test = ExternalCAS.executeQepcadPipe(inputs, expectedResponseLines, null);
+        test = ExternalCAS.executeQepcadPipe(inputs, expectedResponseLines, timeLimit);
         String[] testLines = test.split("\n");
         test = testLines[3];
         if (test.equals("m - 4 < 0 /\\ m - 3 >= 0")) {
@@ -208,7 +209,7 @@ public class Start {
             qepcadPipe = true;
             String[] cont = {"continue"};
             int[] contLines = {1};
-            ExternalCAS.executeQepcadPipe(cont, contLines, null);
+            ExternalCAS.executeQepcadPipe(cont, contLines, timeLimit);
         }
         // ExternalCAS.stopQepcadConnection();
 
@@ -318,7 +319,7 @@ public class Start {
         }
         System.out.println("QEPCAD +L is set to " + qepcadL + " primes");
 
-        String supported = test(timeLimit + "", qepcadN, qepcadL);
+        String supported = test(timeLimit, qepcadN, qepcadL);
         if (supported.equals("")) {
             System.err.println("Unexpected results on self-test, exiting");
             System.exit(1);
@@ -381,7 +382,7 @@ public class Start {
             }
             System.out.println("Starting HTTP server on port " + port + ", press CTRL-C to terminate");
             try {
-                HTTPServer.start(port, timeLimit + "", qepcadN, qepcadL, supported);
+                HTTPServer.start(port, timeLimit, qepcadN, qepcadL, supported);
             } catch (Exception e) {
                 System.err.println("Cannot start HTTP server, exiting");
                 System.exit(1);

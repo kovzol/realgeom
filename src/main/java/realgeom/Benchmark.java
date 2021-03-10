@@ -133,7 +133,7 @@ public class Benchmark {
 
                         long startTime = System.currentTimeMillis();
                         String response = Compute.triangleExplore(lhs, rhs, cas, tool, subst, Log.SILENT,
-                                timelimit + "", qepcadN, qepcadL);
+                                timelimit, qepcadN, qepcadL);
                         int elapsedTime = (int) (System.currentTimeMillis() - startTime);
                         System.out.print(name + ": triangleExplore(lhs=" + lhs + ",rhs=" + rhs +
                                 ",cas=" + cas + ",tool=" + tool + ",subst=" + subst + ")");

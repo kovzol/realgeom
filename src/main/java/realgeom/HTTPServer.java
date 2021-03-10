@@ -21,12 +21,12 @@ import java.util.Map;
 
 public class HTTPServer {
 
-    public static String defaultTimelimit;
+    public static int defaultTimelimit;
     public static String defaultQepcadN;
     public static String defaultQepcadL;
     public static String supportedBackends;
 
-    public static void start(int port, String timelimit, String qepcadN, String qepcadL,
+    public static void start(int port, int timelimit, String qepcadN, String qepcadL,
                              String supported) throws Exception {
         defaultTimelimit = timelimit;
         defaultQepcadN = qepcadN;
@@ -89,7 +89,7 @@ public class HTTPServer {
             Log log = Log.INFO;
             String lhs = "0";
             String rhs = "0";
-            String timelimit = defaultTimelimit;
+            int timelimit = defaultTimelimit;
             String qepcadN = defaultQepcadN;
             String qepcadL = defaultQepcadL;
 
@@ -152,7 +152,7 @@ public class HTTPServer {
                 rhs = parms.get("rhs");
             }
             if (parms.containsKey("timelimit")) {
-                timelimit = parms.get("timelimit");
+                timelimit = Integer.parseInt(parms.get("timelimit"));
             }
             if (parms.containsKey("qepcadn")) {
                 qepcadN = parms.get("qepcadn");
@@ -243,7 +243,7 @@ public class HTTPServer {
             String triangles = "";
             String vars = "";
             String posvariables = "";
-            String timelimit = defaultTimelimit;
+            int timelimit = defaultTimelimit;
             String qepcadN = defaultQepcadN;
             String qepcadL = defaultQepcadL;
 
@@ -324,7 +324,7 @@ public class HTTPServer {
                 qepcadN = parms.get("qepcadl");
             }
             if (parms.containsKey("timelimit")) {
-                timelimit = parms.get("timelimit");
+                timelimit = Integer.parseInt(parms.get("timelimit"));
             }
 
             if (log == Log.VERBOSE) {
@@ -335,7 +335,8 @@ public class HTTPServer {
                         ",timelimit=" + timelimit + ",qepcadn=" + qepcadN + ",qepcadl=" + qepcadL, true);
             }
             if (mode == Mode.EXPLORE) {
-                appendResponse(Compute.euclideanSolverExplore(lhs, rhs, polys, triangles, vars, posvariables, cas, tool, subst, log, timelimit, qepcadN, qepcadL), false);
+                appendResponse(Compute.euclideanSolverExplore(lhs, rhs, polys, triangles, vars, posvariables, cas,
+                        tool, subst, log, timelimit, qepcadN, qepcadL), false);
             }
             if (mode == Mode.CHECK) {
                 String min = "";
