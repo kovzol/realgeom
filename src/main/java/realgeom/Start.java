@@ -24,6 +24,7 @@ public class Start {
 
     public static String logfile = "";
     public static boolean dryRun = false;
+    public static boolean qepcadPipe = false;
 
     static {
         final String os = System.getProperty("os.name").toLowerCase();
@@ -204,8 +205,12 @@ public class Start {
         test = testLines[3];
         if (test.equals("m - 4 < 0 /\\ m - 3 >= 0")) {
             System.out.println("QEPCAD is available via pipe... great!");
+            qepcadPipe = true;
+            String[] cont = {"continue"};
+            int[] contLines = {1};
+            ExternalCAS.executeQepcadPipe(cont, contLines, null);
         }
-        ExternalCAS.stopQepcadConnection();
+        // ExternalCAS.stopQepcadConnection();
 
         input = "1+2;";
         System.out.println("Testing Reduce connection via shell...");
