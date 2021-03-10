@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -201,8 +200,7 @@ public class ExternalCAS {
     }
 
     // static StringBuilder qepcadOutput;
-    static ArrayList<Process> qepcadChildren = new ArrayList<Process>();
-    static int qepcadChild = -1;
+    static Process qepcadChild;
     static String qepcadNSaved, qepcadLSaved;
 
     static boolean startQepcadConnection(String qepcadN, String qepcadL) {
@@ -220,32 +218,27 @@ public class ExternalCAS {
         }
         cmd[2] = qepcadCmd;
         try {
-            System.out.println("exec started...");
-            Process p = Runtime.getRuntime().exec(cmd);
-            System.out.println("waiting 2s...");
+            System.out.println("Starting QEPCAD connection...");
+            qepcadChild = Runtime.getRuntime().exec(cmd);
+            System.out.println("Waiting 2s...");
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            qepcadChildren.add(p);
-            qepcadChild ++;
-            System.out.println("Starting QEPCAD connection " + qepcadChild);
-            System.out.println("exec succeeded...");
         } catch (IOException e) {
             System.err.println("Error on executing external command '" + qepcadCmd + "'");
             return false;
         }
-        System.out.println("Waiting for QEPCAD output...");
-
+        System.out.println("Waiting for initial QEPCAD output...");
         getQepcadOutputUntil("Enter an informal description  between '[' and ']':\n");
-        System.out.println("QEPCAD output received");
+        System.out.println("QEPCAD is properly started");
         return true;
     }
 
     static String getQepcadOutputUntil(String end) {
         StringBuilder output = new StringBuilder();
-        InputStream qepcadOut = qepcadChildren.get(qepcadChild).getInputStream();
+        InputStream qepcadOut = qepcadChild.getInputStream();
         int c = -2;
         boolean found = false;
         try {
@@ -273,20 +266,22 @@ public class ExternalCAS {
             public String call() {
                 String output = "";
                 try {
-                    OutputStream qepcadIn = qepcadChildren.get(qepcadChild).getOutputStream();
+                    OutputStream qepcadIn = qepcadChild.getOutputStream();
                     for (int i = 0; i < responseLinesExpected.length; ++i) {
-                        // if (i == responseLinesExpected.length - 1) {
-                            output = ""; // reset
-                        // }
-                        System.out.println("command=" + commands[i]);
+                        output = ""; // reset
+                        System.out.println(commands[i]);
                         byte[] b = commands[i].getBytes(StandardCharsets.UTF_8);
                         qepcadIn.write(b);
                         qepcadIn.write('\n'); // press ENTER
                         qepcadIn.flush();
                         for (int j = 0; j < responseLinesExpected[i]; ++j) {
-                            output += getQepcadOutputUntil("\n");
+                            String line = getQepcadOutputUntil("\n");
+                            if (line.equals("")) {
+                                return "";
+                            }
+                            output += line;
                         }
-                        System.out.println("output=" + output);
+                        // System.out.println(output);
                     }
                 } catch (IOException e) {
                     System.err.println("Error on reading QEPCAD output");
@@ -313,27 +308,25 @@ public class ExternalCAS {
         } catch (ExecutionException e) {
             System.err.println("Execution error");
         } finally {
-            System.err.println("Cancelled");
+            // System.err.println("Cancelling...");
             future.cancel(true);
             if (restartNeeded) {
                 stopQepcadConnection();
                 startQepcadConnection(qepcadNSaved, qepcadLSaved);
             }
         }
-        System.out.println("Before returning result=" + result);
         return result;
     }
 
     static void stopQepcadConnection() {
-        System.out.println("Stopping QEPCAD connection");
-        qepcadChildren.get(qepcadChild).destroy();
+        System.out.println("Stopping QEPCAD connection...");
+        qepcadChild.destroy();
         try {
+            System.out.println("Waiting 1s...");
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             // do nothing
         }
-
-
     }
 
     static String executeRedlog (String command, int timeLimit) {

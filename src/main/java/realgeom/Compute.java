@@ -576,7 +576,6 @@ public class Compute {
             if (Start.qepcadPipe) {
                 String[] codePipe = {"[]", vars, "1", exists + "[" + ineqs + "].",
                         "assume[m>0].", "go", "go", "go", "sol T"};
-                appendResponse("LOG: code=" + codePipe, Log.VERBOSE);
                 int[] expectedResponseLines = {1, 1, 1, 5, 2, 2, 2, 2, 7};
                 result = ExternalCAS.executeQepcadPipe(codePipe, expectedResponseLines, timelimit);
                 String[] results = result.split("\n");
