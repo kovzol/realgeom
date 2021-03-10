@@ -191,6 +191,22 @@ public class Start {
             supported += ",qepcad";
         }
 
+        String[] inputs = {"[]",
+                "(m,b,c)",
+                "1",
+                "(Eb)(Ec)[1+b>c /\\ 1+c>b /\\ b+c>1 /\\  (1+b+c)^2=m (b+c+b c)].",
+                "assume[m>0].",
+                "go", "go", "go", "sol T"};
+        int[] expectedResponseLines = {1,1,1,5,2,2,2,2,7};
+        ExternalCAS.startQepcadConnection(qepcadN, qepcadL);
+        test = ExternalCAS.executeQepcadPipe(inputs, expectedResponseLines, null);
+        String[] testLines = test.split("\n");
+        test = testLines[3];
+        if (test.equals("m - 4 < 0 /\\ m - 3 >= 0")) {
+            System.out.println("QEPCAD is available via pipe... great!");
+        }
+        ExternalCAS.stopQepcadConnection();
+
         input = "1+2;";
         System.out.println("Testing Reduce connection via shell...");
         test = ExternalCAS.executeReduce(input, timeLimit);

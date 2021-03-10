@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 import com.wolfram.jlink.*;
 
@@ -187,6 +189,81 @@ public class ExternalCAS {
         }
         // System.out.println("qepcad out = " + retval);
         return retval.toString();
+    }
+
+    // static StringBuilder qepcadOutput;
+    static Process qepcadChild;
+
+    static boolean startQepcadConnection(String qepcadN, String qepcadL) {
+        String qepcadCmd = "qepcad -noecho +N" + qepcadN + " +L" + qepcadL;
+        String[] cmd = null;
+        cmd = new String[3];
+        if (Start.isWindows) {
+            cmd[0] = "cmd";
+            cmd[1] = "/c";
+        } else {
+            cmd[0] = "/bin/bash";
+            cmd[1] = "-c";
+        }
+        cmd[2] = qepcadCmd;
+        try {
+            qepcadChild = Runtime.getRuntime().exec(cmd);
+        } catch (IOException e) {
+            System.err.println("Error on executing external command '" + qepcadCmd + "'");
+            return false;
+        }
+        getQepcadOutputUntil("Enter an informal description  between '[' and ']':\n");
+        return true;
+    }
+
+    static String getQepcadOutputUntil(String end) {
+        StringBuilder output = new StringBuilder();
+        InputStream qepcadOut = qepcadChild.getInputStream();
+        int c;
+        boolean found = false;
+        try {
+            while (!found) {
+                c = qepcadOut.read();
+                output.append((char) c);
+                found = output.toString().endsWith(end);
+            }
+        } catch (IOException e) {
+            System.err.println("Error on reading QEPCAD output");
+            return null;
+        }
+        return output.toString();
+    }
+
+    static String executeQepcadPipe (String[] commands, int[] responseLinesExpected, String timeLimit) {
+        String output = null;
+        try {
+            OutputStream qepcadIn = qepcadChild.getOutputStream();
+            for (int i = 0; i < responseLinesExpected.length; ++i) {
+                if (i == responseLinesExpected.length - 1) {
+                    output = ""; // reset
+                }
+                byte[] b = commands[i].getBytes(StandardCharsets.UTF_8);
+                qepcadIn.write(b);
+                qepcadIn.write('\n'); // press ENTER
+                qepcadIn.flush();
+                for (int j = 0; j < responseLinesExpected[i]; ++j) {
+                    output += getQepcadOutputUntil("\n");
+                }
+            }
+        } catch (IOException e) {
+                System.err.println("Error on reading QEPCAD output");
+        }
+
+        // trim trailing newline
+        if (output.substring(output.length() - 1, output.length()).equals("\n")) {
+            return (output.substring(0, output.length() - 1));
+        }
+        System.out.println(output);
+        return output;
+    }
+
+    static void stopQepcadConnection() {
+        qepcadChild.destroy();
     }
 
     static String executeRedlog (String command, String timeLimit) {
