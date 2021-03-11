@@ -190,28 +190,28 @@ public class Start {
             System.out.println("Consider installing QEPCAD (make sure you have a script `qepcad' on your path that correctly starts QEPCAD)");
         } else {
             supported += ",qepcad";
-        }
 
-        System.out.println("Testing QEPCAD connection via pipe...");
-        String[] inputs = {"[]",
-                "(m,b,c)",
-                "1",
-                "(Eb)(Ec)[1+b>c /\\ 1+c>b /\\ b+c>1 /\\  (1+b+c)^2=m (b+c+b c)].",
-                "assume[m>0].",
-                "go", "go", "go", "sol T"};
-        int[] expectedResponseLines = {1,1,1,5,2,2,2,2,7};
-        ExternalCAS.startQepcadConnection(qepcadN, qepcadL);
-        test = ExternalCAS.executeQepcadPipe(inputs, expectedResponseLines, timeLimit);
-        String[] testLines = test.split("\n");
-        test = testLines[3];
-        if (test.equals("m - 4 < 0 /\\ m - 3 >= 0")) {
-            System.out.println("QEPCAD is available via pipe... great!");
-            qepcadPipe = true;
-            String[] cont = {"continue"};
-            int[] contLines = {1};
-            ExternalCAS.executeQepcadPipe(cont, contLines, timeLimit);
+            System.out.println("Testing QEPCAD connection via pipe...");
+            String[] inputs = {"[]",
+                    "(m,b,c)",
+                    "1",
+                    "(Eb)(Ec)[1+b>c /\\ 1+c>b /\\ b+c>1 /\\  (1+b+c)^2=m (b+c+b c)].",
+                    "assume[m>0].",
+                    "go", "go", "go", "sol T"};
+            int[] expectedResponseLines = {1, 1, 1, 5, 2, 2, 2, 2, 7};
+            ExternalCAS.startQepcadConnection(qepcadN, qepcadL);
+            test = ExternalCAS.executeQepcadPipe(inputs, expectedResponseLines, timeLimit);
+            String[] testLines = test.split("\n");
+            test = testLines[3];
+            if (test.equals("m - 4 < 0 /\\ m - 3 >= 0")) {
+                System.out.println("QEPCAD is available via pipe... great!");
+                qepcadPipe = true;
+                String[] cont = {"continue"};
+                int[] contLines = {1};
+                ExternalCAS.executeQepcadPipe(cont, contLines, timeLimit);
+            }
+            // ExternalCAS.stopQepcadConnection();
         }
-        // ExternalCAS.stopQepcadConnection();
 
         input = "1+2;";
         System.out.println("Testing Reduce connection via shell...");
