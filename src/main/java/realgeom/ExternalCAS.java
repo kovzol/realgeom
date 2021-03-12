@@ -311,8 +311,7 @@ public class ExternalCAS {
             // System.err.println("Cancelling...");
             future.cancel(true);
             if (restartNeeded) {
-                stopQepcadConnection();
-                startQepcadConnection(qepcadNSaved, qepcadLSaved);
+                restartQepcadConnection();
             }
         }
         return result;
@@ -327,6 +326,11 @@ public class ExternalCAS {
         } catch (InterruptedException e) {
             // do nothing
         }
+    }
+
+    static void restartQepcadConnection() {
+        stopQepcadConnection();
+        startQepcadConnection(qepcadNSaved, qepcadLSaved);
     }
 
     static String executeRedlog (String command, int timeLimit) {
