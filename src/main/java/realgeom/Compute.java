@@ -581,9 +581,15 @@ public class Compute {
                 String[] results = result.split("\n");
                 if (results.length >= 3) {
                     result = results[3];
-                    String[] cont = {"continue"};
-                    int[] contLines = {1};
-                    ExternalCAS.executeQepcadPipe(cont, contLines, timelimit);
+                    if (result.contains("failure")) {
+                        // E.g. "Reason for the failure: Too few cells reclaimed."
+                        ExternalCAS.restartQepcadConnection();
+                        result = "";
+                    } else {
+                        String[] cont = {"continue"};
+                        int[] contLines = {1};
+                        ExternalCAS.executeQepcadPipe(cont, contLines, timelimit);
+                    }
                 } else {
                     result = "";
                 }
