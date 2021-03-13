@@ -238,14 +238,14 @@ public class Start {
         }
 
         System.out.println("All required tests are passed");
-        if (supported.length() > 0 && supported.substring(0,1).equals(",")) {
+        if (supported.length() > 0 && supported.charAt(0) == ',') {
            supported = supported.substring(1);
            }
         System.out.println("Supported backends: " + supported);
         return supported;
     }
 
-    public static void main(String argv[]) {
+    public static void main(String[] argv) {
 
         Options options = new Options();
 

@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -204,7 +203,7 @@ public class ExternalCAS {
         qepcadNSaved = qepcadN;
         qepcadLSaved = qepcadL;
         String qepcadCmd = "qepcad -noecho +N" + qepcadN + " +L" + qepcadL;
-        String[] cmd = null;
+        String[] cmd;
         cmd = new String[3];
         if (Start.isWindows) {
             cmd[0] = "cmd";
@@ -261,11 +260,11 @@ public class ExternalCAS {
         ExecutorService executor = Executors.newCachedThreadPool();
         Callable<String> task = new Callable<String>() {
             public String call() {
-                String output = "";
+                StringBuilder output = new StringBuilder();
                 try {
                     OutputStream qepcadIn = qepcadChild.getOutputStream();
                     for (int i = 0; i < responseLinesExpected.length; ++i) {
-                        output = ""; // reset
+                        output = new StringBuilder(); // reset
                         System.out.println(commands[i]);
                         byte[] b = commands[i].getBytes(StandardCharsets.UTF_8);
                         qepcadIn.write(b);
@@ -276,7 +275,7 @@ public class ExternalCAS {
                             if (line.equals("")) {
                                 return "";
                             }
-                            output += line;
+                            output.append(line);
                         }
                         // System.out.println(output);
                     }
@@ -290,7 +289,7 @@ public class ExternalCAS {
                     return (output.substring(0, output.length() - 1));
                 }
                 System.out.println(output);
-                return output;
+                return output.toString();
             }
         };
         Future<String> future = executor.submit(task);

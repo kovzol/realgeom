@@ -108,7 +108,7 @@ public class Compute {
         // appendResponse("LOG: formula=" + formula, Log.VERBOSE);
         String[] conjunctions = formula.split(" && ");
 
-        String rewritten = "";
+        StringBuilder rewritten = new StringBuilder();
         for (String c : conjunctions) {
             if (c.startsWith("[ ") &&
                     c.endsWith(" ]")) {
@@ -116,22 +116,22 @@ public class Compute {
             }
             // appendResponse("LOG: c=" + c, Log.VERBOSE);
             String[] disjunctions = c.split(" \\\\/ ");
-            String product = "";
+            StringBuilder product = new StringBuilder();
             for (String d : disjunctions) {
                 // appendResponse("LOG: d=" + d, Log.VERBOSE);
                 if (d.endsWith(" = 0")) {
                     d = d.substring(0, d.length() - 4); // remove = 0
                 }
                 d = "(" + d + ")";
-                product += d + "*";
+                product.append(d).append("*");
                 // appendResponse("LOG: product=" + product, Log.VERBOSE);
             }
-            product = product.substring(0, product.length() - 1); // remove last *
+            product = new StringBuilder(product.substring(0, product.length() - 1)); // remove last *
             // appendResponse("LOG: product=" + product, Log.VERBOSE);
-            rewritten += product + ",";
+            rewritten.append(product).append(",");
             // appendResponse("LOG: rewritten=" + rewritten, Log.VERBOSE);
         }
-        rewritten = rewritten.substring(0, rewritten.length() - 1); // remove last ,
+        rewritten = new StringBuilder(rewritten.substring(0, rewritten.length() - 1)); // remove last ,
 
         String mathcode = "solve([" + rewritten + "],m)";
         appendResponse("LOG: mathcode=" + mathcode, Log.VERBOSE);
@@ -565,11 +565,11 @@ public class Compute {
 
         if (cas == Cas.QEPCAD) {
             for (String s : polys2Array) appendIneqs(s.replaceAll("\\*", " ") + "=0", cas, tool);
-            String exists = "";
+            StringBuilder exists = new StringBuilder();
             vars = "(m," + vars + ")"; // putting m back
 
             for (String item : varsArray) {
-                exists += "(E" + item + ")";
+                exists.append("(E").append(item).append(")");
                 }
 
             String result;
