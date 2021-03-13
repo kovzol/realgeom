@@ -578,7 +578,7 @@ public class Compute {
                         "assume[m>0].", "go", "go", "go", "sol T"};
                 int[] expectedResponseLines = {1, 1, 1, 5, 2, 2, 2, 2, 7};
                 result = ExternalCAS.executeQepcadPipe(codePipe, expectedResponseLines, timelimit);
-                String[] results = result.split("\n");
+                String[] results = result.split(Start.nl);
                 if (results.length >= 3) {
                     result = results[3];
                     if (result.contains("failure")) {

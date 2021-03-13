@@ -168,10 +168,7 @@ public class ExternalCAS {
         }
         // System.out.println(output);
         String[] outputLines;
-        if (Start.isWindows)
-            outputLines = output.split("\r\n");
-        else
-            outputLines = output.split("\n");
+        outputLines = output.split(Start.nl);
 
         int i = 0;
         int l = outputLines.length;
@@ -231,7 +228,7 @@ public class ExternalCAS {
             return false;
         }
         System.out.println("Waiting for initial QEPCAD output...");
-        getQepcadOutputUntil("Enter an informal description  between '[' and ']':\n");
+        getQepcadOutputUntil("Enter an informal description  between '[' and ']':" + Start.nl);
         System.out.println("QEPCAD is properly started");
         return true;
     }
@@ -275,7 +272,7 @@ public class ExternalCAS {
                         qepcadIn.write('\n'); // press ENTER
                         qepcadIn.flush();
                         for (int j = 0; j < responseLinesExpected[i]; ++j) {
-                            String line = getQepcadOutputUntil("\n");
+                            String line = getQepcadOutputUntil(Start.nl);
                             if (line.equals("")) {
                                 return "";
                             }
@@ -289,7 +286,7 @@ public class ExternalCAS {
                 }
 
                 // trim trailing newline
-                if (output.substring(output.length() - 1, output.length()).equals("\n")) {
+                if (output.substring(output.length() - 1, output.length()).equals(Start.nl)) {
                     return (output.substring(0, output.length() - 1));
                 }
                 System.out.println(output);

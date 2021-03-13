@@ -25,6 +25,7 @@ public class Start {
     public static String logfile = "";
     public static boolean dryRun = false;
     public static boolean qepcadPipe = false;
+    public static String nl = "\n";
 
     static {
         final String os = System.getProperty("os.name").toLowerCase();
@@ -82,6 +83,10 @@ public class Start {
         if (!isLinux && !isMac && !isWindows) {
             System.err.println("Unsupported architecture");
             System.exit(1);
+        }
+
+        if (isWindows) {
+            nl = "\r\n";
         }
 
         try {
@@ -201,7 +206,7 @@ public class Start {
             int[] expectedResponseLines = {1, 1, 1, 5, 2, 2, 2, 2, 7};
             ExternalCAS.startQepcadConnection(qepcadN, qepcadL);
             test = ExternalCAS.executeQepcadPipe(inputs, expectedResponseLines, timeLimit);
-            String[] testLines = test.split("\n");
+            String[] testLines = test.split(nl);
             test = testLines[3];
             if (test.equals("m - 4 < 0 /\\ m - 3 >= 0")) {
                 System.out.println("QEPCAD is available via pipe... great!");
@@ -209,6 +214,8 @@ public class Start {
                 String[] cont = {"continue"};
                 int[] contLines = {1};
                 ExternalCAS.executeQepcadPipe(cont, contLines, timeLimit);
+            } else {
+                System.out.println("QEPCAD/pipe seems to return '" + test + "', please check your installation");
             }
             // ExternalCAS.stopQepcadConnection();
         }
