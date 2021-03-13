@@ -5,10 +5,11 @@
 # Tested on Linux only.
 
 while true; do
- clear
  RUNNING=`ps uxwwww --sort=start_time | grep qepcad | grep -v grep | grep -v keep | wc -l`
- if [ "$RUNNING" != 0 -a  "$RUNNING" != 1 ]; then
+ if [ "$RUNNING" != 0 -a  "$RUNNING" != 1 -a  "$RUNNING" != 2 ]; then
+  DATE=`date`
+  echo "$DATE $RUNNING qepcad processes running, 1 will be killed..."
   kill `ps uxwwww --sort=start_time | grep qepcad | grep -v grep | grep -v keep | head -1 | awk '{print $2}'`
   fi
- sleep 1
+ sleep 60
  done
