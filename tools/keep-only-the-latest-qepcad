@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Sometimes a timeouted QEPCAD instance is not properly killed in realgeom.
+# This script supervises to allow only one QEPCAD instance alive.
+# Tested on Linux only.
+
+while true; do
+ clear
+ RUNNING=`ps uxwwww --sort=start_time | grep qepcad | grep -v grep | grep -v keep | wc -l`
+ if [ "$RUNNING" != 0 -a  "$RUNNING" != 1 ]; then
+  kill `ps uxwwww --sort=start_time | grep qepcad | grep -v grep | grep -v keep | head -1 | awk '{print $2}'`
+  fi
+ sleep 1
+ done
