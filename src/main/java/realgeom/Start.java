@@ -188,10 +188,15 @@ public class Start {
                 "(Ev5)(Ev6)(Ev9)(Ev8)(Ev10)(Ew1)(Ev7)[v8>0 /\\ v9>0 /\\ v7>0 /\\ v5^2+v6^2-v9^2-2 v5+1=0 /\\ v5^2+v6^2-v8^2=0 /\\ v10 v6-1=0 /\\ v8+v9-w1=0 /\\ -m+w1=0 /\\ 1-v7=0].\n" +
                 "assume[m>0].\n" +
                 "finish";
+        // A much easier one (to speed up start):
+        input = "[]\n(a)\n0\n(Ea)[a=0].\nfinish";
         System.out.println("Testing QEPCAD connection via shell...");
-        test = ExternalCAS.executeQepcad(input, timeLimit, qepcadN, qepcadL);
+        // test = ExternalCAS.executeQepcad(input, timeLimit, qepcadN, qepcadL);
+        // Do not use too many cells. For testing purposes a minimal amount is enough:
+        test = ExternalCAS.executeQepcad(input, timeLimit, "500000", qepcadL);
         // if (!test.equals("m - 4 < 0 /\\ m - 3 >= 0")) {
-        if (!test.equals("m - 1 > 0")) {
+        // if (!test.equals("m - 1 > 0")) {
+        if (!test.equals("TRUE")) {
             System.out.println("Consider installing QEPCAD (make sure you have a script `qepcad' on your path that correctly starts QEPCAD)");
         } else {
             supported += ",qepcad";
