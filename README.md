@@ -76,7 +76,11 @@ Unrecognized option: -h
 usage: realgeom
  -b,--benchmark         run benchmark
  -c,--backends <arg>    backends
+ -d,--dry-run           do not run heavy computations 
  -i,--input <arg>       benchmark input file path
+ -L,--qepcadL <arg>     space for prime list (QEPCAD +L)
+ -l,--logfile <arg>     filename for logging
+ -N,--qepcadN <arg>     garbage collected space in cells (QEPCAD +N) 
  -o,--output <arg>      benchmark output file
  -p,--port <arg>        HTTP server port number
  -s,--server            run HTTP server
@@ -150,6 +154,10 @@ For technical convenience this source tree contains Mathematica's `JLink.jar` an
 `libJLinkNativeLibrary.so`.
 These are required to compile and start **realgeom** properly. To be able to use Mathematica, however,
 you need a license and a full installation.
+
+## Related projects ##
+[GeoGebra Discovery](https://github.com/kovzol/geogebra-discovery) uses **realgeom**
+via QEPCAD to outsource real geometry computations.
 
 ## Authors ##
 * Róbert Vajda <vajdar@math.u-szeged.hu>
