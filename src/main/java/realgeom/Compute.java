@@ -542,7 +542,7 @@ public class Compute {
         vars = GiacCAS.execute(minimVarsCode);
         appendResponse("LOG: after removing unnecessary variables, vars=" + vars, Log.VERBOSE);
         vars = vars.substring(1, vars.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
-        // Remove m from vars:
+        // Remove m from vars (but keep it only if there is no other variable):
         vars = vars.replace(",m", "").replace("m,", "");
         appendResponse("LOG: after removing m, vars=" + vars, Log.VERBOSE);
         varsArray = vars.split(",");
@@ -554,8 +554,11 @@ public class Compute {
 
         String[] polys2Array = polys2.split(",");
 
-        // Currently only Mathematica is implemented, TODO: create implementation for all other systems
+        // Currently only Mathematica and QEPCAD are implemented, TODO: create implementation for all other systems
+
         if (cas == Cas.MATHEMATICA) {
+            // Remove m completely:
+            vars = vars.replace("m", "");
             for (String s : polys2Array) appendIneqs(s + "==0", cas, tool);
             code = "ToRadicals[Reduce[Resolve[Exists[{" + vars + "}," + ineqs + "],Reals],Reals],Cubics->False]";
             appendResponse("LOG: code=" + code, Log.VERBOSE);
