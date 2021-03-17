@@ -608,6 +608,11 @@ public class Compute {
                return response;
                }
             appendResponse("LOG: result=" + result, Log.VERBOSE);
+            if (result.equals("TRUE")) {
+                // No usable answer is received (m is arbitrary)
+                appendResponse("m>0", Log.INFO);
+                return response;
+            }
             // hacky way to convert QEPCAD formula to Mathematica formula FIXME
             String rewrite = result.replace("/\\", "&&").
                     replace(">==", ">=").replace("<==", "<=").
