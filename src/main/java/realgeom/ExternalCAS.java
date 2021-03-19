@@ -329,6 +329,30 @@ public class ExternalCAS {
         startQepcadConnection(qepcadNSaved, qepcadLSaved);
     }
 
+    static String executeTarski (String command, int timeLimit, String qepcadN, String qepcadL) {
+        if (Start.dryRun)
+            return "";
+        String output = ExternalCAS.execute("echo '" + command + "' | tarski -t " + timeLimit
+                + " +N" + qepcadN + " +L" + qepcadL, timeLimit);
+        String[] outputs = output.split("\n");
+        String ret = "";
+        for (String line : outputs) {
+            if (!line.startsWith(">")) {
+                if (ret.length() > 0) {
+                    ret += "\n"; // if multiple lines are returned (hopefully not)
+                }
+                int semicolon = line.indexOf(":");
+                String content = line.substring(0, semicolon);
+                if (content.startsWith("[")) {
+                    content = content.substring(1, content.length() - 1); // trim [ and ]
+                }
+                ret += content;
+            }
+        }
+        // System.out.println("executeTarski: " + command + " -> " + ret);
+        return ret;
+    }
+
     static String executeRedlog (String command, int timeLimit) {
         if (Start.dryRun)
             return "";

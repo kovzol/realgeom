@@ -203,17 +203,16 @@ public class Start {
 
             System.out.println("Testing QEPCAD connection via pipe...");
             String[] inputs = {"[]",
-                    "(m,b,c)",
-                    "1",
-                    "(Eb)(Ec)[1+b>c /\\ 1+c>b /\\ b+c>1 /\\  (1+b+c)^2=m (b+c+b c)].",
-                    "assume[m>0].",
+                    "(a)",
+                    "0",
+                    "(Ea)[a=0].",
                     "go", "go", "go", "sol T"};
-            int[] expectedResponseLines = {1, 1, 1, 5, 2, 2, 2, 2, 7};
+            int[] expectedResponseLines = {1, 1, 1, 5, 2, 2, 2, 7};
             ExternalCAS.startQepcadConnection(qepcadN, qepcadL);
             test = ExternalCAS.executeQepcadPipe(inputs, expectedResponseLines, timeLimit);
             String[] testLines = test.split(nl);
             test = testLines[3];
-            if (test.equals("m - 4 < 0 /\\ m - 3 >= 0")) {
+            if (test.equals("TRUE")) {
                 System.out.println("QEPCAD is available via pipe... great!");
                 qepcadPipe = true;
                 String[] cont = {"continue"};
@@ -223,6 +222,15 @@ public class Start {
                 System.out.println("QEPCAD/pipe seems to return '" + test + "', please check your installation");
             }
             // ExternalCAS.stopQepcadConnection();
+        }
+
+        input = "(qepcad-qe (qfr [ex v5,v6,v8 [v8>0 /\\ v5^2-2 v5+v6^2-v8^2+1=0 /\\ -v5^2-v6^2+1=0 /\\ -2 m v8-m+v8^2+4 v8+4=0]]))";
+        System.out.println("Testing Tarski connection via shell...");
+        test = ExternalCAS.executeTarski(input, timeLimit, qepcadN, qepcadL);
+        if (!test.equals("m - 3 >= 0 /\\ m - 4 < 0")) {
+            System.out.println("Consider installing Tarski (make sure you have the executable `reduce' on your path)");
+        } else {
+            supported += ",tarski";
         }
 
         input = "1+2;";

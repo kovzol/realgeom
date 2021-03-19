@@ -28,7 +28,7 @@ public class Compute {
             }
             ineqs += ineq;
         }
-        if (cas == Cas.QEPCAD) {
+        if (cas == Cas.QEPCAD || cas == Cas.TARSKI) {
             if (!"".equals(ineqs)) {
                 ineqs += " /\\ ";
             }
@@ -58,7 +58,7 @@ public class Compute {
     }
 
     private static String eq(String lhs, String rhs, Cas cas) {
-        if (cas == Cas.MAPLE || cas == Cas.QEPCAD || cas == Cas.REDLOG) {
+        if (cas == Cas.MAPLE || cas == Cas.QEPCAD || cas == Cas.REDLOG || cas == Cas.TARSKI) {
             return lhs + "=" + rhs;
         }
         // if (cas == Cas.MATHEMATICA)
@@ -66,7 +66,7 @@ public class Compute {
     }
 
     private static String product(String a, String b, Cas cas) {
-        if (cas == Cas.QEPCAD) {
+        if (cas == Cas.QEPCAD || cas == Cas.TARSKI) {
             return "(" + a + ") (" + b + ")";
         }
         return "(" + a + ")*(" + b + ")";
@@ -166,7 +166,7 @@ public class Compute {
         if (subst == Subst.AUTO) {
             a = "1";
         }
-        if (cas != Cas.QEPCAD) {
+        if (cas != Cas.QEPCAD && cas != Cas.TARSKI) {
             appendIneqs(m + ">0", cas, tool);
         }
         appendIneqs(triangleInequality(a, "b", "c", cas), cas, tool);
@@ -175,10 +175,10 @@ public class Compute {
 
         String eq = lhs + " = m * (" + rhs + ")";
         // Convert the equation to a polynomial equation for Maple, QEPCAD and RedLog:
-        if (cas == Cas.MAPLE || cas == Cas.QEPCAD || cas == Cas.REDLOG) {
+        if (cas == Cas.MAPLE || cas == Cas.QEPCAD || cas == Cas.REDLOG || cas == Cas.TARSKI) {
             eq = GiacCAS.execute("simplify(denom(lhs(" + eq + "))*denom(rhs(" + eq + "))*(" + eq + "))");
         }
-        if (cas == Cas.QEPCAD) {
+        if (cas == Cas.QEPCAD || cas == Cas.TARSKI) {
             eq = eq.replace("*", " ");
         }
         if (cas == Cas.MATHEMATICA) {
@@ -283,7 +283,7 @@ public class Compute {
             int l = rewrite.length();
             i = l - 1;
             if (i > 0) {
-                while (rewrite.substring(i, i + 1).equals(")")) {
+                while (rewrite.charAt(i) == ')') {
                     i--;
                 }
             }
@@ -337,7 +337,7 @@ public class Compute {
         response = "";
         maxLogLevel = log;
 
-        if (cas != Cas.QEPCAD) {
+        if (cas != Cas.QEPCAD && cas != Cas.TARSKI) {
             appendIneqs(m + ">0", cas, tool);
         }
 
@@ -405,7 +405,7 @@ public class Compute {
                         "                      linvar:=vars[pos[p]];  \n" +
                         "                    }; \n" +
                         "                  if ((not(is_element(linvar,excludevars))) || (cc<2)) { \n" +
-                        //"                      if (is_element(linvar,excludevars) && (cc>1)) { \n" +
+                        // "                      if (is_element(linvar,excludevars) && (cc>1)) { \n" +
                         "                      if (is_element(linvar,excludevars)) { \n" +
                         "                           keep:=append(keep,polys[ii]); \n" +
                         "                           print(\"Keeping \" + polys[ii]); \n" +
@@ -623,6 +623,48 @@ public class Compute {
             String real = rewriteGiac(rewrite);
             appendResponse(real, Log.INFO);
         }
+
+        if (cas == Cas.TARSKI) {
+            // Remove m completely:
+            vars = vars.replace("m", "");
+
+            String ex = "";
+            if (!vars.equals("")) {
+                ex = "ex " + vars;
+            }
+
+            for (String s : polys2Array) appendIneqs(s.replaceAll("\\*", " ") + "=0", cas, tool);
+            StringBuilder exists = new StringBuilder();
+
+            String result;
+
+            code = "(qepcad-qe (qfr [" + ex + " [" + ineqs + "]]))";
+            appendResponse("LOG: code=" + code, Log.VERBOSE);
+            result = ExternalCAS.executeTarski(code, timelimit, qepcadN, qepcadL);
+
+            if (result.equals("")) {
+                appendResponse("ERROR: empty output", Log.VERBOSE);
+                appendResponse("TARSKI ERROR", Log.INFO);
+                return response;
+            }
+            appendResponse("LOG: result=" + result, Log.VERBOSE);
+            if (result.equals("TRUE")) {
+                // No usable answer is received (m is arbitrary)
+                appendResponse("m>0", Log.INFO);
+                return response;
+            }
+            // hacky way to convert QEPCAD formula to Mathematica formula FIXME
+            String rewrite = result.replace("/\\", "&&").
+                    replace(">==", ">=").replace("<==", "<=").
+                    replace("TRUE", "1=1");
+
+            // add missing condition to output
+            rewrite += " && m>0";
+
+            String real = rewriteGiac(rewrite);
+            appendResponse(real, Log.INFO);
+        }
+
 
         return response;
     }

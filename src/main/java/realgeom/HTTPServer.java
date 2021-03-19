@@ -62,6 +62,10 @@ public class HTTPServer {
                 && (supportedBackends.contains("qepcad") || Start.dryRun)) {
             return Cas.QEPCAD;
         }
+        if (s.equals("tarski")
+                && (supportedBackends.contains("tarski") || Start.dryRun)) {
+            return Cas.TARSKI;
+        }
         return null;
     }
 
