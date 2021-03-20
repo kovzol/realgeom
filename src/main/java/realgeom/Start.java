@@ -228,7 +228,7 @@ public class Start {
         System.out.println("Testing Tarski connection via shell...");
         test = ExternalCAS.executeTarski(input, timeLimit, qepcadN, qepcadL);
         if (!test.equals("m - 3 >= 0 /\\ m - 4 < 0")) {
-            System.out.println("Consider installing Tarski (make sure you have the executable `reduce' on your path)");
+            System.out.println("Consider installing Tarski (make sure you have the executable `tarski' on your path)");
         } else {
             supported += ",tarski";
         }
