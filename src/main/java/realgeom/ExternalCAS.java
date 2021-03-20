@@ -342,11 +342,13 @@ public class ExternalCAS {
                     ret += "\n"; // if multiple lines are returned (hopefully not)
                 }
                 int semicolon = line.indexOf(":");
-                String content = line.substring(0, semicolon);
-                if (content.startsWith("[")) {
-                    content = content.substring(1, content.length() - 1); // trim [ and ]
+                if (semicolon > -1) {
+                    String content = line.substring(0, semicolon);
+                    if (content.startsWith("[")) {
+                        content = content.substring(1, content.length() - 1); // trim [ and ]
+                    }
+                    ret += content;
                 }
-                ret += content;
             }
         }
         // System.out.println("executeTarski: " + command + " -> " + ret);

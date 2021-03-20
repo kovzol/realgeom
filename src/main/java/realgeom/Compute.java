@@ -112,7 +112,11 @@ public class Compute {
         for (String c : conjunctions) {
             if (c.startsWith("[ ") &&
                     c.endsWith(" ]")) {
-                c = c.substring(2, c.length() - 6); // trim [ ... ]
+                c = c.substring(2, c.length() - 2); // trim [ ... ]
+            }
+            if (c.startsWith("[") &&
+                    c.endsWith("]")) {
+                c = c.substring(1, c.length() - 1); // trim [...] (for Tarski)
             }
             // appendResponse("LOG: c=" + c, Log.VERBOSE);
             String[] disjunctions = c.split(" \\\\/ ");
