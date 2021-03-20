@@ -632,20 +632,37 @@ public class Compute {
             // Remove m completely:
             vars = vars.replace("m", "");
 
-            String ex = "";
-            if (!vars.equals("")) {
-                ex = "ex " + vars;
-            }
-
             for (String s : polys2Array) appendIneqs(s.replaceAll("\\*", " ") + "=0", cas, tool);
             StringBuilder exists = new StringBuilder();
 
             String result;
+            if (!vars.equals("")) {
+                code = "(def process " +
+                        "(lambda (F) " +
+                        "(def L (getargs F)) " +
+                        "(def V (get L 0 0 1)) " +
+                        "(def B (bbwb (get L 1))) " +
+                        "(if (equal? (get B 0) 'UNSAT) " +
+                        "[false] " +
+                        "((lambda () " +
+                        "(def G (qfr (t-ex V (get B 1)))) " +
+                        "(if (equal? (t-type G) 6) " +
+                        "(qepcad-qe G) " +
+                        "(if (equal? (t-type G) 5) " +
+                        "(qepcad-qe (bin-reduce t-or (map (lambda (H) (qepcad-qe (exclose H '(m)))) (getargs G)))) " +
+                        "G))))))) " +
+                        "(process [ ex " + vars + " [" + ineqs + "]])";
+            } else {
+                code = "(qepcad-qe (qfr [" + ineqs + "]))";
+            }
 
-            code = "(qepcad-qe (qfr [" + ex + " [" + ineqs + "]]))";
             appendResponse("LOG: code=" + code, Log.VERBOSE);
             result = ExternalCAS.executeTarski(code, timelimit, qepcadN, qepcadL);
 
+            if (result.contains("\n")) {
+                String [] resultlines = result.split("\n");
+                result = resultlines[resultlines.length - 2];
+            }
             if (result.equals("")) {
                 appendResponse("ERROR: empty output", Log.VERBOSE);
                 appendResponse("TARSKI ERROR", Log.INFO);

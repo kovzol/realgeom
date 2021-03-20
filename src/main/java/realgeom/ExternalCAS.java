@@ -332,7 +332,7 @@ public class ExternalCAS {
     static String executeTarski (String command, int timeLimit, String qepcadN, String qepcadL) {
         if (Start.dryRun)
             return "";
-        String output = ExternalCAS.execute("echo '" + command + "' | tarski -t " + timeLimit
+        String output = ExternalCAS.execute("echo \"" + command + "\" | tarski -t " + timeLimit
                 + " +N" + qepcadN + " +L" + qepcadL, timeLimit);
         String[] outputs = output.split("\n");
         String ret = "";
