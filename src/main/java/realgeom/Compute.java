@@ -126,7 +126,13 @@ public class Compute {
                 if (d.endsWith(" = 0")) {
                     d = d.substring(0, d.length() - 4); // remove = 0
                 }
-                d = "(" + d + ")";
+                if (d.contains("/=")) { // !=
+                    // Giac currently cannot handle inequalities.
+                    // So we remove this part and hope for the best.
+                    d = "";
+                } else {
+                    d = "(" + d + ")";
+                }
                 product.append(d).append("*");
                 // appendResponse("LOG: product=" + product, Log.VERBOSE);
             }
@@ -636,6 +642,7 @@ public class Compute {
             StringBuilder exists = new StringBuilder();
 
             String result;
+            int expectedLines;
             if (!vars.equals("")) {
                 code = "(def process " +
                         "(lambda (F) " +
@@ -652,13 +659,19 @@ public class Compute {
                         "(qepcad-qe (bin-reduce t-or (map (lambda (H) (qepcad-qe (exclose H '(m)))) (getargs G)))) " +
                         "G))))))) " +
                         "(process [ ex " + vars + " [" + ineqs + "]])";
+                expectedLines = 2;
             } else {
                 code = "(qepcad-qe (qfr [" + ineqs + "]))";
+                expectedLines = 1;
             }
 
             appendResponse("LOG: code=" + code, Log.VERBOSE);
-            result = ExternalCAS.executeTarski(code, timelimit, qepcadN, qepcadL);
 
+            if (Start.tarskiPipe) {
+                result = ExternalCAS.executeTarskiPipe(code, expectedLines, timelimit);
+            } else {
+                result = ExternalCAS.executeTarski(code, timelimit, qepcadN, qepcadL);
+            }
             if (result.contains("\n")) {
                 String [] resultlines = result.split("\n");
                 result = resultlines[resultlines.length - 2];

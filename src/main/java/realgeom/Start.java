@@ -25,6 +25,7 @@ public class Start {
     public static String logfile = "";
     public static boolean dryRun = false;
     public static boolean qepcadPipe = false;
+    public static boolean tarskiPipe = false;
     public static String nl = "\n";
 
     static {
@@ -231,6 +232,16 @@ public class Start {
             System.out.println("Consider installing Tarski (make sure you have the executable `tarski' on your path)");
         } else {
             supported += ",tarski";
+
+            System.out.println("Testing Tarski connection via pipe...");
+            ExternalCAS.startTarskiConnection(qepcadN);
+            test = ExternalCAS.executeTarskiPipe(input, 1, timeLimit);
+            if (test.equals("m - 3 >= 0 /\\ m - 4 < 0")) {
+                System.out.println("Tarski is available via pipe... great!");
+                tarskiPipe = true;
+            } else {
+                System.out.println("Tarski/pipe seems to return '" + test + "', please check your installation");
+            }
         }
 
         input = "1+2;";

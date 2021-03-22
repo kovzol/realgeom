@@ -195,7 +195,6 @@ public class ExternalCAS {
         return retval.toString();
     }
 
-    // static StringBuilder qepcadOutput;
     static Process qepcadChild;
     static String qepcadNSaved, qepcadLSaved;
 
@@ -227,24 +226,57 @@ public class ExternalCAS {
             return false;
         }
         System.out.println("Waiting for initial QEPCAD output...");
-        getQepcadOutputUntil("Enter an informal description  between '[' and ']':" + Start.nl);
+        getOutputUntil(qepcadChild, "Enter an informal description  between '[' and ']':" + Start.nl);
         System.out.println("QEPCAD is properly started");
         return true;
     }
 
-    static String getQepcadOutputUntil(String end) {
+    static Process tarskiChild;
+    static String tarskiNSaved;
+
+    static boolean startTarskiConnection(String tarskiN) {
+        tarskiNSaved = tarskiN;
+        String tarskiCmd = "tarski +N" + tarskiN;
+        String[] cmd;
+        cmd = new String[3];
+        if (Start.isWindows) {
+            cmd[0] = "cmd";
+            cmd[1] = "/c";
+        } else {
+            cmd[0] = "/bin/bash";
+            cmd[1] = "-c";
+        }
+        cmd[2] = tarskiCmd;
+        try {
+            System.out.println("Starting Tarski connection...");
+            tarskiChild = Runtime.getRuntime().exec(cmd);
+            System.out.println("Waiting 2s...");
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            System.err.println("Error on executing external command '" + tarskiCmd + "'");
+            return false;
+        }
+        System.out.println("Tarski is properly started");
+        return true;
+    }
+
+    static String getOutputUntil(Process child, String end) {
         StringBuilder output = new StringBuilder();
-        InputStream qepcadOut = qepcadChild.getInputStream();
+        InputStream out = child.getInputStream();
         int c = -2;
         boolean found = false;
         try {
             while (!found && (c != -1)) {
-                c = qepcadOut.read();
+                c = out.read();
                 output.append((char) c);
                 found = output.toString().endsWith(end);
             }
         } catch (IOException e) {
-            System.err.println("Error on reading QEPCAD output");
+            System.err.println("Error on reading output");
             return "";
         }
         if (c == -1) {
@@ -271,7 +303,7 @@ public class ExternalCAS {
                         qepcadIn.write('\n'); // press ENTER
                         qepcadIn.flush();
                         for (int j = 0; j < responseLinesExpected[i]; ++j) {
-                            String line = getQepcadOutputUntil(Start.nl);
+                            String line = getOutputUntil(qepcadChild, Start.nl);
                             if (line.equals("")) {
                                 return "";
                             }
@@ -313,6 +345,66 @@ public class ExternalCAS {
         return result;
     }
 
+    static String executeTarskiPipe (final String command, final int expectedLines, int timeLimit) {
+        String result = "";
+        ExecutorService executor = Executors.newCachedThreadPool();
+        Callable<String> task = new Callable<String>() {
+            public String call() {
+                StringBuilder output = new StringBuilder();
+                try {
+                    OutputStream tarskiIn = tarskiChild.getOutputStream();
+                    output = new StringBuilder(); // reset
+                    System.out.println(command);
+                    byte[] b = command.getBytes(StandardCharsets.UTF_8);
+                    tarskiIn.write(b);
+                    tarskiIn.write('\n'); // press ENTER
+                    tarskiIn.flush();
+                    String line = "";
+                    // Reading echoed input:
+                    getOutputUntil(tarskiChild, Start.nl);
+                    for (int i = 0; i <  expectedLines ; ++i) {
+                        // Reading actual output:
+                        line = getOutputUntil(tarskiChild, Start.nl);
+                    }
+                    if (line.equals("")) {
+                        return "";
+                        }
+                    output.append(line);
+                } catch (IOException e) {
+                    System.err.println("Error on reading Tarski output");
+                    return "";
+                }
+
+                // trim trailing newline
+                if (output.substring(output.length() - 1, output.length()).equals(Start.nl)) {
+                    return (output.substring(0, output.length() - 1));
+                }
+                System.out.println(output);
+                return output.toString();
+            }
+        };
+        Future<String> future = executor.submit(task);
+        boolean restartNeeded = false;
+        try {
+            result = future.get(timeLimit, TimeUnit.SECONDS);
+        } catch (TimeoutException ex) {
+            System.err.println("Timeout");
+            restartNeeded = true;
+        } catch (InterruptedException e) {
+            System.err.println("Interrupted");
+        } catch (ExecutionException e) {
+            System.err.println("Execution error");
+        } finally {
+            // System.err.println("Cancelling...");
+            future.cancel(true);
+            if (restartNeeded) {
+                restartTarskiConnection();
+            }
+        }
+        System.out.println(result);
+        return getTarskiOutput(result);
+    }
+
     static void stopQepcadConnection() {
         System.out.println("Stopping QEPCAD connection...");
         qepcadChild.destroy();
@@ -329,6 +421,22 @@ public class ExternalCAS {
         startQepcadConnection(qepcadNSaved, qepcadLSaved);
     }
 
+    static void stopTarskiConnection() {
+        System.out.println("Stopping Tarski connection...");
+        tarskiChild.destroy();
+        try {
+            System.out.println("Waiting 1s...");
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            // do nothing
+        }
+    }
+
+    static void restartTarskiConnection() {
+        stopTarskiConnection();
+        startTarskiConnection(tarskiNSaved);
+    }
+
     static String executeTarski (String command, int timeLimit, String qepcadN, String qepcadL) {
         if (Start.dryRun)
             return "";
@@ -341,18 +449,23 @@ public class ExternalCAS {
                 if (ret.length() > 0) {
                     ret += "\n"; // if multiple lines are returned (hopefully not)
                 }
-                int semicolon = line.indexOf(":");
-                if (semicolon > -1) {
-                    String content = line.substring(0, semicolon);
-                    if (content.startsWith("[")) {
-                        content = content.substring(1, content.length() - 1); // trim [ and ]
-                    }
-                    ret += content;
-                }
+                ret += getTarskiOutput(line);
             }
         }
         // System.out.println("executeTarski: " + command + " -> " + ret);
         return ret;
+    }
+
+    static String getTarskiOutput(String line) {
+        int semicolon = line.indexOf(":");
+        if (semicolon > -1) {
+            String content = line.substring(0, semicolon);
+            if (content.startsWith("[")) {
+                content = content.substring(1, content.length() - 1); // trim [ and ]
+            }
+            return content;
+        }
+        return "";
     }
 
     static String executeRedlog (String command, int timeLimit) {
