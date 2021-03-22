@@ -354,7 +354,7 @@ public class ExternalCAS {
                 try {
                     OutputStream tarskiIn = tarskiChild.getOutputStream();
                     output = new StringBuilder(); // reset
-                    System.out.println(command);
+                    // System.out.println(command);
                     byte[] b = command.getBytes(StandardCharsets.UTF_8);
                     tarskiIn.write(b);
                     tarskiIn.write('\n'); // press ENTER

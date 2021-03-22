@@ -644,23 +644,38 @@ public class Compute {
             String result;
             int expectedLines;
             if (!vars.equals("")) {
+                /*
+                 * This code was contributed by Chris W. Brown.
+                 * (process F)
+                 * this is a script following a strategy that should be pretty
+                 * good when F is of the form [ex x1, ..., xk [ G ] ] where G is
+                 * a quantifier-free conjunction, and there is only one free
+                 * variable and it is named m.  It assumes F is of that form.
+                 */
                 code = "(def process " +
                         "(lambda (F) " +
                         "(def L (getargs F)) " +
+                        // V is the quantified variable set (all but variable m):
                         "(def V (get L 0 0 1)) " +
+                        // B is a simplified form of "G" the quantifier free part (or UNSAT):
                         "(def B (bbwb (get L 1))) " +
                         "(if (equal? (get B 0) 'UNSAT) " +
+                        // This is the case that bbwb determined G UNSAT without really doing any algebra:
                         "[false] " +
+                        // This is the case when bbwb did not determine UNSAT:
                         "((lambda () " +
                         "(def G (qfr (t-ex V (get B 1)))) " +
                         "(if (equal? (t-type G) 6) " +
                         "(qepcad-qe G) " +
                         "(if (equal? (t-type G) 5) " +
                         "(qepcad-qe (bin-reduce t-or (map (lambda (H) (qepcad-qe (exclose H '(m)))) (getargs G)))) " +
-                        "G))))))) " +
+                        // Simplifies result in case qfr eliminates all quantified variables:
+                        "(qepcad-qe G)" + "" +
+                        "))))))) " +
                         "(process [ ex " + vars + " [" + ineqs + "]])";
                 expectedLines = 2;
             } else {
+                // Fallback in case m is not present:
                 code = "(qepcad-qe (qfr [" + ineqs + "]))";
                 expectedLines = 1;
             }
