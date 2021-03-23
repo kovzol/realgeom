@@ -167,10 +167,6 @@ For technical convenience this source tree contains Mathematica's `JLink.jar` an
 These are required to compile and start **realgeom** properly. To be able to use Mathematica, however,
 you need a license and a full installation.
 
-## Related projects ##
-[GeoGebra Discovery](https://github.com/kovzol/geogebra-discovery) uses **realgeom**
-via QEPCAD to outsource real geometry computations.
-
 ## Authors ##
 * Róbert Vajda <vajdar@math.u-szeged.hu>
 * Zoltán Kovács <zoltan@geogebra.org>
