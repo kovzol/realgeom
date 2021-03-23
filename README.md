@@ -26,6 +26,9 @@ An example database of problems is also available based on
 the book above. 
 
 ## Installation ##
+
+![build](https://github.com/kovzol/realgeom/workflows/build/badge.svg)
+
 You need to have the following pieces of software installed:
 
 * Linux (most distributions should work, for example, Debian 8) or macOS (Catalina 10.15 should work) or Windows 10
