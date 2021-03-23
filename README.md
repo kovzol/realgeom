@@ -28,16 +28,17 @@ the book above.
 ## Installation ##
 You need to have the following pieces of software installed:
 
-* Linux (most distributions should work, for example, Debian 8)
+* Linux (most distributions should work, for example, Debian 8) or macOS (Catalina 10.15 should work) or Windows 10
 * [Java SE 7/8 JDK](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
 
 Optional:
 
-* [Mathematica](https://www.wolfram.com/mathematica/) (recommended)
+* [Tarski](https://github.com/chriswestbrown/tarski) (recommended for educational uses on Linux)
+* [Mathematica](https://www.wolfram.com/mathematica/) (recommended for heavy computations)
+* [QEPCAD](https://www.usna.edu/CS/qepcadweb/B/QEPCAD.html) (recommended for educational uses on macOS and Windows)
 * [Maple](https://www.maplesoft.com/) with the following libraries:
   * a recent version of [RegularChains](http://www.regularchains.org/) and/or
   * [SyNRAC](http://www.fujitsu.com/jp/group/labs/en/resources/tech/announced-tools/synrac/)
-* [QEPCAD](https://www.usna.edu/CS/qepcadweb/B/QEPCAD.html)
 * [Reduce](http://www.reduce-algebra.com/) with
   * [RedLog](http://www.redlog.eu/)
 
@@ -135,6 +136,10 @@ has solutions for 1≦m<2.
 the benchmark will be performed, and only after it will
 be available the connection to the web service.)
 
+## Use case
+
+**realgeom** is an external service used by recent versions of [GeoGebra Discovery](https://github.com/kovzol/geogebra-discovery).
+
 ## Frequently asked questions ##
 * My Java is too old, how to work this around? Download a newer Java JDK version and set the JAVA_HOME to the correct installation folder after unzipping it, before typing `./gradlew run`.
 * How to enter the caret (^) symbol in the web service? Use %5e instead, e.g. a%5e2 instead of a^2.
@@ -148,6 +153,10 @@ of the native JAR package of Giac was borrowed from [GeoGebra](http://www.geogeb
 We are thankful to the [Research Institute for Symbolic Computations (RISC)](http://www.risc.jku.at/) at
 the [Johannes Kepler University (JKU)](http://www.jku.at/content), Linz, Austria, for allowing access to their
 computer algebra resources.
+
+[Christopher W. Brown](https://github.com/chriswestbrown) kindly helped in speeding up operation of the backends QEPCAD and Tarski.
+We acknowledge [Daniel Carvalho](https://community.wolfram.com/web/danielscarvalho)'s help in speeding up
+Mathematica's computations.
 
 ## Note on Mathematica runtime ##
 For technical convenience this source tree contains Mathematica's `JLink.jar` and the shared library
