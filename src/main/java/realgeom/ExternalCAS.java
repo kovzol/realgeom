@@ -361,7 +361,9 @@ public class ExternalCAS {
                     tarskiIn.flush();
                     String line = "";
                     // Reading echoed input:
-                    getOutputUntil(tarskiChild, Start.nl);
+                    if (!Start.isMac) {
+                        getOutputUntil(tarskiChild, Start.nl);
+                        }
                     for (int i = 0; i <  expectedLines ; ++i) {
                         // Reading actual output:
                         line = getOutputUntil(tarskiChild, Start.nl);
