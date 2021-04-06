@@ -235,6 +235,7 @@ public class ExternalCAS {
     static String tarskiNSaved;
 
     static boolean startTarskiConnection(String tarskiN) {
+        String qe = System.getenv("qe");
         tarskiNSaved = tarskiN;
         String tarskiCmd = "tarski +N" + tarskiN;
         String[] cmd;
@@ -249,7 +250,8 @@ public class ExternalCAS {
         cmd[2] = tarskiCmd;
         try {
             System.out.println("Starting Tarski connection...");
-            tarskiChild = Runtime.getRuntime().exec(cmd);
+            String[] envp = { "qe=" + qe };
+            tarskiChild = Runtime.getRuntime().exec(cmd, envp);
             System.out.println("Waiting 2s...");
             try {
                 Thread.sleep(2000);
@@ -273,6 +275,7 @@ public class ExternalCAS {
             while (!found && (c != -1)) {
                 c = out.read();
                 output.append((char) c);
+                // System.err.print("<" + (char) c + ">");
                 found = output.toString().endsWith(end);
             }
         } catch (IOException e) {
