@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -250,7 +252,18 @@ public class ExternalCAS {
         cmd[2] = tarskiCmd;
         try {
             System.out.println("Starting Tarski connection...");
-            String[] envp = { "qe=" + qe };
+            // Inherit all environment variables (PATH and qe are mandatory):
+            Map<String, String> env = System.getenv();
+            ArrayList<String> envpal = new ArrayList<>();
+            for (String envName : env.keySet()) {
+                envpal.add(envName + "=" + env.get(envName));
+            }
+            int s = envpal.size();;
+            String[] envp = new String[s];
+            for (int i = 0; i < s; ++i) {
+                envp[i] = envpal.get(i);
+            }
+
             tarskiChild = Runtime.getRuntime().exec(cmd, envp);
             System.out.println("Waiting 2s...");
             try {
@@ -279,7 +292,7 @@ public class ExternalCAS {
                 found = output.toString().endsWith(end);
             }
         } catch (IOException e) {
-            System.err.println("Error on reading output");
+            System.err.println("Error on reading output: " + e);
             return "";
         }
         if (c == -1) {
@@ -315,7 +328,7 @@ public class ExternalCAS {
                         // System.out.println(output);
                     }
                 } catch (IOException e) {
-                    System.err.println("Error on reading QEPCAD output");
+                    System.err.println("Error on reading QEPCAD output: " + e);
                     return "";
                 }
 
@@ -376,7 +389,7 @@ public class ExternalCAS {
                         }
                     output.append(line);
                 } catch (IOException e) {
-                    System.err.println("Error on reading Tarski output");
+                    System.err.println("Error on reading Tarski output:" + e);
                     return "";
                 }
 

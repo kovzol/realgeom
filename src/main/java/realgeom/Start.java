@@ -24,6 +24,7 @@ public class Start {
 
     public static String logfile = "";
     public static boolean dryRun = false;
+    public static boolean geogebra = false;
     public static boolean qepcadPipe = false;
     public static boolean tarskiPipe = false;
     public static String nl = "\n";
@@ -112,13 +113,15 @@ public class Start {
             return "";
         }
 
-        System.out.println("Testing shell connection...");
-        input = "expr 1 + 2";
-        if (isWindows)
-            input = "set /a 1+2";
-        test = ExternalCAS.execute(input, timeLimit);
-        if (!test.equals("3")) {
-            return "";
+        if (!geogebra) {
+            System.out.println("Testing shell connection...");
+            input = "expr 1 + 2";
+            if (isWindows)
+                input = "set /a 1+2";
+            test = ExternalCAS.execute(input, timeLimit);
+            if (!test.equals("3")) {
+                return "";
+            }
         }
 
         if (!isMac && !isWindows && ExternalCAS.createMathLink()) {
@@ -151,84 +154,88 @@ public class Start {
             System.out.println("Mathematica is not available. Consider installing it");
         }
 
-        input = "lprint(1+2);";
-        System.out.println("Testing Maple connection via shell...");
-        test = ExternalCAS.executeMaple(input, timeLimit);
-        if (!test.equals("3")) {
-            System.out.println("Consider installing Maple (make sure you have the executable `maple' on your path)");
-        } else {
-            input = "with(RegularChains):with(SemiAlgebraicSetTools)"
-                    + ":inputform:=&E([b,c]), (m>0) &and (1+b>c) &and (b+c>1) &and (c+1>b) &and (1+b=m*(c))"
-                    + ":timelimit(300,lprint(QuantifierElimination(inputform)));";
-            System.out.println("Testing Maple/RegularChains...");
+        if (!geogebra) {
+            input = "lprint(1+2);";
+            System.out.println("Testing Maple connection via shell...");
             test = ExternalCAS.executeMaple(input, timeLimit);
-            if (!test.equals("0 < m-1")) {
-                System.out.println("Consider installing RegularChains from http://www.regularchains.org/downloads.html");
+            if (!test.equals("3")) {
+                System.out.println("Consider installing Maple (make sure you have the executable `maple' on your path)");
             } else {
-                supported += ",maple/regularchains";
-            }
+                input = "with(RegularChains):with(SemiAlgebraicSetTools)"
+                        + ":inputform:=&E([b,c]), (m>0) &and (1+b>c) &and (b+c>1) &and (c+1>b) &and (1+b=m*(c))"
+                        + ":timelimit(300,lprint(QuantifierElimination(inputform)));";
+                System.out.println("Testing Maple/RegularChains...");
+                test = ExternalCAS.executeMaple(input, timeLimit);
+                if (!test.equals("0 < m-1")) {
+                    System.out.println("Consider installing RegularChains from http://www.regularchains.org/downloads.html");
+                } else {
+                    supported += ",maple/regularchains";
+                }
 
-            input = "with(SyNRAC):timelimit(300,lprint(qe(Ex([b,c],And((m>0),(1+b>c),(b+c>1),(c+1>b),(1+2*b=m*(c)))))));";
-            System.out.println("Testing Maple/SyNRAC...");
-            test = ExternalCAS.executeMaple(input, timeLimit);
-            if (!test.equals("-m < -1")) {
-                System.out.println("Consider installing SyNRAC from http://www.fujitsu.com/jp/group/labs/en/resources/tech/announced-tools/synrac/");
-            } else {
-                supported += ",maple/synrac";
+                input = "with(SyNRAC):timelimit(300,lprint(qe(Ex([b,c],And((m>0),(1+b>c),(b+c>1),(c+1>b),(1+2*b=m*(c)))))));";
+                System.out.println("Testing Maple/SyNRAC...");
+                test = ExternalCAS.executeMaple(input, timeLimit);
+                if (!test.equals("-m < -1")) {
+                    System.out.println("Consider installing SyNRAC from http://www.fujitsu.com/jp/group/labs/en/resources/tech/announced-tools/synrac/");
+                } else {
+                    supported += ",maple/synrac";
+                }
             }
         }
 
-        input = "[]\n" +
-                "(m,b,c)\n" +
-                "1\n" +
-                "(Eb)(Ec)[1+b>c /\\ 1+c>b /\\ b+c>1 /\\  (1+b+c)^2=m (b+c+b c)].\n" +
-                "assume[m>0].\n" +
-                "finish";
-        // An easier one:
-        input = "[]\n" +
-                "(m,v5,v6,v9,v8,v10,w1,v7)\n" +
-                "1\n" +
-                "(Ev5)(Ev6)(Ev9)(Ev8)(Ev10)(Ew1)(Ev7)[v8>0 /\\ v9>0 /\\ v7>0 /\\ v5^2+v6^2-v9^2-2 v5+1=0 /\\ v5^2+v6^2-v8^2=0 /\\ v10 v6-1=0 /\\ v8+v9-w1=0 /\\ -m+w1=0 /\\ 1-v7=0].\n" +
-                "assume[m>0].\n" +
-                "finish";
-        // A much easier one (to speed up start):
-        input = "[]\n(a)\n0\n(Ea)[a=0].\nfinish";
-        System.out.println("Testing QEPCAD connection via shell...");
-        // test = ExternalCAS.executeQepcad(input, timeLimit, qepcadN, qepcadL);
-        // Do not use too many cells. For testing purposes a minimal amount is enough:
-        test = ExternalCAS.executeQepcad(input, timeLimit, "500000", qepcadL);
-        // if (!test.equals("m - 4 < 0 /\\ m - 3 >= 0")) {
-        // if (!test.equals("m - 1 > 0")) {
-        if (!test.equals("TRUE")) {
-            System.out.println("Consider installing QEPCAD (make sure you have a script `qepcad' on your path that correctly starts QEPCAD)");
-        } else {
-            supported += ",qepcad";
-
-            System.out.println("Testing QEPCAD connection via pipe...");
-            String[] inputs = {"[]",
-                    "(a)",
-                    "0",
-                    "(Ea)[a=0].",
-                    "go", "go", "go", "sol T"};
-            int[] expectedResponseLines = {1, 1, 1, 5, 2, 2, 2, 7};
-            ExternalCAS.startQepcadConnection(qepcadN, qepcadL);
-            test = ExternalCAS.executeQepcadPipe(inputs, expectedResponseLines, timeLimit);
-            String[] testLines = test.split(nl);
-            test = testLines[3];
-            if (test.equals("TRUE")) {
-                System.out.println("QEPCAD is available via pipe... great!");
-                qepcadPipe = true;
-                String[] cont = {"continue"};
-                int[] contLines = {1};
-                ExternalCAS.executeQepcadPipe(cont, contLines, timeLimit);
+        if (!geogebra) {
+            input = "[]\n" +
+                    "(m,b,c)\n" +
+                    "1\n" +
+                    "(Eb)(Ec)[1+b>c /\\ 1+c>b /\\ b+c>1 /\\  (1+b+c)^2=m (b+c+b c)].\n" +
+                    "assume[m>0].\n" +
+                    "finish";
+            // An easier one:
+            input = "[]\n" +
+                    "(m,v5,v6,v9,v8,v10,w1,v7)\n" +
+                    "1\n" +
+                    "(Ev5)(Ev6)(Ev9)(Ev8)(Ev10)(Ew1)(Ev7)[v8>0 /\\ v9>0 /\\ v7>0 /\\ v5^2+v6^2-v9^2-2 v5+1=0 /\\ v5^2+v6^2-v8^2=0 /\\ v10 v6-1=0 /\\ v8+v9-w1=0 /\\ -m+w1=0 /\\ 1-v7=0].\n" +
+                    "assume[m>0].\n" +
+                    "finish";
+            // A much easier one (to speed up start):
+            input = "[]\n(a)\n0\n(Ea)[a=0].\nfinish";
+            System.out.println("Testing QEPCAD connection via shell...");
+            // test = ExternalCAS.executeQepcad(input, timeLimit, qepcadN, qepcadL);
+            // Do not use too many cells. For testing purposes a minimal amount is enough:
+            test = ExternalCAS.executeQepcad(input, timeLimit, "500000", qepcadL);
+            // if (!test.equals("m - 4 < 0 /\\ m - 3 >= 0")) {
+            // if (!test.equals("m - 1 > 0")) {
+            if (!test.equals("TRUE")) {
+                System.out.println("Consider installing QEPCAD (make sure you have a script `qepcad' on your path that correctly starts QEPCAD)");
             } else {
-                System.out.println("QEPCAD/pipe seems to return '" + test + "', please check your installation");
+                supported += ",qepcad";
+
+                System.out.println("Testing QEPCAD connection via pipe...");
+                String[] inputs = {"[]",
+                        "(a)",
+                        "0",
+                        "(Ea)[a=0].",
+                        "go", "go", "go", "sol T"};
+                int[] expectedResponseLines = {1, 1, 1, 5, 2, 2, 2, 7};
+                ExternalCAS.startQepcadConnection(qepcadN, qepcadL);
+                test = ExternalCAS.executeQepcadPipe(inputs, expectedResponseLines, timeLimit);
+                String[] testLines = test.split(nl);
+                test = testLines[3];
+                if (test.equals("TRUE")) {
+                    System.out.println("QEPCAD is available via pipe... great!");
+                    qepcadPipe = true;
+                    String[] cont = {"continue"};
+                    int[] contLines = {1};
+                    ExternalCAS.executeQepcadPipe(cont, contLines, timeLimit);
+                } else {
+                    System.out.println("QEPCAD/pipe seems to return '" + test + "', please check your installation");
+                }
+                // ExternalCAS.stopQepcadConnection();
             }
-            // ExternalCAS.stopQepcadConnection();
         }
 
         input = "(qepcad-qe (qfr [ex v5,v6,v8 [v8>0 /\\ v5^2-2 v5+v6^2-v8^2+1=0 /\\ -v5^2-v6^2+1=0 /\\ -2 m v8-m+v8^2+4 v8+4=0]]))";
-        if (!isWindows) {
+        if (!isWindows && !geogebra) {
             System.out.println("Testing Tarski connection via shell...");
             test = ExternalCAS.executeTarski(input, timeLimit, qepcadN, qepcadL);
             if (!test.equals("m - 3 >= 0 /\\ m - 4 < 0")) {
@@ -237,7 +244,7 @@ public class Start {
                 supported += ",tarski";
             }
         }
-        if (supported.contains("tarski") || isWindows) {
+        if (supported.contains("tarski") || isWindows || geogebra) {
             System.out.println("Testing Tarski connection via pipe...");
             ExternalCAS.startTarskiConnection(qepcadN);
             test = ExternalCAS.executeTarskiPipe(input, 1, timeLimit);
@@ -252,20 +259,22 @@ public class Start {
             }
         }
 
-        input = "1+2;";
-        System.out.println("Testing Reduce connection via shell...");
-        test = ExternalCAS.executeReduce(input, timeLimit);
-        if (!test.equals("3")) {
-            System.out.println("Consider installing Reduce (make sure you have the executable `reduce' on your path)"
-                    + "\nSee also http://www.redlog.eu/get-redlog/ to have RedLog installed");
-        } else {
-            input = "rlqe(ex({b,c}, 1+b>c and 1+c>b and b+c>1 and a=m*(b+c)));";
-            System.out.println("Testing RedLog connection via shell...");
-            test = ExternalCAS.executeRedlog(input, timeLimit);
-            if (!test.equals("m = 0 and a = 0 or m <> 0 and a*m - m**2 > 0$")) {
-                System.out.println("Consider installing RedLog from http://www.redlog.eu/get-redlog/");
+        if (!geogebra) {
+            input = "1+2;";
+            System.out.println("Testing Reduce connection via shell...");
+            test = ExternalCAS.executeReduce(input, timeLimit);
+            if (!test.equals("3")) {
+                System.out.println("Consider installing Reduce (make sure you have the executable `reduce' on your path)"
+                        + "\nSee also http://www.redlog.eu/get-redlog/ to have RedLog installed");
             } else {
-                supported += ",redlog";
+                input = "rlqe(ex({b,c}, 1+b>c and 1+c>b and b+c>1 and a=m*(b+c)));";
+                System.out.println("Testing RedLog connection via shell...");
+                test = ExternalCAS.executeRedlog(input, timeLimit);
+                if (!test.equals("m = 0 and a = 0 or m <> 0 and a*m - m**2 > 0$")) {
+                    System.out.println("Consider installing RedLog from http://www.redlog.eu/get-redlog/");
+                } else {
+                    supported += ",redlog";
+                }
             }
         }
 
@@ -284,6 +293,10 @@ public class Start {
         Option serverOption = new Option("s", "server", false, "run HTTP server");
         serverOption.setRequired(false);
         options.addOption(serverOption);
+
+        Option geogebraOption = new Option("g", "geogebra", false, "quickstart for GeoGebra (skips most checks)");
+        geogebraOption.setRequired(false);
+        options.addOption(geogebraOption);
 
         Option portOption = new Option("p", "port", true, "HTTP server port number");
         portOption.setRequired(false);
@@ -357,6 +370,10 @@ public class Start {
             qepcadL = cmd.getOptionValue("qepcadL");
         }
         System.out.println("QEPCAD +L is set to " + qepcadL + " primes");
+
+        if (cmd.hasOption("g")) {
+            geogebra = true;
+        }
 
         String supported = test(timeLimit, qepcadN, qepcadL);
         if (supported.equals("")) {
