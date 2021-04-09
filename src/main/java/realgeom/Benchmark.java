@@ -187,11 +187,8 @@ public class Benchmark {
             table[i].append("</tr></table>");
         }
 
-        StringBuilder tail = new StringBuilder();
-        tail.append("</body></html>\n");
-
         StringBuilder b = new StringBuilder();
-        b.append(head).append(table[0]).append(table[1]).append(tail);
+        b.append(head).append(table[0]).append(table[1]).append("</body></html>\n");
 
         try {
             out.write(b.toString());
@@ -199,7 +196,6 @@ public class Benchmark {
         } catch (Exception e) {
             System.err.println("Error on writing file " + outputFile);
         }
-
 
     }
 }

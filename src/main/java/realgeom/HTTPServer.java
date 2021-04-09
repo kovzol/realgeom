@@ -243,6 +243,7 @@ public class HTTPServer {
             Log log = Log.INFO;
             String lhs = "0";
             String rhs = "0";
+            String ineq = "";
             String polys = "";
             String triangles = "";
             String vars = "";
@@ -261,6 +262,9 @@ public class HTTPServer {
                 }
                 if (parms.get("mode").equals("explore")) {
                     mode = Mode.EXPLORE;
+                }
+                if (parms.get("mode").equals("prove")) {
+                    mode = Mode.PROVE;
                 }
             }
             if (parms.containsKey("cas")) {
@@ -312,6 +316,9 @@ public class HTTPServer {
             if (parms.containsKey("polys")) {
                 polys = parms.get("polys");
             }
+            if (parms.containsKey("ineq")) {
+                ineq = parms.get("ineq");
+            }
             if (parms.containsKey("posvariables")) {
                 posvariables = parms.get("posvariables");
             }
@@ -340,6 +347,10 @@ public class HTTPServer {
             }
             if (mode == Mode.EXPLORE) {
                 appendResponse(Compute.euclideanSolverExplore(lhs, rhs, polys, triangles, vars, posvariables, cas,
+                        tool, subst, log, timelimit, qepcadN, qepcadL), false);
+            }
+            if (mode == Mode.PROVE) {
+                appendResponse(Compute.euclideanSolverProve(ineq, polys, triangles, vars, posvariables, cas,
                         tool, subst, log, timelimit, qepcadN, qepcadL), false);
             }
             if (mode == Mode.CHECK) {
@@ -397,16 +408,15 @@ public class HTTPServer {
         }
     }
 
-
     /**
      * returns the url parameters in a map
-     * @param query
+     * @param query the full query
      * @return map
      */
     public static Map<String, String> queryToMap(String query) {
         Map<String, String> result = new HashMap<>();
         for (String param : query.split("&")) {
-            String pair[] = param.split("=");
+            String[] pair = param.split("=");
             if (pair.length > 1) {
                 result.put(pair[0], pair[1]);
             } else {
