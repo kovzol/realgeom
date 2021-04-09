@@ -318,6 +318,7 @@ public class HTTPServer {
             }
             if (parms.containsKey("ineq")) {
                 ineq = parms.get("ineq");
+                ineq = ineq.replace("≥", ">=").replace("≤", "<=");
             }
             if (parms.containsKey("posvariables")) {
                 posvariables = parms.get("posvariables");
