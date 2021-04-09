@@ -11,6 +11,8 @@ class GiacCAS {
         context C = new context();
         gen g = new gen(command, C);
         g = g.eval(1, C);
-        return g.print(C);
+        String ret = g.print(C);
+        // System.err.println("GIAC: " + command + " -> " + ret);
+        return ret;
     }
 }
