@@ -352,7 +352,7 @@ public class Compute {
                 "}");
     }
 
-    static String dlDef() {
+    static String dlDef(boolean keep) {
         return ggbGiac(
                 "delinearize\n" +
                         " (polys,excludevars)-> \n" +
@@ -404,8 +404,13 @@ public class Compute {
                         "                          if (type(substval)==integer || type(substval)==rational) { \n" +
                         "                              polys:=remove(0,expand(subs(polys,[qvar],[substval])));  \n" +
                         "                              print(\"New set: \" + polys); \n" +
-                        // "                              keep:=append(keep,substval-qvar);  \n" +
-                        // "                              print(\"Keeping \" + (substval-qvar)); \n" +
+
+                        (keep ?
+                                "                      keep:=append(keep,substval-qvar);  \n" +
+                                "                      print(\"Keeping \" + (substval-qvar)); \n"
+                                : ""
+                        )
+                        +
                         "                              vars:=lvar(polys);  \n" +
                         "                              ii:=-1;  \n" +
                         "                            };  \n" +
@@ -544,7 +549,7 @@ public class Compute {
         // Add main equation:
         polys2 += "," + eq;
         appendResponse("LOG: before delinearization, polys=" + polys2, Log.VERBOSE);
-        String linCode = "[[" + ggInit + "],[" + ilsDef() + "],[" + ilDef() + "],[" + dlDef() + "],[" + rmwDef() +
+        String linCode = "[[" + ggInit + "],[" + ilsDef() + "],[" + ilDef() + "],[" + dlDef(false) + "],[" + rmwDef() +
                 "],[" + rdDef() + "],";
         if (lhs.equals("w1") && rhs.equals("w2")) {
             linCode += "removeDivisions(removeW12(delinearize([" + polys2 + "],[" + posvariables + ",w1,w2]),m,w1,w2))][6]";
@@ -769,7 +774,7 @@ public class Compute {
         polys2 = polys2.substring(1, polys2.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
 
         appendResponse("LOG: before delinearization, polys=" + polys2, Log.VERBOSE);
-        String linCode = "[[" + ggInit + "],[" + ilsDef() + "],[" + ilDef() + "],[" + dlDef() + "],[" + rdDef() + "],";
+        String linCode = "[[" + ggInit + "],[" + ilsDef() + "],[" + ilDef() + "],[" + dlDef(true) + "],[" + rdDef() + "],";
 
         // Do not rewrite/remove the variables in the inequality:
         String ineqRewriteEq = ineq.replace(">", "=").replace("<", "=")
