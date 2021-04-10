@@ -359,7 +359,9 @@ public class Start {
 
         String qepcadN = "500000000";
         if (isWindows)
-            qepcadN = "50000000";
+            qepcadN = "50000000"; // TODO: Check if this is still required.
+        if (isPiUnix)
+            qepcadN = "5000000"; // This ensures faster startup.
         if (cmd.hasOption("N")) {
             qepcadN = cmd.getOptionValue("qepcadN");
         }
