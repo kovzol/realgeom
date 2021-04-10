@@ -815,12 +815,34 @@ public class Compute {
             appendIneqs("~(" + ineq + ")", cas, tool);
 
             String result;
-            code = "(qepcad-qe (qfr [ex " + vars + " [" + ineqs + "]]))";
+            // code = "(qepcad-qe (qfr [ex " + vars + " [" + ineqs + "]]))";
+
+            code = "(def process " +
+                    "(lambda (F) " +
+                    "(def L (getargs F)) " +
+                    // V is the quantified variable set (all but variable m):
+                    "(def V (get L 0 0 1)) " +
+                    // B is a simplified form of "G" the quantifier free part (or UNSAT):
+                    "(def B (bbwb (get L 1))) " +
+                    "(if (equal? (get B 0) 'UNSAT) " +
+                    // This is the case that bbwb determined G UNSAT without really doing any algebra:
+                    "[false] " +
+                    // This is the case when bbwb did not determine UNSAT:
+                    "((lambda () " +
+                    "(def G (qfr (t-ex V (get B 1)))) " +
+                    "(if (equal? (t-type G) 6) " +
+                    "(qepcad-qe G) " +
+                    "(if (equal? (t-type G) 5) " +
+                    "(qepcad-qe (bin-reduce t-or (map (lambda (H) (qepcad-qe (exclose H '(m)))) (getargs G)))) " +
+                    // Simplifies result in case qfr eliminates all quantified variables:
+                    "(qepcad-qe G)" + "" +
+                    "))))))) " +
+                    "(process [ ex " + vars + " [" + ineqs + "]])";
 
             appendResponse("LOG: code=" + code, Log.VERBOSE);
 
             if (Start.tarskiPipe) {
-                result = ExternalCAS.executeTarskiPipe(code, 1, timelimit);
+                result = ExternalCAS.executeTarskiPipe(code, 2, timelimit);
             } else {
                 result = ExternalCAS.executeTarski(code, timelimit, qepcadN, qepcadL);
             }
