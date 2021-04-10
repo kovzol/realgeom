@@ -13,7 +13,7 @@ import java.util.Arrays;
 
 public class Compute {
 
-    private static String ineqs;
+    private static String formulas;
     private static String response;
     private static Log maxLogLevel;
 
@@ -23,37 +23,37 @@ public class Compute {
 
     private static void appendIneqs(String ineq, Cas cas, Tool tool) {
         if (cas == Cas.REDLOG) {
-            if (!"".equals(ineqs)) {
-                ineqs += " and ";
+            if (!"".equals(formulas)) {
+                formulas += " and ";
             }
-            ineqs += ineq;
+            formulas += ineq;
         }
         if (cas == Cas.QEPCAD || cas == Cas.TARSKI) {
-            if (!"".equals(ineqs)) {
-                ineqs += " /\\ ";
+            if (!"".equals(formulas)) {
+                formulas += " /\\ ";
             }
-            ineqs += ineq;
+            formulas += ineq;
         }
         if (cas == Cas.MAPLE) {
             if (tool == Tool.REGULAR_CHAINS) {
-                if (!"".equals(ineqs)) {
-                    ineqs += " &and ";
+                if (!"".equals(formulas)) {
+                    formulas += " &and ";
                 }
-                ineqs += "(" + ineq + ")";
+                formulas += "(" + ineq + ")";
             }
             if (tool == Tool.SYNRAC) {
-                if (!"".equals(ineqs)) {
-                    ineqs = ineqs.substring(0, ineqs.length() - 1) + "," + ineq + ")";
+                if (!"".equals(formulas)) {
+                    formulas = formulas.substring(0, formulas.length() - 1) + "," + ineq + ")";
                 } else {
-                    ineqs = "And(" + ineq + ")";
+                    formulas = "And(" + ineq + ")";
                 }
             }
         }
         if (cas == Cas.MATHEMATICA) {
-            if (!"".equals(ineqs)) {
-                ineqs += " \\[And] ";
+            if (!"".equals(formulas)) {
+                formulas += " \\[And] ";
             }
-            ineqs += "(" + ineq + ")";
+            formulas += "(" + ineq + ")";
         }
     }
 
@@ -159,7 +159,7 @@ public class Compute {
                                          int timelimit, String qepcadN, String qepcadL) {
         String m = "m";
         String code;
-        ineqs = "";
+        formulas = "";
         response = "";
         maxLogLevel = log;
 
@@ -195,7 +195,7 @@ public class Compute {
             eq = eq.replace("=", "==");
         }
         appendIneqs(eq, cas, tool);
-        appendResponse("LOG: ineqs=" + ineqs, Log.VERBOSE);
+        appendResponse("LOG: ineqs=" + formulas, Log.VERBOSE);
 
         if (cas == Cas.REDLOG) {
             String exists = "ex({";
@@ -204,7 +204,7 @@ public class Compute {
             }
             exists += "b,c}";
 
-            code = "rlqe(" + exists + ", " + ineqs + "));";
+            code = "rlqe(" + exists + ", " + formulas + "));";
             appendResponse("LOG: code=" + code, Log.VERBOSE);
             String result = ExternalCAS.executeRedlog(code, timelimit);
             appendResponse("LOG: result=" + result, Log.VERBOSE);
@@ -232,7 +232,7 @@ public class Compute {
             exists += "(Eb)(Ec)";
             vars += "b,c)";
 
-            code = "[]\n" + vars + "\n1\n" + exists + "[" + ineqs + "].\n" +
+            code = "[]\n" + vars + "\n1\n" + exists + "[" + formulas + "].\n" +
                     "assume[" + m + ">0].\nfinish\n";
             appendResponse("LOG: code=" + code, Log.VERBOSE);
             String result = ExternalCAS.executeQepcad(code, timelimit, qepcadN, qepcadL);
@@ -256,7 +256,7 @@ public class Compute {
             }
             vars += "b,c}";
 
-            code = "Reduce[Resolve[Exists[" + vars + "," + ineqs + "],Reals],Reals]";
+            code = "Reduce[Resolve[Exists[" + vars + "," + formulas + "],Reals],Reals]";
             appendResponse("LOG: code=" + code, Log.VERBOSE);
             String result = ExternalCAS.executeMathematica(code, timelimit);
             appendResponse(result, Log.INFO);
@@ -272,11 +272,11 @@ public class Compute {
             vars += "b,c]";
             if (tool == Tool.REGULAR_CHAINS) {
                 initCode = "with(RegularChains):with(SemiAlgebraicSetTools):";
-                commandCode = "QuantifierElimination(&E(" + vars + ")," + ineqs + ")";
+                commandCode = "QuantifierElimination(&E(" + vars + ")," + formulas + ")";
             }
             if (tool == Tool.SYNRAC) {
                 initCode = "with(SyNRAC):";
-                commandCode = "qe(Ex(" + vars + "," + ineqs + "))";
+                commandCode = "qe(Ex(" + vars + "," + formulas + "))";
             }
             code = initCode + "timelimit(" + timelimit + ",lprint(" + commandCode + "));";
             appendResponse("LOG: code=" + code, Log.VERBOSE);
@@ -509,7 +509,7 @@ public class Compute {
                                                 int timelimit, String qepcadN, String qepcadL) {
         String m = "m"; // TODO: Use a different dummy variable
         String code;
-        ineqs = "";
+        formulas = "";
         response = "";
         maxLogLevel = log;
 
@@ -528,7 +528,7 @@ public class Compute {
         }
 
         String eq = "(" + lhs + ")-m*(" + rhs + ")";
-        appendResponse("LOG: ineqs=" + ineqs, Log.VERBOSE);
+        appendResponse("LOG: ineqs=" + formulas, Log.VERBOSE);
 
         String[] varsArray = vars.split(",");
         StringBuilder varsubst = new StringBuilder();
@@ -588,7 +588,7 @@ public class Compute {
             // Remove m completely:
             vars = vars.replace("m", "");
             for (String s : polys2Array) appendIneqs(s + "==0", cas, tool);
-            code = "ToRadicals[Reduce[Resolve[Exists[{" + vars + "}," + ineqs + "],Reals],Reals],Cubics->False]";
+            code = "ToRadicals[Reduce[Resolve[Exists[{" + vars + "}," + formulas + "],Reals],Reals],Cubics->False]";
             appendResponse("LOG: code=" + code, Log.VERBOSE);
             String result = ExternalCAS.executeMathematica(code, timelimit);
             appendResponse(result, Log.INFO);
@@ -605,7 +605,7 @@ public class Compute {
 
             String result;
             if (Start.qepcadPipe) {
-                String[] codePipe = {"[]", vars, "1", exists + "[" + ineqs + "].",
+                String[] codePipe = {"[]", vars, "1", exists + "[" + formulas + "].",
                         "assume[m>0].", "go", "go", "go", "sol T"};
                 int[] expectedResponseLines = {1, 1, 1, 5, 2, 2, 2, 2, 7};
                 result = ExternalCAS.executeQepcadPipe(codePipe, expectedResponseLines, timelimit);
@@ -625,7 +625,7 @@ public class Compute {
                     result = "";
                 }
             } else {
-                code = "[]\n" + vars + "\n1\n" + exists + "[" + ineqs + "].\n" +
+                code = "[]\n" + vars + "\n1\n" + exists + "[" + formulas + "].\n" +
                         "assume[m>0].\nfinish\n";
                 appendResponse("LOG: code=" + code, Log.VERBOSE);
                 result = ExternalCAS.executeQepcad(code, timelimit, qepcadN, qepcadL);
@@ -689,11 +689,11 @@ public class Compute {
                         // Simplifies result in case qfr eliminates all quantified variables:
                         "(qepcad-qe G)" + "" +
                         "))))))) " +
-                        "(process [ ex " + vars + " [" + ineqs + "]])";
+                        "(process [ ex " + vars + " [" + formulas + "]])";
                 expectedLines = 2;
             } else {
                 // Fallback in case m is not present:
-                code = "(qepcad-qe (qfr [" + ineqs + "]))";
+                code = "(qepcad-qe (qfr [" + formulas + "]))";
                 expectedLines = 1;
             }
 
@@ -736,12 +736,12 @@ public class Compute {
 
     /* Prove an inequality with coordinates. */
     // Consider unifying this with euclideanSoverExplore.
-    public static String euclideanSolverProve(String ineq, String polys,
+    public static String euclideanSolverProve(String ineq, String ineqs, String polys,
                                                 String triangles, String vars, String posvariables,
                                                 Cas cas, Tool tool, Subst subst, Log log,
                                                 int timelimit, String qepcadN, String qepcadL) {
         String code;
-        ineqs = "";
+        formulas = "";
         response = "";
         maxLogLevel = log;
 
@@ -755,7 +755,7 @@ public class Compute {
             }
         }
 
-        appendResponse("LOG: ineqs=" + ineqs, Log.VERBOSE);
+        appendResponse("LOG: ineqs=" + formulas, Log.VERBOSE);
 
         String[] varsArray = vars.split(",");
         StringBuilder varsubst = new StringBuilder();
@@ -802,16 +802,23 @@ public class Compute {
 
         String[] posvariablesArray = posvariables.split(",");
         for (String item : posvariablesArray) {
-            if (Arrays.asList(varsArray).contains(item)) appendIneqs(item + ">0", cas, tool);
+            // FIXME: Make a distinction between variables like sqrt2 and the other ones that can be eliminated.
+            // if (Arrays.asList(varsArray).contains(item))
+            appendIneqs(item + ">0", cas, tool);
+            if (!Arrays.asList(varsArray).contains(item)) {
+                vars += "," + item;
+            }
         }
 
         String[] polys2Array = polys2.split(",");
+        String[] ineqs2Array = ineqs.split(",");
 
         // Currently only Tarski is implemented, TODO: create implementation for all other systems
 
         if (cas == Cas.TARSKI) {
 
             for (String s : polys2Array) appendIneqs(s.replaceAll("\\*", " ") + "=0", cas, tool);
+            for (String s : ineqs2Array) appendIneqs(s.replaceAll("\\*", " ") , cas, tool);
             appendIneqs("~(" + ineq + ")", cas, tool);
 
             String result;
@@ -837,7 +844,7 @@ public class Compute {
                     // Simplifies result in case qfr eliminates all quantified variables:
                     "(qepcad-qe G)" + "" +
                     "))))))) " +
-                    "(process [ ex " + vars + " [" + ineqs + "]])";
+                    "(process [ ex " + vars + " [" + formulas + "]])";
 
             appendResponse("LOG: code=" + code, Log.VERBOSE);
 

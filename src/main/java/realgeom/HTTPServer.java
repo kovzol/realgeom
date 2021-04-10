@@ -244,6 +244,7 @@ public class HTTPServer {
             String lhs = "0";
             String rhs = "0";
             String ineq = "";
+            String ineqs = "";
             String polys = "";
             String triangles = "";
             String vars = "";
@@ -313,12 +314,19 @@ public class HTTPServer {
             if (parms.containsKey("rhs")) {
                 rhs = parms.get("rhs");
             }
+            // Polynomials that equals to 0:
             if (parms.containsKey("polys")) {
                 polys = parms.get("polys");
             }
+            // The thesis:
             if (parms.containsKey("ineq")) {
                 ineq = parms.get("ineq");
                 ineq = ineq.replace("≥", ">=").replace("≤", "<=");
+            }
+            // Additional inequalities or equations:
+            if (parms.containsKey("ineqs")) {
+                ineqs = parms.get("ineqs");
+                ineqs = ineqs.replace("≥", ">=").replace("≤", "<=").replace("E", "=");
             }
             if (parms.containsKey("posvariables")) {
                 posvariables = parms.get("posvariables");
@@ -343,6 +351,8 @@ public class HTTPServer {
                 appendResponse("LOG: log=" + log + ",mode=" + mode + ",cas=" + cas + ",tool="+tool+",subst=" + subst + ",lhs=" + lhs
                         + ",rhs=" + rhs + ",vars=" + vars + ",posvariables=" + posvariables
                         + ",polys=" + polys +
+                        ",ineq=" + ineq +
+                        ",ineqs=" + ineqs +
                         ",triangles=" + triangles +
                         ",timelimit=" + timelimit + ",qepcadn=" + qepcadN + ",qepcadl=" + qepcadL, true);
             }
@@ -351,7 +361,7 @@ public class HTTPServer {
                         tool, subst, log, timelimit, qepcadN, qepcadL), false);
             }
             if (mode == Mode.PROVE) {
-                appendResponse(Compute.euclideanSolverProve(ineq, polys, triangles, vars, posvariables, cas,
+                appendResponse(Compute.euclideanSolverProve(ineq, ineqs, polys, triangles, vars, posvariables, cas,
                         tool, subst, log, timelimit, qepcadN, qepcadL), false);
             }
             if (mode == Mode.CHECK) {
