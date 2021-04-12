@@ -112,11 +112,11 @@ public class Compute {
         for (String c : conjunctions) {
             if (c.startsWith("[ ") &&
                     c.endsWith(" ]")) {
-                c = c.substring(2, c.length() - 2); // trim [ ... ]
+                c = removeHeadTail(c, 2); // trim [ ... ]
             }
             if (c.startsWith("[") &&
                     c.endsWith("]")) {
-                c = c.substring(1, c.length() - 1); // trim [...] (for Tarski)
+                c = removeHeadTail(c, 1); // trim [...] (for Tarski)
             }
             // appendResponse("LOG: c=" + c, Log.VERBOSE);
             String[] disjunctions = c.split(" \\\\/ ");
@@ -149,7 +149,7 @@ public class Compute {
         // keep only the middle of "list[...]":
         if (giacOutput.contains("list")) {
           giacOutput = giacOutput.replaceAll("list", "");
-          giacOutput = giacOutput.substring(1, giacOutput.length() - 1);
+          giacOutput = removeHeadTail(giacOutput, 1);
           }
         giacOutput = giacOutput.replaceAll("√", "sqrt");
         return giacOutput;
@@ -544,7 +544,7 @@ public class Compute {
         appendResponse("LOG: before substitution, polys=" + polys, Log.VERBOSE);
         String polys2 = GiacCAS.execute("subst([" + polys + "],[" + varsubst + "])");
 
-        polys2 = polys2.substring(1, polys2.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
+        polys2 = removeHeadTail(polys2, 1); // removing { and } in Mathematica (or [ and ] in Giac)
 
         // Add main equation:
         polys2 += "," + eq;
@@ -565,11 +565,11 @@ public class Compute {
         }
         appendResponse("LOG: after delinearization, polys=" + polys2, Log.VERBOSE);
         appendResponse("LOG: before removing unnecessary variables, vars=" + vars, Log.VERBOSE);
-        polys2 = polys2.substring(1, polys2.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
+        polys2 = removeHeadTail(polys2, 1); // removing { and } in Mathematica (or [ and ] in Giac)
         String minimVarsCode = "lvar([" + polys2 + "])"; // remove unnecessary variables
         vars = GiacCAS.execute(minimVarsCode);
         appendResponse("LOG: after removing unnecessary variables, vars=" + vars, Log.VERBOSE);
-        vars = vars.substring(1, vars.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
+        vars = removeHeadTail(vars, 1); // removing { and } in Mathematica (or [ and ] in Giac)
         // Remove m from vars (but keep it only if there is no other variable):
         vars = vars.replace(",m", "").replace("m,", "");
         appendResponse("LOG: after removing m, vars=" + vars, Log.VERBOSE);
@@ -768,22 +768,46 @@ public class Compute {
                 varsubst.append(",");
             varsubst.append(varsArray[i]).append("=").append(value);
         } // in varsubst we have something like a1=0, a2=0, b1=1, b2=0
-        appendResponse("LOG: before substitution, polys=" + polys, Log.VERBOSE);
+        appendResponse("LOG: before substitution, polys=" + polys + ", ineqs=" + ineqs + ", ineq=" + ineq,
+                Log.VERBOSE);
         String polys2 = GiacCAS.execute("subst([" + polys + "],[" + varsubst + "])");
+        polys2 = removeHeadTail(polys2, 1); // removing [ and ]
 
-        polys2 = polys2.substring(1, polys2.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
+        String ineqs2 = "";
+        if (!ineqs.equals("")) {
+            ineqs2 = GiacCAS.execute("subst([" + ineqs + "],[" + varsubst + "])");
+            ineqs2 = removeHeadTail(ineqs2, 1);
+        }
 
-        appendResponse("LOG: before delinearization, polys=" + polys2, Log.VERBOSE);
+        String ineq2 = GiacCAS.execute("subst([" + ineq + "],[" + varsubst + "])");
+        ineq2 = removeHeadTail(ineq2, 1);
+
+        appendResponse("LOG: after substitution, polys=" + polys2+ ", ineqs=" + ineqs2 + ", ineq=" + ineq2, Log.VERBOSE);
         String linCode = "[[" + ggInit + "],[" + ilsDef() + "],[" + ilDef() + "],[" + dlDef(true) + "],[" + rdDef() + "],";
 
-        // Do not rewrite/remove the variables in the inequality:
-        String ineqRewriteEq = ineq.replace(">", "=").replace("<", "=")
+        // Collect variables from inequalities.
+
+        String ineqRewriteEq = ineq2.replace(">", "=").replace("<", "=")
                 .replace("==", "=");
         String ineqVarsCode = "lvar(lhs(" + ineqRewriteEq + "),rhs(" + ineqRewriteEq + "))";
         String ineqVars = GiacCAS.execute(ineqVarsCode);
-        ineqVars = ineqVars.substring(1, ineqVars.length() - 1);
+        ineqVars = removeHeadTail(ineqVars, 1);
 
-        linCode += "removeDivisions(delinearize([" + polys2 + "],[" + posvariables + "," + ineqVars + "]))][5]";
+        String[] ineqs2Array = ineqs2.split(",");
+        if (!ineqs2.equals("")) {
+            for (String ie : ineqs2Array) {
+                String ieRewriteEq = ie.replace(">", "=").replace("<", "=")
+                        .replace("==", "=");
+                String ieVarsCode = "lvar(lhs(" + ieRewriteEq + "),rhs(" + ieRewriteEq + "))";
+                String ieVars = GiacCAS.execute(ieVarsCode);
+                ieVars = removeHeadTail(ieVars, 1);
+                ineqVars += "," + ieVars;
+            }
+        }
+
+        // End collecting variables.
+
+        linCode += "removeDivisions(delinearize([" + polys2 + "],[" + posvariables + "]))][5]";
         appendResponse("LOG: delinearization code=" + linCode, Log.VERBOSE);
         polys2 = GiacCAS.execute(linCode);
         if (polys2.equals("0")) {
@@ -792,12 +816,12 @@ public class Compute {
             return response;
         }
         appendResponse("LOG: after delinearization, polys=" + polys2, Log.VERBOSE);
-        appendResponse("LOG: before removing unnecessary variables, vars=" + vars, Log.VERBOSE);
-        polys2 = polys2.substring(1, polys2.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
+        appendResponse("LOG: before removing unnecessary poly variables, vars=" + vars, Log.VERBOSE);
+        polys2 = removeHeadTail(polys2, 1); // removing { and } in Mathematica (or [ and ] in Giac)
         String minimVarsCode = "lvar([" + polys2 + "])"; // remove unnecessary variables
         vars = GiacCAS.execute(minimVarsCode);
-        appendResponse("LOG: after removing unnecessary variables, vars=" + vars, Log.VERBOSE);
-        vars = vars.substring(1, vars.length() - 1); // removing { and } in Mathematica (or [ and ] in Giac)
+        appendResponse("LOG: after removing unnecessary poly variables, vars=" + vars, Log.VERBOSE);
+        vars = removeHeadTail(vars, 1); // removing { and } in Mathematica (or [ and ] in Giac)
         varsArray = vars.split(",");
 
         String[] posvariablesArray = posvariables.split(",");
@@ -809,20 +833,21 @@ public class Compute {
                 vars += "," + item;
             }
         }
+        vars += "," + ineqVars;
 
         String[] polys2Array = polys2.split(",");
-        String[] ineqs2Array = ineqs.split(",");
 
         // Currently only Tarski is implemented, TODO: create implementation for all other systems
 
         if (cas == Cas.TARSKI) {
 
             for (String s : polys2Array) appendIneqs(s.replaceAll("\\*", " ") + "=0", cas, tool);
-            for (String s : ineqs2Array) appendIneqs(s.replaceAll("\\*", " ") , cas, tool);
+            if (!ineqs2.equals("")) {
+                for (String s : ineqs2Array) appendIneqs(s.replaceAll("\\*", " "), cas, tool);
+            }
             appendIneqs("~(" + ineq + ")", cas, tool);
 
             String result;
-            // code = "(qepcad-qe (qfr [ex " + vars + " [" + ineqs + "]]))";
 
             code = "(def process " +
                     "(lambda (F) " +
@@ -846,10 +871,14 @@ public class Compute {
                     "))))))) " +
                     "(process [ ex " + vars + " [" + formulas + "]])";
 
+            code = "(qepcad-qe (qfr [ex " + vars + " [" + formulas + "]]))";
+            code = "(qepcad-qe [ex " + vars + " [" + formulas + "]])";
+            // FIXME: Discuss which one of the above codes should be used.
+
             appendResponse("LOG: code=" + code, Log.VERBOSE);
 
             if (Start.tarskiPipe) {
-                result = ExternalCAS.executeTarskiPipe(code, 2, timelimit);
+                result = ExternalCAS.executeTarskiPipe(code, 1, timelimit);
             } else {
                 result = ExternalCAS.executeTarski(code, timelimit, qepcadN, qepcadL);
             }
@@ -862,6 +891,13 @@ public class Compute {
         }
 
         return response;
+    }
+
+    static String removeHeadTail(String input, int length) {
+        if (input.length() > 2 * length) {
+            return input.substring(length, input.length() - length);
+        }
+        return input;
     }
 
 }
