@@ -22,6 +22,10 @@ public class Compute {
     }
 
     private static void appendIneqs(String ineq, Cas cas, Tool tool) {
+        if (ineq.equals("")) {
+            return;
+        }
+
         if (cas == Cas.REDLOG) {
             if (!"".equals(formulas)) {
                 formulas += " and ";
@@ -356,8 +360,9 @@ public class Compute {
         return ggbGiac(
                 "delinearize\n" +
                         " (polys,excludevars)-> \n" +
-                        "{ local ii,degs,pos,vars,linvar,p,qvar,pos2,keep,cc,substval; \n" +
+                        "{ local ii,degs,pos,vars,linvar,p,qvar,pos2,keep,cc,substval,substs; \n" +
                         "  keep:=[];\n" +
+                        "  substs:=\"\";\n" +
                         "  vars:=lvar(polys);\n" +
                         "  print(\"Input: \"+size(polys)+\" eqs in \"+size(vars)+\" vars\");  \n" +
                         "  cc:=1;\n" +
@@ -377,11 +382,18 @@ public class Compute {
                         "                  if ((not(is_element(linvar,excludevars))) || (cc<2)) { \n" +
                         // "                      if (is_element(linvar,excludevars) && (cc>1)) { \n" +
                         "                      if (is_element(linvar,excludevars)) { \n" +
-                        "                           keep:=append(keep,polys[ii]); \n" +
-                        "                           print(\"Keeping \" + polys[ii]); \n" +
+
+                        (keep ?
+                            "                      keep:=append(keep,polys[ii]);  \n" +
+                            "                      print(\"Keeping \" + polys[ii]); \n"
+                            :
+                                "                  print(\"Keeping disabled\"); \n "
+                        )
+                        +
                         "                         };  \n" +
                         "                      substval:=(op((solve(polys[ii]=0,linvar))[0]))[1];  \n" +
                         "                      print(\"Removing \" + polys[ii] + \", substituting \" + linvar + \" by \" + substval); \n" +
+                        "                      substs:=substs + linvar + \"=\" + substval + \",\"; \n" +
                         "                      polys:=remove(0,expand(expand(subs(polys,[linvar],[substval]))));  \n" +
                         "                      print(\"New set: \" + polys); \n" +
                         "                      vars:=lvar(polys);  \n" +
@@ -404,13 +416,14 @@ public class Compute {
                         "                          if (type(substval)==integer || type(substval)==rational) { \n" +
                         "                              polys:=remove(0,expand(subs(polys,[qvar],[substval])));  \n" +
                         "                              print(\"New set: \" + polys); \n" +
-
                         (keep ?
                                 "                      keep:=append(keep,substval-qvar);  \n" +
                                 "                      print(\"Keeping \" + (substval-qvar)); \n"
-                                : ""
+                                :
+                                    "                  print(\"Keeping disabled\"); \n "
                         )
                         +
+                        "                              substs:=substs + qvar + \"=\" + substval + \",\"; \n" +
                         "                              vars:=lvar(polys);  \n" +
                         "                              ii:=-1;  \n" +
                         "                            };  \n" +
@@ -429,7 +442,7 @@ public class Compute {
                         "  print(\"Set after delinearization: \" + polys); \n" +
                         "  vars:=lvar(polys);  \n" +
                         "  print(\"Delinearization output: \"+size(polys)+\" eqs in \"+size(vars)+\" vars\");  \n" +
-                        "  return(polys);  \n" +
+                        "  return([polys,substs]);  \n" +
                         "}");
     }
 
@@ -552,9 +565,9 @@ public class Compute {
         String linCode = "[[" + ggInit + "],[" + ilsDef() + "],[" + ilDef() + "],[" + dlDef(false) + "],[" + rmwDef() +
                 "],[" + rdDef() + "],";
         if (lhs.equals("w1") && rhs.equals("w2")) {
-            linCode += "removeDivisions(removeW12(delinearize([" + polys2 + "],[" + posvariables + ",w1,w2]),m,w1,w2))][6]";
+            linCode += "removeDivisions(removeW12(delinearize([" + polys2 + "],[" + posvariables + ",w1,w2])[0],m,w1,w2))][6]";
         } else {
-            linCode += "removeDivisions(delinearize([" + polys2 + "],[" + posvariables + "," + lhs + "," + rhs + "]))][6]";
+            linCode += "removeDivisions(delinearize([" + polys2 + "],[" + posvariables + "," + lhs + "," + rhs + "])[0])][6]";
         }
         appendResponse("LOG: delinearization code=" + linCode, Log.VERBOSE);
         polys2 = GiacCAS.execute(linCode);
@@ -783,7 +796,7 @@ public class Compute {
         ineq2 = removeHeadTail(ineq2, 1);
 
         appendResponse("LOG: after substitution, polys=" + polys2+ ", ineqs=" + ineqs2 + ", ineq=" + ineq2, Log.VERBOSE);
-        String linCode = "[[" + ggInit + "],[" + ilsDef() + "],[" + ilDef() + "],[" + dlDef(true) + "],[" + rdDef() + "],";
+        String linCode = "[[" + ggInit + "],[" + ilsDef() + "],[" + ilDef() + "],[" + dlDef(false) + "],[" + rdDef() + "],";
 
         // Collect variables from inequalities.
 
@@ -807,17 +820,28 @@ public class Compute {
 
         // End collecting variables.
 
-        linCode += "removeDivisions(delinearize([" + polys2 + "],[" + posvariables + "]))][5]";
+        // linCode += "removeDivisions(delinearize([" + polys2 + "],[" + posvariables + "]))][5]";
+        // linCode += "removeDivisions(delinearize([" + polys2 + "],[" + posvariables + ineqVars + "])[0])][5]";
+        linCode += "[dl:=delinearize([" + polys2 + "],[" + posvariables + ineqVars + "])],removeDivisions(dl[0]),dl[1]][6..7]";
+
+        // linCode += "removeDivisions([" + polys2 + "],[" + posvariables + "])][5]";
         appendResponse("LOG: delinearization code=" + linCode, Log.VERBOSE);
-        polys2 = GiacCAS.execute(linCode);
-        if (polys2.equals("0")) {
+        String polys_substs = GiacCAS.execute(linCode);
+        if (polys_substs.equals("0")) {
             appendResponse("ERROR: Giac returned 0", Log.VERBOSE);
             appendResponse("GIAC ERROR", Log.INFO);
             return response;
         }
-        appendResponse("LOG: after delinearization, polys=" + polys2, Log.VERBOSE);
+        appendResponse("LOG: after delinearization, {polys,substs}=" + polys_substs, Log.VERBOSE);
         appendResponse("LOG: before removing unnecessary poly variables, vars=" + vars, Log.VERBOSE);
-        polys2 = removeHeadTail(polys2, 1); // removing { and } in Mathematica (or [ and ] in Giac)
+        // {{-v11^2+2*v11*v9-v9^2+v15^2-1,v16^2-1,-v5+1,-v6+1,v7,v8-1,-v12+1,v10},"v5=1,v6=1,v7=0,v8=1,v12=1,v10=0,"}
+        polys_substs = removeHeadTail(polys_substs, 1); // removing { and } in Mathematica (or [ and ] in Giac)
+        // {-v11^2+2*v11*v9-v9^2+v15^2-1,v16^2-1,-v5+1,-v6+1,v7,v8-1,-v12+1,v10},"v5=1,v6=1,v7=0,v8=1,v12=1,v10=0,"
+        int split = polys_substs.indexOf("}");
+        polys2 = polys_substs.substring(1, split);
+        appendResponse("LOG: polys after split=" + polys2, Log.VERBOSE);
+        String substs = polys_substs.substring(split + 3, polys_substs.length() - 2);
+        appendResponse("LOG: substs after split=" + substs, Log.VERBOSE);
         String minimVarsCode = "lvar([" + polys2 + "])"; // remove unnecessary variables
         vars = GiacCAS.execute(minimVarsCode);
         appendResponse("LOG: after removing unnecessary poly variables, vars=" + vars, Log.VERBOSE);
@@ -837,13 +861,31 @@ public class Compute {
 
         String[] polys2Array = polys2.split(",");
 
+        if (!subst.equals("")) {
+            String[] substsArray = substs.split(",");
+            for (String s : substsArray) {
+                appendIneqs(s, cas, tool);
+                String[] substitution = s.split("=");
+                vars += "," + substitution[0];
+            }
+        }
+
         // Currently only Tarski is implemented, TODO: create implementation for all other systems
 
         if (cas == Cas.TARSKI) {
 
             for (String s : polys2Array) appendIneqs(s.replaceAll("\\*", " ") + "=0", cas, tool);
             if (!ineqs2.equals("")) {
-                for (String s : ineqs2Array) appendIneqs(s.replaceAll("\\*", " "), cas, tool);
+                for (String s : ineqs2Array) {
+                    if (!subst.equals("")) {
+                        s = GiacCAS.execute("subst([" + s + "],[" + substs + "])");
+                    }
+                    s = s.replaceAll("\\*", " ");
+                    appendIneqs(s, cas, tool);
+                }
+            }
+            if (!subst.equals("")) {
+                ineq = GiacCAS.execute("subst([" + ineq + "],[" + substs + "])");
             }
             appendIneqs("~(" + ineq + ")", cas, tool);
 
