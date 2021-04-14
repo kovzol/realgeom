@@ -754,6 +754,10 @@ public class Compute {
                                                 String triangles, String vars, String posvariables,
                                                 Cas cas, Tool tool, Subst subst, Log log,
                                                 int timelimit, String qepcadN, String qepcadL) {
+
+        // Currently only Tarski is implemented, TODO: create implementation for all other systems
+        if (cas != Cas.TARSKI) return null;
+
         String code;
         formulas = "";
         response = "";
@@ -877,8 +881,6 @@ public class Compute {
                 vars += "," + substitution[0];
             }
         }
-
-        // Currently only Tarski is implemented, TODO: create implementation for all other systems
 
         for (String s : polys2Array) appendIneqs(s.replaceAll("\\*", " ") + "=0", cas, tool);
         if (!ineqs2.equals("")) {
