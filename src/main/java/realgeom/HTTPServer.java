@@ -252,6 +252,7 @@ public class HTTPServer {
             int timelimit = defaultTimelimit;
             String qepcadN = defaultQepcadN;
             String qepcadL = defaultQepcadL;
+            int maxfixcoords = 4;
 
             Cas cas = null;
 
@@ -308,6 +309,9 @@ public class HTTPServer {
                     log = Log.SILENT;
                 }
             }
+            if (parms.containsKey("maxfixcoords")) {
+                maxfixcoords = Integer.parseInt(parms.get("maxfixcoords"));
+            }
             if (parms.containsKey("lhs")) {
                 lhs = parms.get("lhs");
             }
@@ -361,7 +365,7 @@ public class HTTPServer {
                         tool, subst, log, timelimit, qepcadN, qepcadL), false);
             }
             if (mode == Mode.PROVE) {
-                appendResponse(Compute.euclideanSolverProve(ineq, ineqs, polys, triangles, vars, posvariables, cas,
+                appendResponse(Compute.euclideanSolverProve(maxfixcoords, ineq, ineqs, polys, triangles, vars, posvariables, cas,
                         tool, subst, log, timelimit, qepcadN, qepcadL), false);
             }
             if (mode == Mode.CHECK) {

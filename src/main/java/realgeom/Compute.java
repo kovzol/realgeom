@@ -10,6 +10,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.TreeSet;
 
 public class Compute {
 
@@ -749,7 +750,7 @@ public class Compute {
 
     /* Prove an inequality with coordinates. */
     // Consider unifying this with euclideanSoverExplore.
-    public static String euclideanSolverProve(String ineq, String ineqs, String polys,
+    public static String euclideanSolverProve(int maxfixcoords, String ineq, String ineqs, String polys,
                                                 String triangles, String vars, String posvariables,
                                                 Cas cas, Tool tool, Subst subst, Log log,
                                                 int timelimit, String qepcadN, String qepcadL) {
@@ -772,7 +773,8 @@ public class Compute {
 
         String[] varsArray = vars.split(",");
         StringBuilder varsubst = new StringBuilder();
-        for (int i = 0; i < Math.min(varsArray.length, 4); ++i) {
+        appendResponse("LOG: maxfixcoords=" + maxfixcoords, Log.VERBOSE);
+        for (int i = 0; i < Math.min(varsArray.length, maxfixcoords); ++i) {
             int value = 0;
             if (i == 2)
                 value = 1;
@@ -840,7 +842,10 @@ public class Compute {
         int split = polys_substs.indexOf("}");
         polys2 = polys_substs.substring(1, split);
         appendResponse("LOG: polys after split=" + polys2, Log.VERBOSE);
-        String substs = polys_substs.substring(split + 3, polys_substs.length() - 2);
+        String substs = polys_substs.substring(split + 3, polys_substs.length() - 1);
+        if (!substs.equals("")) {
+            substs = substs.substring(0, substs.length() - 1); // remove last , if exists
+        }
         appendResponse("LOG: substs after split=" + substs, Log.VERBOSE);
         String minimVarsCode = "lvar([" + polys2 + "])"; // remove unnecessary variables
         vars = GiacCAS.execute(minimVarsCode);
@@ -861,7 +866,7 @@ public class Compute {
 
         String[] polys2Array = polys2.split(",");
 
-        if (!subst.equals("")) {
+        if (!substs.equals("")) {
             String[] substsArray = substs.split(",");
             for (String s : substsArray) {
                 appendIneqs(s, cas, tool);
@@ -877,17 +882,32 @@ public class Compute {
             for (String s : polys2Array) appendIneqs(s.replaceAll("\\*", " ") + "=0", cas, tool);
             if (!ineqs2.equals("")) {
                 for (String s : ineqs2Array) {
-                    if (!subst.equals("")) {
+                    if (!substs.equals("")) {
                         s = GiacCAS.execute("subst([" + s + "],[" + substs + "])");
                     }
                     s = s.replaceAll("\\*", " ");
                     appendIneqs(s, cas, tool);
                 }
             }
-            if (!subst.equals("")) {
+            if (!substs.equals("")) {
                 ineq = GiacCAS.execute("subst([" + ineq + "],[" + substs + "])");
             }
             appendIneqs("~(" + ineq + ")", cas, tool);
+
+            // Remove duplicated vars.
+            // Even this can be improved by rechecking all polys/ineqs/ineq:
+            TreeSet<String> varsSet = new TreeSet<>();
+            varsArray = vars.split(",");
+            for (String v : varsArray) {
+                varsSet.add(v);
+            }
+            vars = "";
+            for (String v : varsSet) {
+                vars += v + ",";
+            }
+            if (!vars.equals("")) {
+                vars = vars.substring(0, vars.length() - 1); // remove last , if exists
+            }
 
             String result;
 
