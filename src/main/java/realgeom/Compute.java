@@ -769,8 +769,6 @@ public class Compute {
             }
         }
 
-        appendResponse("LOG: ineqs=" + formulas, Log.VERBOSE);
-
         String[] varsArray = vars.split(",");
         StringBuilder varsubst = new StringBuilder();
         appendResponse("LOG: maxfixcoords=" + maxfixcoords, Log.VERBOSE);
@@ -813,10 +811,15 @@ public class Compute {
             for (String ie : ineqs2Array) {
                 String ieRewriteEq = ie.replace(">", "=").replace("<", "=")
                         .replace("==", "=");
-                String ieVarsCode = "lvar(lhs(" + ieRewriteEq + "),rhs(" + ieRewriteEq + "))";
-                String ieVars = GiacCAS.execute(ieVarsCode);
-                ieVars = removeHeadTail(ieVars, 1);
-                ineqVars += "," + ieVars;
+                if (ieRewriteEq.contains("or") || ieRewriteEq.contains("and")) {
+                    appendResponse("LOG: unimplemented: variables cannot be read off in a Boolean expression, doing nothing and hoping for the best",
+                            Log.VERBOSE);
+                } else {
+                    String ieVarsCode = "lvar(lhs(" + ieRewriteEq + "),rhs(" + ieRewriteEq + "))";
+                    String ieVars = GiacCAS.execute(ieVarsCode);
+                    ieVars = removeHeadTail(ieVars, 1);
+                    ineqVars += "," + ieVars;
+                }
             }
         }
 
@@ -877,80 +880,80 @@ public class Compute {
 
         // Currently only Tarski is implemented, TODO: create implementation for all other systems
 
-        if (cas == Cas.TARSKI) {
-
-            for (String s : polys2Array) appendIneqs(s.replaceAll("\\*", " ") + "=0", cas, tool);
-            if (!ineqs2.equals("")) {
-                for (String s : ineqs2Array) {
-                    if (!substs.equals("")) {
-                        s = GiacCAS.execute("subst([" + s + "],[" + substs + "])");
-                    }
-                    s = s.replaceAll("\\*", " ");
-                    appendIneqs(s, cas, tool);
+        for (String s : polys2Array) appendIneqs(s.replaceAll("\\*", " ") + "=0", cas, tool);
+        if (!ineqs2.equals("")) {
+            for (String s : ineqs2Array) {
+                if (!substs.equals("")) {
+                    s = GiacCAS.execute("subst([" + s + "],[" + substs + "])");
+                    s = removeHeadTail(s, 1);
                 }
+                s = s.replaceAll("\\*", " ").replace("and", "/\\").replace("or", "\\/");;
+                appendIneqs(s, cas, tool);
             }
-            if (!substs.equals("")) {
-                ineq = GiacCAS.execute("subst([" + ineq + "],[" + substs + "])");
-            }
-            appendIneqs("~(" + ineq + ")", cas, tool);
-
-            // Remove duplicated vars.
-            // Even this can be improved by rechecking all polys/ineqs/ineq:
-            TreeSet<String> varsSet = new TreeSet<>();
-            varsArray = vars.split(",");
-            for (String v : varsArray) {
-                varsSet.add(v);
-            }
-            vars = "";
-            for (String v : varsSet) {
-                vars += v + ",";
-            }
-            if (!vars.equals("")) {
-                vars = vars.substring(0, vars.length() - 1); // remove last , if exists
-            }
-
-            String result;
-
-            code = "(def process " +
-                    "(lambda (F) " +
-                    "(def L (getargs F)) " +
-                    // V is the quantified variable set (all but variable m):
-                    "(def V (get L 0 0 1)) " +
-                    // B is a simplified form of "G" the quantifier free part (or UNSAT):
-                    "(def B (bbwb (get L 1))) " +
-                    "(if (equal? (get B 0) 'UNSAT) " +
-                    // This is the case that bbwb determined G UNSAT without really doing any algebra:
-                    "[false] " +
-                    // This is the case when bbwb did not determine UNSAT:
-                    "((lambda () " +
-                    "(def G (qfr (t-ex V (get B 1)))) " +
-                    "(if (equal? (t-type G) 6) " +
-                    "(qepcad-qe G) " +
-                    "(if (equal? (t-type G) 5) " +
-                    "(qepcad-qe (bin-reduce t-or (map (lambda (H) (qepcad-qe (exclose H '(m)))) (getargs G)))) " +
-                    // Simplifies result in case qfr eliminates all quantified variables:
-                    "(qepcad-qe G)" + "" +
-                    "))))))) " +
-                    "(process [ ex " + vars + " [" + formulas + "]])";
-
-            code = "(qepcad-qe (qfr [ex " + vars + " [" + formulas + "]]))";
-            code = "(qepcad-qe [ex " + vars + " [" + formulas + "]])";
-            // FIXME: Discuss which one of the above codes should be used.
-
-            appendResponse("LOG: code=" + code, Log.VERBOSE);
-
-            if (Start.tarskiPipe) {
-                result = ExternalCAS.executeTarskiPipe(code, 1, timelimit);
-            } else {
-                result = ExternalCAS.executeTarski(code, timelimit, qepcadN, qepcadL);
-            }
-            if (result.contains("\n")) {
-                String [] resultlines = result.split("\n");
-                result = resultlines[resultlines.length - 2];
-            }
-            appendResponse("LOG: result=" + result, Log.VERBOSE);
-            appendResponse(result, Log.INFO);
         }
+        if (!substs.equals("")) {
+            ineq = GiacCAS.execute("subst([" + ineq + "],[" + substs + "])");
+            ineq = removeHeadTail(ineq, 1);
+            ineq = ineq.replaceAll("\\*", " ");
+        }
+        appendIneqs("~(" + ineq + ")", cas, tool);
+
+        // Remove duplicated vars.
+        // Even this can be improved by rechecking all polys/ineqs/ineq:
+        TreeSet<String> varsSet = new TreeSet<>();
+        varsArray = vars.split(",");
+        for (String v : varsArray) {
+            varsSet.add(v);
+        }
+        vars = "";
+        for (String v : varsSet) {
+            vars += v + ",";
+        }
+        if (!vars.equals("")) {
+            vars = vars.substring(0, vars.length() - 1); // remove last , if exists
+        }
+
+        String result;
+
+        code = "(def process " +
+                "(lambda (F) " +
+                "(def L (getargs F)) " +
+                // V is the quantified variable set (all but variable m):
+                "(def V (get L 0 0 1)) " +
+                // B is a simplified form of "G" the quantifier free part (or UNSAT):
+                "(def B (bbwb (get L 1))) " +
+                "(if (equal? (get B 0) 'UNSAT) " +
+                // This is the case that bbwb determined G UNSAT without really doing any algebra:
+                "[false] " +
+                // This is the case when bbwb did not determine UNSAT:
+                "((lambda () " +
+                "(def G (qfr (t-ex V (get B 1)))) " +
+                "(if (equal? (t-type G) 6) " +
+                "(qepcad-qe G) " +
+                "(if (equal? (t-type G) 5) " +
+                "(qepcad-qe (bin-reduce t-or (map (lambda (H) (qepcad-qe (exclose H '(m)))) (getargs G)))) " +
+                // Simplifies result in case qfr eliminates all quantified variables:
+                "(qepcad-qe G)" + "" +
+                "))))))) " +
+                "(process [ ex " + vars + " [" + formulas + "]])";
+
+        code = "(qepcad-qe (qfr [ex " + vars + " [" + formulas + "]]))";
+        code = "(qepcad-qe [ex " + vars + " [" + formulas + "]])";
+        // FIXME: Discuss which one of the above codes should be used.
+
+        appendResponse("LOG: code=" + code, Log.VERBOSE);
+
+        if (Start.tarskiPipe) {
+            result = ExternalCAS.executeTarskiPipe(code, 1, timelimit);
+        } else {
+            result = ExternalCAS.executeTarski(code, timelimit, qepcadN, qepcadL);
+        }
+        if (result.contains("\n")) {
+            String [] resultlines = result.split("\n");
+            result = resultlines[resultlines.length - 2];
+        }
+        appendResponse("LOG: result=" + result, Log.VERBOSE);
+        appendResponse(result, Log.INFO);
 
         return response;
     }
