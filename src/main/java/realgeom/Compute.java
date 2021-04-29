@@ -920,7 +920,7 @@ public class Compute {
         code = "(def process " +
                 "(lambda (F) " +
                 "(def L (getargs F)) " +
-                // V is the quantified variable set (all but variable m):
+                // V is the quantified variable set (all variables):
                 "(def V (get L 0 0 1)) " +
                 // B is a simplified form of "G" the quantifier free part (or UNSAT):
                 "(def B (bbwb (get L 1))) " +
@@ -939,14 +939,14 @@ public class Compute {
                 "))))))) " +
                 "(process [ ex " + vars + " [" + formulas + "]])";
 
-        code = "(qepcad-qe (qfr [ex " + vars + " [" + formulas + "]]))";
+        // code = "(qepcad-qe (qfr [ex " + vars + " [" + formulas + "]]))";
         code = "(qepcad-qe [ex " + vars + " [" + formulas + "]])";
         // FIXME: Discuss which one of the above codes should be used.
 
         appendResponse("LOG: code=" + code, Log.VERBOSE);
 
         if (Start.tarskiPipe) {
-            result = ExternalCAS.executeTarskiPipe(code, 1, timelimit);
+            result = ExternalCAS.executeTarskiPipe(code, 2, timelimit);
         } else {
             result = ExternalCAS.executeTarski(code, timelimit, qepcadN, qepcadL);
         }
