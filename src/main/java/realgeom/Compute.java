@@ -946,7 +946,7 @@ public class Compute {
         appendResponse("LOG: code=" + code, Log.VERBOSE);
 
         if (Start.tarskiPipe) {
-            result = ExternalCAS.executeTarskiPipe(code, 2, timelimit);
+            result = ExternalCAS.executeTarskiPipe(code, 1, timelimit);
         } else {
             result = ExternalCAS.executeTarski(code, timelimit, qepcadN, qepcadL);
         }
