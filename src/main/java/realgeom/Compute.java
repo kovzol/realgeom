@@ -728,6 +728,10 @@ public class Compute {
                 return response;
             }
             appendResponse("LOG: result=" + result, Log.VERBOSE);
+            if (result.contains("error")) {
+                appendResponse("TARSKI ERROR", Log.INFO);
+                return response;
+            }
             if (result.equals("TRUE")) {
                 // No usable answer is received (m is arbitrary)
                 appendResponse("m>0", Log.INFO);
