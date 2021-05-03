@@ -728,7 +728,7 @@ public class Compute {
                 return response;
             }
             appendResponse("LOG: result=" + result, Log.VERBOSE);
-            if (result.contains("error")) {
+            if (result.contains("error") || result.contains("failure")) { // TODO: do it properly
                 appendResponse("TARSKI ERROR", Log.INFO);
                 return response;
             }
