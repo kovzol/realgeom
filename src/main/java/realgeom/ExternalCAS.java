@@ -252,7 +252,7 @@ public class ExternalCAS {
         cmd[2] = tarskiCmd;
         try {
             System.out.println("Starting Tarski connection...");
-            // Inherit all environment variables (PATH and qe are mandatory):
+            // Inherit all environment variables (PATH is mandatory):
             Map<String, String> env = System.getenv();
             ArrayList<String> envpal = new ArrayList<>();
             for (String envName : env.keySet()) {
