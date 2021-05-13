@@ -325,13 +325,15 @@ public class HTTPServer {
             // The thesis:
             if (parms.containsKey("ineq")) {
                 ineq = parms.get("ineq");
-                ineq = ineq.replace("≥", ">=").replace("≤", "<=");
+                ineq = ineq.replace("≥", ">=").replace("≤", "<=")
+                        .replace("E", "=");
             }
             // Additional inequalities or equations:
             if (parms.containsKey("ineqs")) {
                 ineqs = parms.get("ineqs");
                 ineqs = ineqs.replace("≥", ">=").replace("≤", "<=")
                         .replace("E", "=");
+                // TODO: Unify this with the ineq replacement above.
             }
             if (parms.containsKey("posvariables")) {
                 posvariables = parms.get("posvariables");
