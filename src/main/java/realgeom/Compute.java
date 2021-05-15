@@ -644,7 +644,7 @@ public class Compute {
 
         if (cas == Cas.QEPCAD) {
             for (String s : polys2Array) appendIneqs(s.replaceAll("\\*", " ") + "=0", cas, tool);
-            for (String s : ineqs2Array) appendIneqs(s, cas, tool);
+            for (String s : ineqs2Array) appendIneqs(s.replaceAll("\\*", " "), cas, tool);
             StringBuilder exists = new StringBuilder();
             vars = "(m," + vars + ")"; // putting m back
 
