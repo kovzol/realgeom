@@ -840,7 +840,12 @@ public class Compute {
         ineq2 = removeHeadTail(ineq2, 1);
 
         appendResponse("LOG: after substitution, polys=" + polys2+ ", ineqs=" + ineqs2 + ", ineq=" + ineq2, Log.VERBOSE);
-        String linCode = "[[" + ggInit + "],[" + ilsDef() + "],[" + ilDef() + "],[" + dlDef(false) + "],[" + rdDef() + "],";
+        boolean keep = false;
+        if (cas == Cas.QEPCAD) {
+            keep = true;
+        }
+
+        String linCode = "[[" + ggInit + "],[" + ilsDef() + "],[" + ilDef() + "],[" + dlDef(keep) + "],[" + rdDef() + "],";
 
         // Collect variables from inequalities.
 
