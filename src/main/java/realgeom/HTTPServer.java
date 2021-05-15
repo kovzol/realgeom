@@ -364,7 +364,7 @@ public class HTTPServer {
                         ",timelimit=" + timelimit + ",qepcadn=" + qepcadN + ",qepcadl=" + qepcadL, true);
             }
             if (mode == Mode.EXPLORE) {
-                appendResponse(Compute.euclideanSolverExplore(lhs, rhs, polys, triangles, vars, posvariables, cas,
+                appendResponse(Compute.euclideanSolverExplore(lhs, rhs, ineqs, polys, triangles, vars, posvariables, cas,
                         tool, subst, log, timelimit, qepcadN, qepcadL), false);
             }
             if (mode == Mode.PROVE) {

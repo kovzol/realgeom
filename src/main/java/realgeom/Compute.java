@@ -517,7 +517,7 @@ public class Compute {
      * http://your.domain.or.ip.address:8765/euclideansolver?lhs=a%2bb-c&rhs=g&polys=(b1-c1)%5e2%2b(b2-c2)%5e2-a%5e2,(a1-c1)%5e2%2b(a2-c2)%5e2-b%5e2,(a1-b1)%5e2%2b(a2-b2)%5e2-c%5e2,(g1-c1)%5e2%2b(g2-c2)%5e2-g%5e2,(a1%2bb1)-2g1,(a2%2bb2)-2g2&vars=a1,a2,b1,b2,c1,c2,g1,g2,a,b,c,g&posvariables=a,b,c,g&triangles=a,b,c&log=verbose&mode=explore
      */
 
-    public static String euclideanSolverExplore(String lhs, String rhs, String polys,
+    public static String euclideanSolverExplore(String lhs, String rhs, String ineqs, String polys,
                                                 String triangles, String vars, String posvariables,
                                                 Cas cas, Tool tool, Subst subst, Log log,
                                                 int timelimit, String qepcadN, String qepcadL) {
@@ -555,7 +555,32 @@ public class Compute {
                 varsubst.append(",");
             varsubst.append(varsArray[i]).append("=").append(value);
         } // in varsubst we have something like a1=0, a2=0, b1=1, b2=0
-        appendResponse("LOG: before substitution, polys=" + polys, Log.VERBOSE);
+
+        String ineqs2 = "";
+        if (!ineqs.equals("")) {
+            ineqs2 = GiacCAS.execute("subst([" + ineqs + "],[" + varsubst + "])");
+            ineqs2 = removeHeadTail(ineqs2, 1);
+        }
+
+        String ineqVars = "";
+        String[] ineqs2Array = ineqs2.split(",");
+        if (!ineqs2.equals("")) {
+            for (String ie : ineqs2Array) {
+                String ieRewriteEq = ie.replace(">", "=").replace("<", "=")
+                        .replace("==", "=");
+                if (ieRewriteEq.contains("or") || ieRewriteEq.contains("and")) {
+                    appendResponse("LOG: unimplemented: variables cannot be read off in a Boolean expression, doing nothing and hoping for the best",
+                            Log.VERBOSE);
+                } else {
+                    String ieVarsCode = "lvar(lhs(" + ieRewriteEq + "),rhs(" + ieRewriteEq + "))";
+                    String ieVars = GiacCAS.execute(ieVarsCode);
+                    ieVars = removeHeadTail(ieVars, 1);
+                    ineqVars += "," + ieVars;
+                }
+            }
+        }
+
+        appendResponse("LOG: before substitution, polys=" + polys + ", ineqs=" + ineqs2, Log.VERBOSE);
         String polys2 = GiacCAS.execute("subst([" + polys + "],[" + varsubst + "])");
 
         polys2 = removeHeadTail(polys2, 1); // removing { and } in Mathematica (or [ and ] in Giac)
@@ -563,12 +588,12 @@ public class Compute {
         // Add main equation:
         polys2 += "," + eq;
         appendResponse("LOG: before delinearization, polys=" + polys2, Log.VERBOSE);
-        String linCode = "[[" + ggInit + "],[" + ilsDef() + "],[" + ilDef() + "],[" + dlDef(false) + "],[" + rmwDef() +
+        String linCode = "[[" + ggInit + "],[" + ilsDef() + "],[" + ilDef() + "],[" + dlDef(true) + "],[" + rmwDef() +
                 "],[" + rdDef() + "],";
         if (lhs.equals("w1") && rhs.equals("w2")) {
-            linCode += "removeDivisions(removeW12(delinearize([" + polys2 + "],[" + posvariables + ",w1,w2])[0],m,w1,w2))][6]";
+            linCode += "removeDivisions(removeW12(delinearize([" + polys2 + "],[" + posvariables + ineqVars + ",w1,w2])[0],m,w1,w2))][6]";
         } else {
-            linCode += "removeDivisions(delinearize([" + polys2 + "],[" + posvariables + "," + lhs + "," + rhs + "])[0])][6]";
+            linCode += "removeDivisions(delinearize([" + polys2 + "],[" + posvariables + ineqVars + "," + lhs + "," + rhs + "])[0])][6]";
         }
         appendResponse("LOG: delinearization code=" + linCode, Log.VERBOSE);
         polys2 = GiacCAS.execute(linCode);
@@ -596,12 +621,17 @@ public class Compute {
 
         String[] polys2Array = polys2.split(",");
 
+        if (!ineqVars.equals("")) {
+            vars += ineqVars;
+        }
+
         // Currently only Mathematica, QEPCAD and Tarski are implemented, TODO: create implementation for all other systems
 
         if (cas == Cas.MATHEMATICA) {
             // Remove m completely:
             vars = vars.replace("m", "");
             for (String s : polys2Array) appendIneqs(s + "==0", cas, tool);
+            for (String s : ineqs2Array) appendIneqs(s, cas, tool);
             code = "ToRadicals[Reduce[Resolve[Exists[{" + vars + "}," + formulas + "],Reals],Reals],Cubics->False]";
             appendResponse("LOG: code=" + code, Log.VERBOSE);
             String result = ExternalCAS.executeMathematica(code, timelimit);
@@ -610,6 +640,7 @@ public class Compute {
 
         if (cas == Cas.QEPCAD) {
             for (String s : polys2Array) appendIneqs(s.replaceAll("\\*", " ") + "=0", cas, tool);
+            for (String s : ineqs2Array) appendIneqs(s, cas, tool);
             StringBuilder exists = new StringBuilder();
             vars = "(m," + vars + ")"; // putting m back
 
@@ -671,6 +702,7 @@ public class Compute {
             vars = vars.replace("m", "");
 
             for (String s : polys2Array) appendIneqs(s.replaceAll("\\*", " ") + "=0", cas, tool);
+            for (String s : ineqs2Array) appendIneqs(s.replaceAll("\\*", " "), cas, tool);
 
             String result;
             int expectedLines;
