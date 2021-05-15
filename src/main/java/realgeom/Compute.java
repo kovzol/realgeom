@@ -156,6 +156,10 @@ public class Compute {
           giacOutput = giacOutput.replaceAll("list", "");
           giacOutput = removeHeadTail(giacOutput, 1);
           }
+        if (giacOutput.contains("rootof")) {
+            mathcode = "evalf(" + giacOutput + ")";
+            giacOutput = GiacCAS.execute(mathcode) + "..."; // this is just an approximation
+        }
         giacOutput = giacOutput.replaceAll("√", "sqrt");
         return giacOutput;
     }
