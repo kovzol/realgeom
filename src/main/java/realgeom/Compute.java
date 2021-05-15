@@ -840,9 +840,9 @@ public class Compute {
         ineq2 = removeHeadTail(ineq2, 1);
 
         appendResponse("LOG: after substitution, polys=" + polys2+ ", ineqs=" + ineqs2 + ", ineq=" + ineq2, Log.VERBOSE);
-        boolean keep = false;
+        boolean keep = true;
         if (cas == Cas.QEPCAD) {
-            keep = true;
+            keep = false;
         }
 
         String linCode = "[[" + ggInit + "],[" + ilsDef() + "],[" + ilDef() + "],[" + dlDef(keep) + "],[" + rdDef() + "],";
