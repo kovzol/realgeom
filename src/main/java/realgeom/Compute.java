@@ -27,6 +27,12 @@ public class Compute {
             return;
         }
 
+        // Rewrites first:
+
+        if (cas == Cas.QEPCAD || cas == Cas.TARSKI) {
+            ineq = ineq.replaceAll("\\*", " ").replace("and", "/\\").replace("or", "\\/");
+        }
+
         if (cas == Cas.REDLOG) {
             if (!"".equals(formulas)) {
                 formulas += " and ";
@@ -643,8 +649,8 @@ public class Compute {
         }
 
         if (cas == Cas.QEPCAD) {
-            for (String s : polys2Array) appendIneqs(s.replaceAll("\\*", " ") + "=0", cas, tool);
-            for (String s : ineqs2Array) appendIneqs(s.replaceAll("\\*", " "), cas, tool);
+            for (String s : polys2Array) appendIneqs(s+ "=0", cas, tool);
+            for (String s : ineqs2Array) appendIneqs(s, cas, tool);
             StringBuilder exists = new StringBuilder();
             vars = "(m," + vars + ")"; // putting m back
 
@@ -705,8 +711,8 @@ public class Compute {
             // Remove m completely:
             vars = vars.replace("m", "");
 
-            for (String s : polys2Array) appendIneqs(s.replaceAll("\\*", " ") + "=0", cas, tool);
-            for (String s : ineqs2Array) appendIneqs(s.replaceAll("\\*", " "), cas, tool);
+            for (String s : polys2Array) appendIneqs(s + "=0", cas, tool);
+            for (String s : ineqs2Array) appendIneqs(s, cas, tool);
 
             String result;
             int expectedLines;
@@ -927,21 +933,19 @@ public class Compute {
             }
         }
 
-        for (String s : polys2Array) appendIneqs(s.replaceAll("\\*", " ") + "=0", cas, tool);
+        for (String s : polys2Array) appendIneqs(s + "=0", cas, tool);
         if (!ineqs2.equals("")) {
             for (String s : ineqs2Array) {
                 if (!substs.equals("")) {
                     s = GiacCAS.execute("subst([" + s + "],[" + substs + "])");
                     s = removeHeadTail(s, 1);
                 }
-                s = s.replaceAll("\\*", " ").replace("and", "/\\").replace("or", "\\/");;
                 appendIneqs(s, cas, tool);
             }
         }
         if (!substs.equals("")) {
             ineq = GiacCAS.execute("subst([" + ineq + "],[" + substs + "])");
             ineq = removeHeadTail(ineq, 1);
-            ineq = ineq.replaceAll("\\*", " ");
         }
         appendIneqs("~(" + ineq + ")", cas, tool);
 

@@ -475,6 +475,9 @@ public class ExternalCAS {
     }
 
     static String getTarskiOutput(String line) {
+        if (line.endsWith(":err")) {
+            return "";
+        }
         int semicolon = line.indexOf(":");
         if (semicolon > -1) {
             String content = line.substring(0, semicolon);
