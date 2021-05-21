@@ -583,15 +583,10 @@ public class Compute {
                     for (String c : conjunctionsArray) {
                         String ieRewriteEq = c.replace(">", "=").replace("<", "=")
                                 .replace("==", "=").replace("(", ""). replace(")", "");
-                        if (ieRewriteEq.contains("or") || ieRewriteEq.contains("and")) {
-                            appendResponse("LOG: unimplemented: variables cannot be read off in a Boolean expression, doing nothing and hoping for the best",
-                                    Log.VERBOSE);
-                        } else {
-                            String ieVarsCode = "lvar(lhs(" + ieRewriteEq + "),rhs(" + ieRewriteEq + "))";
-                            String ieVars = GiacCAS.execute(ieVarsCode);
-                            ieVars = removeHeadTail(ieVars, 1);
-                            ineqVars += "," + ieVars;
-                        }
+                        String ieVarsCode = "lvar(lhs(" + ieRewriteEq + "),rhs(" + ieRewriteEq + "))";
+                        String ieVars = GiacCAS.execute(ieVarsCode);
+                        ieVars = removeHeadTail(ieVars, 1);
+                        ineqVars += "," + ieVars;
                     }
                 }
             }
@@ -888,16 +883,17 @@ public class Compute {
         String[] ineqs2Array = ineqs2.split(",");
         if (!ineqs2.equals("")) {
             for (String ie : ineqs2Array) {
-                String ieRewriteEq = ie.replace(">", "=").replace("<", "=")
-                        .replace("==", "=");
-                if (ieRewriteEq.contains("or") || ieRewriteEq.contains("and")) {
-                    appendResponse("LOG: unimplemented: variables cannot be read off in a Boolean expression, doing nothing and hoping for the best",
-                            Log.VERBOSE);
-                } else {
-                    String ieVarsCode = "lvar(lhs(" + ieRewriteEq + "),rhs(" + ieRewriteEq + "))";
-                    String ieVars = GiacCAS.execute(ieVarsCode);
-                    ieVars = removeHeadTail(ieVars, 1);
-                    ineqVars += "," + ieVars;
+                String[] disjunctionsArray = ie.split(" or ");
+                for (String d : disjunctionsArray) {
+                    String[] conjunctionsArray = d.split(" and ");
+                    for (String c : conjunctionsArray) {
+                        String ieRewriteEq = c.replace(">", "=").replace("<", "=")
+                                .replace("==", "=").replace("(", ""). replace(")", "");
+                        String ieVarsCode = "lvar(lhs(" + ieRewriteEq + "),rhs(" + ieRewriteEq + "))";
+                        String ieVars = GiacCAS.execute(ieVarsCode);
+                        ieVars = removeHeadTail(ieVars, 1);
+                        ineqVars += "," + ieVars;
+                    }
                 }
             }
         }
