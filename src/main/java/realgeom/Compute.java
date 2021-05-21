@@ -61,6 +61,7 @@ public class Compute {
             }
         }
         if (cas == Cas.MATHEMATICA) {
+            ineq = ineq.replace("and", "\\[And]").replace("or", "\\[Or]");
             if (!"".equals(formulas)) {
                 formulas += " \\[And] ";
             }
@@ -576,16 +577,22 @@ public class Compute {
         String[] ineqs2Array = ineqs2.split(",");
         if (!ineqs2.equals("")) {
             for (String ie : ineqs2Array) {
-                String ieRewriteEq = ie.replace(">", "=").replace("<", "=")
-                        .replace("==", "=");
-                if (ieRewriteEq.contains("or") || ieRewriteEq.contains("and")) {
-                    appendResponse("LOG: unimplemented: variables cannot be read off in a Boolean expression, doing nothing and hoping for the best",
-                            Log.VERBOSE);
-                } else {
-                    String ieVarsCode = "lvar(lhs(" + ieRewriteEq + "),rhs(" + ieRewriteEq + "))";
-                    String ieVars = GiacCAS.execute(ieVarsCode);
-                    ieVars = removeHeadTail(ieVars, 1);
-                    ineqVars += "," + ieVars;
+                String[] disjunctionsArray = ie.split(" or ");
+                for (String d : disjunctionsArray) {
+                    String[] conjunctionsArray = d.split(" and ");
+                    for (String c : conjunctionsArray) {
+                        String ieRewriteEq = c.replace(">", "=").replace("<", "=")
+                                .replace("==", "=").replace("(", ""). replace(")", "");
+                        if (ieRewriteEq.contains("or") || ieRewriteEq.contains("and")) {
+                            appendResponse("LOG: unimplemented: variables cannot be read off in a Boolean expression, doing nothing and hoping for the best",
+                                    Log.VERBOSE);
+                        } else {
+                            String ieVarsCode = "lvar(lhs(" + ieRewriteEq + "),rhs(" + ieRewriteEq + "))";
+                            String ieVars = GiacCAS.execute(ieVarsCode);
+                            ieVars = removeHeadTail(ieVars, 1);
+                            ineqVars += "," + ieVars;
+                        }
+                    }
                 }
             }
         }
@@ -634,6 +641,23 @@ public class Compute {
         if (!ineqVars.equals("")) {
             vars += ineqVars;
         }
+
+        // Remove duplicated vars.
+        // Even this can be improved by rechecking all polys/ineqs/ineq:
+        TreeSet<String> varsSet = new TreeSet<>();
+        varsArray = vars.split(",");
+        for (String v : varsArray) {
+            varsSet.add(v);
+        }
+        vars = "";
+        for (String v : varsSet) {
+            vars += v + ",";
+        }
+        if (!vars.equals("")) {
+            vars = vars.substring(0, vars.length() - 1); // remove last , if exists
+        }
+
+        // FINAL COMPUTATION.
 
         // Currently only Mathematica, QEPCAD and Tarski are implemented, TODO: create implementation for all other systems
 
