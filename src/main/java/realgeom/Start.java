@@ -27,6 +27,7 @@ public class Start {
     public static boolean geogebra = false;
     public static boolean qepcadPipe = false;
     public static boolean tarskiPipe = false;
+    public static boolean wolframscript = false;
     public static String nl = "\n";
 
     static {
@@ -142,6 +143,17 @@ public class Start {
             });
 
             System.out.println("Testing Mathematica connection via MathLink...");
+            // input = "Print[Quiet[Reduce[0 < m-1,m,Reals] // InputForm]]";
+            input = "Reduce[0 < m-1,m,Reals]";
+            test = ExternalCAS.executeMathematica(input, timeLimit);
+            if (test.equals("m > 1")) {
+                supported = "mathematica";
+            }
+
+        }
+        if (supported.equals("")) {
+            System.out.println("Testing Mathematica connection via wolframscript...");
+            wolframscript = true;
             // input = "Print[Quiet[Reduce[0 < m-1,m,Reals] // InputForm]]";
             input = "Reduce[0 < m-1,m,Reals]";
             test = ExternalCAS.executeMathematica(input, timeLimit);

@@ -103,6 +103,9 @@ public class ExternalCAS {
         if (Start.isPiUnix) {
             mathematicaCommand = "wolfram";
             }
+        if (Start.wolframscript) {
+            mathematicaCommand = "wolframscript";
+        }
         String output = ExternalCAS.execute("echo \"" + command + "\" | " +
             mathematicaCommand + " | tail -n +4 | grep -v \"In\\[2\\]\"", timeLimit);
         int ltrim = "In[1]:= ".length();
@@ -112,13 +115,18 @@ public class ExternalCAS {
         }
         output = output.replace("\n>", "");
         output = output.replace("\n", "");
-        // output = output.replace("In[1]:= ", "");
+        if (Start.wolframscript) {
+            output = output.replace("Out[1]= ", "");
+        }
         return output.substring(ltrim);
      }
 
     static String executeMathematica (String command, int timeLimit) {
         if (Start.dryRun)
             return "";
+        if (Start.wolframscript) {
+            return executeMathematica_obsolete (command, timeLimit);
+        }
         command = "TimeConstrained[" + command + "," + timeLimit + "]";
         String ret = ml.evaluateToInputForm(command, 0);
         // System.out.println("executeMathematica: " + command + " -> " + ret);
