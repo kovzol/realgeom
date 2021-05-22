@@ -581,6 +581,7 @@ public class Compute {
                 for (String d : disjunctionsArray) {
                     String[] conjunctionsArray = d.split(" and ");
                     for (String c : conjunctionsArray) {
+                        // This is very hacky, and in some cases, maybe incorrect...
                         String ieRewriteEq = c.replace(">", "=").replace("<", "=")
                                 .replace("==", "=").replace("(", ""). replace(")", "");
                         String ieVarsCode = "lvar(lhs(" + ieRewriteEq + "),rhs(" + ieRewriteEq + "))";
@@ -673,7 +674,7 @@ public class Compute {
             StringBuilder exists = new StringBuilder();
             vars = "(m," + vars + ")"; // putting m back
 
-            for (String item : varsArray) {
+            for (String item : varsSet) {
                 exists.append("(E").append(item).append(")");
                 }
 
@@ -887,6 +888,7 @@ public class Compute {
                 for (String d : disjunctionsArray) {
                     String[] conjunctionsArray = d.split(" and ");
                     for (String c : conjunctionsArray) {
+                        // This is very hacky, and in some cases, maybe incorrect...
                         String ieRewriteEq = c.replace(">", "=").replace("<", "=")
                                 .replace("==", "=").replace("(", ""). replace(")", "");
                         String ieVarsCode = "lvar(lhs(" + ieRewriteEq + "),rhs(" + ieRewriteEq + "))";
