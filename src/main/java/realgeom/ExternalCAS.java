@@ -106,18 +106,23 @@ public class ExternalCAS {
         if (Start.wolframscript) {
             mathematicaCommand = "wolframscript";
         }
-        String output = ExternalCAS.execute("echo \"" + command + "\" | " +
-            mathematicaCommand + " | tail -n +4 | grep -v \"In\\[2\\]\"", timeLimit);
-        int ltrim = "In[1]:= ".length();
+
+        String output;
+        int ltrim = 0;
+        if (Start.wolframscript) {
+            output = ExternalCAS.execute(mathematicaCommand + " -code \"" + command + "\"", timeLimit)
+                .replace("\n", "").replace("\r", "");
+            return output;
+        }
+        output = ExternalCAS.execute("echo \"" + command + "\" | " +
+                mathematicaCommand + " | tail -n +4 | grep -v \"In\\[2\\]\"", timeLimit);
+        ltrim = "In[1]:= ".length();
         if (output.length() < ltrim) {
             System.err.println("Error executing Mathematica command");
             return "";
         }
         output = output.replace("\n>", "");
         output = output.replace("\n", "");
-        if (Start.wolframscript) {
-            output = output.replace("Out[1]= ", "");
-        }
         return output.substring(ltrim);
      }
 
