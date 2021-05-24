@@ -109,9 +109,10 @@ public class ExternalCAS {
 
         String output;
         int ltrim = 0;
+        command = "TimeConstrained[" + command + "," + timeLimit + "]";
         if (Start.wolframscript) {
-            output = ExternalCAS.execute(mathematicaCommand + " -code \"" + command + "\"", timeLimit)
-                .replace("\n", "").replace("\r", "");
+            output = ExternalCAS.execute(mathematicaCommand + " -code \""
+                    + command + "\"", timeLimit).replace("\n", "").replace("\r", "");
             return output;
         }
         output = ExternalCAS.execute("echo \"" + command + "\" | " +
