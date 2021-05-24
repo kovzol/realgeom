@@ -767,6 +767,10 @@ public class Compute {
                         "))))))) " +
                         "(process [ ex " + vars + " [" + formulas + "]])";
                 expectedLines = 2;
+
+                code = epcDef() + "(epc [ ex " + vars + " [" + formulas + "]])";;
+                expectedLines = 4;
+
             } else {
                 // Fallback in case m is not present:
                 code = "(qepcad-qe (qfr [" + formulas + "]))";
@@ -1036,6 +1040,28 @@ public class Compute {
             return input.substring(length, input.length() - length);
         }
         return input;
+    }
+
+    private static String epcDef() {
+        return // "; (process F) - assumes F is prenex conjunction, variable m is free, all others existentially quantified\n" +
+               // "; returns quantifier-free equivalent to F\n" +
+                "(def process (lambda (F) (def L (getargs F)) (def V (get L 0 0 1)) (def B (bbwb (get L 1))) (if (equal? (get B 0) 'UNSAT) [false] ((lambda () (def G (qfr (t-ex V (get B 1)))) (if (equal? (t-type G) 1) G (if (equal? (t-type G) 6) (qepcad-qe G) (if (equal? (t-type G) 5) (qepcad-qe (bin-reduce t-or (map (lambda (H) (qepcad-qe (exclose H '(m)))) (getargs G)))) (qepcad-qe G))))))))) " +
+               // "\n" +
+               // "; (expand F) - assumes F is prenex, variable m is free, all others existentially quantified (ors may appear!)\n" +
+               // "; returns list L of conjunctions s.t. the or of elts of L is equivalent to F\n" +
+                "(def expand (lambda (F)" +
+                "      (def A (getargs F))" +
+                "      (def V (get A 0 0 1))" +
+                "      (def G (get A 1))" +
+                "      (def X (dnf G))" +
+                "      (def L (if (equal? (t-type X) 5) (getargs X) (list X)))" +
+                "      (map (lambda (f) (exclose f '(m))) L) ))" +
+                // "\n" +
+                // "; (epc F) - assumes F is prenex, variable m is free, all others existentially quantified (ors may appear!)\n" +
+                // "; returns quantifier-free equivalent to F.  NOTE: epc stands for \"expand - process - combine\", which is what this does\n" +
+                "(def epc (lambda (F) (normalize (bin-reduce t-or (map (lambda (G) (if (equal? (t-type G) 6) (process G) G)) (expand F))))))";
+                // "\n" +
+                // "; NOTE: epc doesn't handle edge cases like F := [true] / [false] / [ex x[true]] / [ex x[false]]";
     }
 
 }
