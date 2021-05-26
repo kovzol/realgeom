@@ -61,7 +61,9 @@ public class Compute {
             }
         }
         if (cas == Cas.MATHEMATICA) {
-            ineq = ineq.replace("and", "\\[And]").replace("or", "\\[Or]");
+            ineq = ineq.replace("and", "\\[And]").replace("or", "\\[Or]")
+                .replace("~", "\\[Not]");
+            ineq = ineq.replaceAll("([^>=<])=([^=])", "$1==$2"); // equalities must be written with ==
             if (!"".equals(formulas)) {
                 formulas += " \\[And] ";
             }
@@ -825,8 +827,8 @@ public class Compute {
                                                 Cas cas, Tool tool, Subst subst, Log log,
                                                 int timelimit, String qepcadN, String qepcadL) {
 
-        // Currently only Tarski is implemented, TODO: create implementation for all other systems
-        if (cas != Cas.TARSKI) return null;
+        // Currently only Tarski and Mathematica are implemented, TODO: create implementation for all other systems
+        if (cas != Cas.TARSKI && cas != Cas.MATHEMATICA) return null;
 
         String code;
         formulas = "";
@@ -959,7 +961,6 @@ public class Compute {
             }
         }
 
-        for (String s : polys2Array) appendIneqs(s + "=0", cas, tool);
         if (!ineqs2.equals("")) {
             for (String s : ineqs2Array) {
                 if (!substs.equals("")) {
@@ -990,6 +991,21 @@ public class Compute {
             vars = vars.substring(0, vars.length() - 1); // remove last , if exists
         }
 
+        if (cas == Cas.MATHEMATICA) {
+            for (String s : polys2Array) appendIneqs(s + "==0", cas, tool);
+            // Remove m completely:
+            vars = vars.replace("m", "");
+            // code = "ToRadicals[Reduce[Resolve[Exists[{" + vars + "}," + formulas + "],Reals],Reals],Cubics->False]";
+            code = "Resolve[Exists[{" + vars + "}," + formulas + "],Reals]";
+            appendResponse("LOG: code=" + code, Log.VERBOSE);
+            String result = ExternalCAS.executeMathematica(code, timelimit);
+            result = result.replace("False", "false");
+            result = result.replace("True", "true");
+            appendResponse(result, Log.INFO);
+            return response;
+        }
+
+        for (String s : polys2Array) appendIneqs(s + "=0", cas, tool);
         String result;
 
         code = "(def process " +
@@ -1013,15 +1029,20 @@ public class Compute {
                 "(qepcad-qe G)" + "" +
                 "))))))) " +
                 "(process [ ex " + vars + " [" + formulas + "]])";
+        int expectedLines = 2;
 
         // code = "(qepcad-qe (qfr [ex " + vars + " [" + formulas + "]]))";
         code = "(qepcad-qe [ex " + vars + " [" + formulas + "]])";
+        expectedLines = 1;
+
+        code = epcDef() + " (epc [ex " + vars + " [" + formulas + "]])";
+        expectedLines = 4;
         // FIXME: Discuss which one of the above codes should be used.
 
         appendResponse("LOG: code=" + code, Log.VERBOSE);
 
         if (Start.tarskiPipe) {
-            result = ExternalCAS.executeTarskiPipe(code, 1, timelimit);
+            result = ExternalCAS.executeTarskiPipe(code, expectedLines, timelimit);
         } else {
             result = ExternalCAS.executeTarski(code, timelimit, qepcadN, qepcadL);
         }
