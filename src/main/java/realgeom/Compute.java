@@ -408,7 +408,7 @@ public class Compute {
                         "                      substval:=(op((solve(polys[ii]=0,linvar))[0]))[1];  \n" +
                         "                      print(\"Removing \" + polys[ii] + \", substituting \" + linvar + \" by \" + substval); \n" +
                         "                      substs:=substs + linvar + \"=\" + substval + \",\"; \n" +
-                        "                      polys:=remove(0,expand(expand(subs(polys,[linvar],[substval]))));  \n" +
+                        "                      polys:=simplify(remove(0,expand(expand(subs(polys,[linvar],[substval])))));  \n" +
                         "                      print(\"New set: \" + polys); \n" +
                         "                      vars:=lvar(polys);  \n" +
                         "                      ii:=-1;  \n" +
@@ -428,7 +428,7 @@ public class Compute {
                         "                          substval:=rhs((op(solve(polys[ii]=0,qvar)))[1]);  \n" +
                         "                          print(\"Positive root is \"+substval);  \n" +
                         "                          if (type(substval)==integer || type(substval)==rational) { \n" +
-                        "                              polys:=remove(0,expand(subs(polys,[qvar],[substval])));  \n" +
+                        "                              polys:=simplify(remove(0,expand(subs(polys,[qvar],[substval]))));  \n" +
                         "                              print(\"New set: \" + polys); \n" +
                         (keep ?
                                 "                      keep:=append(keep,substval-qvar);  \n" +
@@ -1064,9 +1064,16 @@ public class Compute {
     }
 
     private static String epcDef() {
+        String qc;
+        qc = "qepcad-api-call";
+        qc = "qepcad-qe";
         return // "; (process F) - assumes F is prenex conjunction, variable m is free, all others existentially quantified\n" +
                // "; returns quantifier-free equivalent to F\n" +
-                "(def process (lambda (F) (def L (getargs F)) (def V (get L 0 0 1)) (def B (bbwb (get L 1))) (if (equal? (get B 0) 'UNSAT) [false] ((lambda () (def G (qfr (t-ex V (get B 1)))) (if (equal? (t-type G) 1) G (if (equal? (t-type G) 6) (qepcad-qe G) (if (equal? (t-type G) 5) (qepcad-qe (bin-reduce t-or (map (lambda (H) (qepcad-qe (exclose H '(m)))) (getargs G)))) (qepcad-qe G))))))))) " +
+                "(def process (lambda (F) (def L (getargs F)) (def V (get L 0 0 1)) (def B (bbwb (get L 1)))" +
+                        " (if (equal? (get B 0) 'UNSAT) [false] ((lambda () (def G (qfr (t-ex V (get B 1))))" +
+                        " (if (equal? (t-type G) 1) G (if (equal? (t-type G) 6) (" + qc + " G)" +
+                        " (if (equal? (t-type G) 5) (" + qc + " (bin-reduce t-or (map (lambda (H) (" + qc +
+                        " (exclose H '(m)))) (getargs G)))) (" + qc + " G))))))))) " +
                // "\n" +
                // "; (expand F) - assumes F is prenex, variable m is free, all others existentially quantified (ors may appear!)\n" +
                // "; returns list L of conjunctions s.t. the or of elts of L is equivalent to F\n" +
