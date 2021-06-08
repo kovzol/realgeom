@@ -1073,7 +1073,7 @@ public class Compute {
                         " (if (equal? (get B 0) 'UNSAT) [false] ((lambda () (def G (qfr (t-ex V (get B 1))))" +
                         " (if (equal? (t-type G) 1) G (if (equal? (t-type G) 6) (" + qc + " G)" +
                         " (if (equal? (t-type G) 5) (" + qc + " (bin-reduce t-or (map (lambda (H) (" + qc +
-                        " (exclose H '(m)))) (getargs G)))) (" + qc + " G))))))))) " +
+                        " (exclose H '(m)) 'T)) (getargs G))) 'T) (" + qc + " G 'T))))))))) " +
                // "\n" +
                // "; (expand F) - assumes F is prenex, variable m is free, all others existentially quantified (ors may appear!)\n" +
                // "; returns list L of conjunctions s.t. the or of elts of L is equivalent to F\n" +
