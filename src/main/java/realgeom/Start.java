@@ -30,6 +30,8 @@ public class Start {
     public static boolean wolframscript = false;
     public static String nl = "\n";
 
+    public static State state = State.INITIALIZATION_REQUIRED;
+
     static {
         final String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("windows")) {

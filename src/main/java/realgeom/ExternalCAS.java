@@ -215,6 +215,7 @@ public class ExternalCAS {
     static String qepcadNSaved, qepcadLSaved;
 
     static boolean startQepcadConnection(String qepcadN, String qepcadL) {
+        Start.state = State.REINITIALIZATION_IN_PROGRESS;
         qepcadNSaved = qepcadN;
         qepcadLSaved = qepcadL;
         String qepcadCmd = "qepcad -noecho +N" + qepcadN + " +L" + qepcadL;
@@ -244,6 +245,7 @@ public class ExternalCAS {
         System.out.println("Waiting for initial QEPCAD output...");
         getOutputUntil(qepcadChild, "Enter an informal description  between '[' and ']':" + Start.nl);
         System.out.println("QEPCAD is properly started");
+        Start.state = State.READY;
         return true;
     }
 
@@ -251,6 +253,7 @@ public class ExternalCAS {
     static String tarskiNSaved;
 
     static boolean startTarskiConnection(String tarskiN) {
+        Start.state = State.REINITIALIZATION_IN_PROGRESS;
         String qe = System.getenv("qe");
         tarskiNSaved = tarskiN;
         String tarskiCmd = "tarski +N" + tarskiN;
@@ -290,6 +293,7 @@ public class ExternalCAS {
             return false;
         }
         System.out.println("Tarski is properly started");
+        Start.state = State.READY;
         return true;
     }
 
@@ -318,6 +322,15 @@ public class ExternalCAS {
     }
 
     static String executeQepcadPipe (final String[] commands, final int[] responseLinesExpected, int timeLimit) {
+        while (Start.state != State.READY) {
+            try {
+                System.out.println("Waiting for READY");
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                System.out.println("Interrupted");
+                return "";
+            }
+        }
         String result = "";
         ExecutorService executor = Executors.newCachedThreadPool();
         Callable<String> task = new Callable<String>() {
@@ -355,12 +368,11 @@ public class ExternalCAS {
             }
         };
         Future<String> future = executor.submit(task);
-        boolean restartNeeded = false;
         try {
             result = future.get(timeLimit, TimeUnit.SECONDS);
         } catch (TimeoutException ex) {
             System.err.println("Timeout");
-            restartNeeded = true;
+            Start.state = State.INITIALIZATION_REQUIRED;
         } catch (InterruptedException e) {
             System.err.println("Interrupted");
         } catch (ExecutionException e) {
@@ -368,7 +380,7 @@ public class ExternalCAS {
         } finally {
             // System.err.println("Cancelling...");
             future.cancel(true);
-            if (restartNeeded) {
+            if (Start.state == State.INITIALIZATION_REQUIRED) {
                 restartQepcadConnection();
             }
         }
@@ -376,6 +388,15 @@ public class ExternalCAS {
     }
 
     static String executeTarskiPipe (final String command, final int expectedLines, int timeLimit) {
+        while (Start.state != State.READY) {
+            try {
+                System.out.println("Waiting for READY");
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                System.out.println("Interrupted");
+                return "";
+            }
+        }
         String result = "";
         ExecutorService executor = Executors.newCachedThreadPool();
         Callable<String> task = new Callable<String>() {
@@ -416,12 +437,11 @@ public class ExternalCAS {
             }
         };
         Future<String> future = executor.submit(task);
-        boolean restartNeeded = false;
         try {
             result = future.get(timeLimit, TimeUnit.SECONDS);
         } catch (TimeoutException ex) {
             System.err.println("Timeout");
-            restartNeeded = true;
+            Start.state = State.INITIALIZATION_REQUIRED;
         } catch (InterruptedException e) {
             System.err.println("Interrupted");
         } catch (ExecutionException e) {
@@ -429,7 +449,7 @@ public class ExternalCAS {
         } finally {
             // System.err.println("Cancelling...");
             future.cancel(true);
-            if (restartNeeded) {
+            if (Start.state == State.INITIALIZATION_REQUIRED) {
                 restartTarskiConnection();
             }
         }

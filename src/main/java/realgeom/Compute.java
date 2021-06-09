@@ -1066,7 +1066,7 @@ public class Compute {
     private static String epcDef() {
         String qc;
         qc = "qepcad-qe";
-        qc = "qepcad-api-call";
+        // qc = "qepcad-api-call";
         return // "; (process F) - assumes F is prenex conjunction, variable m is free, all others existentially quantified\n" +
                // "; returns quantifier-free equivalent to F\n" +
                 "(def process (lambda (F) (def L (getargs F)) (def V (get L 0 0 1)) (def B (bbwb (get L 1)))" +
