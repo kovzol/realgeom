@@ -316,6 +316,7 @@ public class ExternalCAS {
         if (c == -1) {
             // startQepcadConnection(qepcadNSaved, qepcadLSaved); // restart because an EOF was detected
             System.err.println("EOF detected");
+            Start.state = State.INITIALIZATION_REQUIRED;
             return "";
         }
         return output.toString();
