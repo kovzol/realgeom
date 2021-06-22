@@ -381,9 +381,9 @@ public class ExternalCAS {
         } finally {
             // System.err.println("Cancelling...");
             future.cancel(true);
-            if (Start.state == State.INITIALIZATION_REQUIRED) {
-                restartQepcadConnection();
-            }
+        }
+        if (Start.state == State.INITIALIZATION_REQUIRED) {
+            restartQepcadConnection();
         }
         return result;
     }
@@ -450,9 +450,9 @@ public class ExternalCAS {
         } finally {
             // System.err.println("Cancelling...");
             future.cancel(true);
-            if (Start.state == State.INITIALIZATION_REQUIRED) {
-                restartTarskiConnection();
-            }
+        }
+        if (Start.state == State.INITIALIZATION_REQUIRED) {
+            restartTarskiConnection();
         }
         System.out.println(result);
         return getTarskiOutput(result);
