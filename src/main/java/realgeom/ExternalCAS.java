@@ -324,9 +324,12 @@ public class ExternalCAS {
 
     static String executeQepcadPipe (final String[] commands, final int[] responseLinesExpected, int timeLimit) {
         while (Start.state != State.READY) {
+            if (Start.state == State.INITIALIZATION_REQUIRED) {
+                restartQepcadConnection();
+            }
             try {
                 System.out.println("Waiting for READY");
-                TimeUnit.SECONDS.sleep(1);
+                TimeUnit.SECONDS.sleep(3);
             } catch (InterruptedException e) {
                 System.out.println("Interrupted");
                 return "";
@@ -391,8 +394,11 @@ public class ExternalCAS {
     static String executeTarskiPipe (final String command, final int expectedLines, int timeLimit) {
         while (Start.state != State.READY) {
             try {
+                if (Start.state == State.INITIALIZATION_REQUIRED) {
+                    restartTarskiConnection();
+                }
                 System.out.println("Waiting for READY");
-                TimeUnit.SECONDS.sleep(1);
+                TimeUnit.SECONDS.sleep(3);
             } catch (InterruptedException e) {
                 System.out.println("Interrupted");
                 return "";
