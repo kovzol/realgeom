@@ -36,9 +36,9 @@ You need to have the following pieces of software installed:
 
 Optional:
 
-* [Tarski](https://github.com/chriswestbrown/tarski) (recommended for educational uses on Linux)
+* [Tarski](https://github.com/chriswestbrown/tarski) (recommended for educational uses)
 * [Mathematica](https://www.wolfram.com/mathematica/) (recommended for heavy computations)
-* [QEPCAD](https://www.usna.edu/CS/qepcadweb/B/QEPCAD.html) (recommended for educational uses on macOS and Windows)
+* [QEPCAD](https://www.usna.edu/CS/qepcadweb/B/QEPCAD.html)
 * [Maple](https://www.maplesoft.com/) with the following libraries:
   * a recent version of [RegularChains](http://www.regularchains.org/) and/or
   * [SyNRAC](http://www.fujitsu.com/jp/group/labs/en/resources/tech/announced-tools/synrac/)
@@ -81,6 +81,7 @@ usage: realgeom
  -b,--benchmark         run benchmark
  -c,--backends <arg>    backends
  -d,--dry-run           do not run heavy computations 
+ -g,--geogebra          quickstart for GeoGebra (skips most checks)
  -i,--input <arg>       benchmark input file path
  -L,--qepcadL <arg>     space for prime list (QEPCAD +L)
  -l,--logfile <arg>     filename for logging
