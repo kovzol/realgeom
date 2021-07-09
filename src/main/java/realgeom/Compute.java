@@ -1071,7 +1071,7 @@ public class Compute {
                // "; returns quantifier-free equivalent to F\n" +
                 "(def process (lambda (F) (def L (getargs F)) (def V (get L 0 0 1)) (def B (bbwb (get L 1)))" +
                         " (if (equal? (get B 0) 'UNSAT) [false] ((lambda () (def G (qfr (t-ex V (get B 1))))" +
-                        " (if (equal? (t-type G) 1) G (if (equal? (t-type G) 6) (" + qc + " G)" +
+                        " (if (equal? (t-type G) 1) G (if (equal? (t-type G) 6) (" + qc + " G 'T)" +
                         " (if (equal? (t-type G) 5) (" + qc + " (bin-reduce t-or (map (lambda (H) (" + qc +
                         " (exclose H '(m)) 'T)) (getargs G))) 'T) (" + qc + " G 'T))))))))) " +
                // "\n" +
