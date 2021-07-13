@@ -248,7 +248,7 @@ public class Start {
             }
         }
 
-        input = "(qepcad-qe (qfr [ex v5,v6,v8 [v8>0 /\\ v5^2-2 v5+v6^2-v8^2+1=0 /\\ -v5^2-v6^2+1=0 /\\ -2 m v8-m+v8^2+4 v8+4=0]]))";
+        input = "(qepcad-api-call (qfr [ex v5,v6,v8 [v8>0 /\\ v5^2-2 v5+v6^2-v8^2+1=0 /\\ -v5^2-v6^2+1=0 /\\ -2 m v8-m+v8^2+4 v8+4=0]]))";
         if (!isWindows && !geogebra) {
             System.out.println("Testing Tarski connection via shell...");
             test = ExternalCAS.executeTarski(input, timeLimit, qepcadN, qepcadL);
