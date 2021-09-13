@@ -648,8 +648,15 @@ public class Compute {
             varsSet.add(v);
         }
         vars = "";
-        for (String v : varsSet) {
-            vars += v + ",";
+        if (cas == Cas.MATHEMATICA) {
+            // Concatenate the variables in the reversed order. It results usually in a faster run.
+            for (String v : varsSet) {
+                vars = v + "," + vars;
+            }
+        } else {
+            for (String v : varsSet) {
+                vars += v + ",";
+            }
         }
         if (!vars.equals("")) {
             vars = vars.substring(0, vars.length() - 1); // remove last , if exists
