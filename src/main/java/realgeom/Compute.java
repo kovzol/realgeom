@@ -648,8 +648,9 @@ public class Compute {
             varsSet.add(v);
         }
         vars = "";
-        if (cas == Cas.MATHEMATICA) {
-            // Concatenate the variables in the reversed order. It results usually in a faster run.
+        boolean reverseOrderingMathematica = false; // DISABLED
+        if (reverseOrderingMathematica && cas == Cas.MATHEMATICA) {
+            // Concatenate the variables in the reversed order. It sometimes results in a faster run.
             for (String v : varsSet) {
                 vars = v + "," + vars;
             }
