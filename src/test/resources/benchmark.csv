@@ -1,4 +1,4 @@
-Name,Task,Mode,LHS,RHS,Expected
+Name,Task,Mode,Parameter1,Parameter2,Expected
 Test 1,triangle,explore,a+b,c,m > 1
 Test 2,triangle,explore,a*a+b*b,c*c,m > 1/2
 Bottema 1.1,triangle,explore,b*c+c*a+a*b,(a+b+c)^2,"Inequality[1/4, Less, m, LessEqual, 1/3]"

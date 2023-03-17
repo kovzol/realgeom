@@ -32,6 +32,13 @@ public class Start {
 
     public static State state = State.INITIALIZATION_REQUIRED;
 
+    public static String supported = "";
+
+    public static void fatalError (String error) {
+        System.err.println("FATAL ERROR: " + error);
+        System.exit(2);
+    }
+
     static {
         final String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("windows")) {
@@ -392,7 +399,7 @@ public class Start {
             geogebra = true;
         }
 
-        String supported = test(timeLimit, qepcadN, qepcadL);
+        supported = test(timeLimit, qepcadN, qepcadL);
         if (supported.equals("")) {
             System.err.println("Unexpected results on self-test, exiting");
             System.exit(1);

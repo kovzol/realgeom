@@ -94,8 +94,8 @@ public class Benchmark {
             String expected = record.get("Expected");
 
             if (task.equals("triangle") && mode.equals("explore")) {
-                String lhs = record.get("LHS");
-                String rhs = record.get("RHS");
+                String lhs = record.get("Parameter1");
+                String rhs = record.get("Parameter2");
                 cascounter = 0;
                 for (String casTool : casTools) {
                     cascounter++;
@@ -117,6 +117,9 @@ public class Benchmark {
                             break;
                         case "qepcad":
                             cas = Cas.QEPCAD;
+                            break;
+                        case "tarski":
+                            cas = Cas.TARSKI;
                             break;
                         case "redlog":
                             cas = Cas.REDLOG;

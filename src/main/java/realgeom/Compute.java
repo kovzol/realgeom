@@ -4,13 +4,13 @@ package realgeom;
  * It computes the real geometry problem.
  */
 
-import static realgeom.Start.logfile;
-
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.TreeSet;
+
+import static realgeom.Start.*;
 
 public class Compute {
 
@@ -110,6 +110,9 @@ public class Compute {
     }
 
     private static String rewriteMathematica(String formula, int timeLimit) {
+        if (!supported.contains("mathematica")) {
+            fatalError("Mathematica required for rewrite, cannot continue");
+        }
         String mathcode = "Reduce[" + formula + ",m,Reals]";
         appendResponse("LOG: mathcode=" + mathcode, Log.VERBOSE);
         return ExternalCAS.executeMathematica(mathcode, timeLimit);
@@ -265,6 +268,30 @@ public class Compute {
             // String real = rewriteGiac(rewrite);
             appendResponse(real, Log.INFO);
         }
+
+        if (cas == Cas.TARSKI) {
+            String vars = "";
+            if (subst != Subst.AUTO) {
+                vars += "a,";
+            }
+            vars += "b,c";
+
+            code = "(qepcad-api-call [ex " + vars + "[m>0 /\\" + formulas + "]])";
+            appendResponse("LOG: code=" + code, Log.VERBOSE);
+            // System.out.println(code);
+            String result = ExternalCAS.executeTarskiPipe(code, 1, timelimit);
+            appendResponse("LOG: result=" + result, Log.VERBOSE);
+            // hacky way to convert QEPCAD formula to Mathematica formula FIXME
+            String rewrite = result.replace("/\\", "&&").replace("=", "==").
+                    replace(">==", ">=").replace("<==", "<=").
+                    replace("true", "True").replace(":tar", "");
+            // add missing condition to output
+            rewrite += " && m>0";
+            String real = rewriteMathematica(rewrite, timelimit);
+            // String real = rewriteGiac(rewrite);
+            appendResponse(real, Log.INFO);
+        }
+
 
         if (cas == Cas.MATHEMATICA) {
 
