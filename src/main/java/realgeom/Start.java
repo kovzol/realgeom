@@ -279,7 +279,8 @@ public class Start {
             test = ExternalCAS.executeReduce(input, timeLimit);
             if (!test.equals("3")) {
                 System.out.println("Consider installing Reduce (make sure you have the executable `reduce' on your path)"
-                        + "\nSee also http://www.redlog.eu/get-redlog/ to have RedLog installed");
+                        + "\nSee also http://www.redlog.eu/get-redlog/ to have RedLog installed"
+                        + "\nIf you have `pslred' installed, make sure you call it via `reduce'");
             } else {
                 input = "rlqe(ex({b,c}, 1+b>c and 1+c>b and b+c>1 and a=m*(b+c)));";
                 System.out.println("Testing RedLog connection via shell...");

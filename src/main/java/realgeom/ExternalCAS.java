@@ -552,7 +552,12 @@ public class ExternalCAS {
         i++;
         while (i < l) {
             String line = outputLines[i];
-            if (!"".equals(line) && !"*** End-of-file read ".equals(line)) {
+            if (!"".equals(line) && !line.startsWith("Reduce") && !line.startsWith("Quitting")
+                    && !line.startsWith("Redlog Revision")
+                    && !line.startsWith("(c) ")
+                    && !"type ?; for help".equals(line)
+                    && !"*** End-of-file read ".equals(line)
+                    ) {
                 int ll = line.length();
                 if (ll<2 || !line.substring(ll-2).equals(": ")) {
                     retval.append(line);
