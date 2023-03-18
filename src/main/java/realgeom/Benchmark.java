@@ -64,7 +64,10 @@ public class Benchmark {
 
         String[] casTools = casToolList.split(",");
         int[][] summary = new int[casTools.length][3];
-        int total = 0;
+        int[] total = new int[3];
+        total[0] = 0;
+        total[1] = 0;
+        total[2] = 0;
 
         for (String casTool : casTools) {
             tableHead.append("<th>").append(casTool).append("</th>");
@@ -85,13 +88,14 @@ public class Benchmark {
 
         int cascounter = 0;
         for (CSVRecord record : records) {
-            total++;
             String name = record.get("Name");
             String task = record.get("Task");
             String mode = record.get("Mode");
             String expected = record.get("Expected");
 
             if (task.equals("triangle") && mode.equals("explore")) {
+                total[0]++;
+                total[1]++;
                 for (int i = 0; i < 2; ++i) {
                     // opening line
                     table[i].append("<tr><td class=\"ex\">").append(name).append("</td>");
@@ -177,6 +181,7 @@ public class Benchmark {
                 }
             }
             if (task.equals("qe") && mode.equals("exists")) {
+                total[2]++;
                 // opening line
                 table[2].append("<tr><td class=\"ex\">").append(name).append("</td>");
                 String vars = record.get("Parameter1");
@@ -257,7 +262,7 @@ public class Benchmark {
         }
         for (int i = 0; i < 3; ++i) {
             // summary
-            table[i].append("<tr><td class=\"summary\"><b>Summary (of ").append(total).append(")</b></td>");
+            table[i].append("<tr><td class=\"summary\"><b>Summary (of ").append(total[i]).append(")</b></td>");
             for (int j=0; j<cascounter; ++j) {
                 table[i].append("<td class=\"summary\"><b>").append(summary[j][i]).append("</b></td>");
             }

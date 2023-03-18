@@ -396,12 +396,19 @@ public class Compute {
             // System.out.println(code);
             String result = ExternalCAS.executeTarskiPipe(code, 1, timelimit);
             appendResponse("LOG: result=" + result, Log.VERBOSE);
-            // hacky way to convert QEPCAD formula to Mathematica formula FIXME
-            String rewrite = result.replace("/\\", "&&").replace("=", "==").
+            // hacky way to convert Tarski formula to Mathematica formula FIXME
+            String rewrite = result.replace("/\\", "&&").replace("\\/", "||").
+                    replace("=", "==").
                     replace(">==", ">=").replace("<==", "<=").
-                    replace("true", "True").replace(":tar", "");
+                    replace("true", "True").replace(":tar", "").
+                    replace("[", "(").replace("]", ")");
+            rewrite = rewrite.replaceAll("_root_-([0-9]+) ([0-9\\ ]*)m\\^([0-9]+)(.*)", "Root[$2 m^$3$4,$3-$1+1]");
+            rewrite = rewrite.replaceAll("_root_([0-9]+) ([0-9\\ ]*)m\\^([0-9]+)(.*)", "Root[$2 m^$3$4,$1]");
+            System.out.println(rewrite);
             String real = rewriteMathematica(rewrite, timelimit);
+            System.out.println(real);
             appendResponse(real, Log.INFO);
+            // _root_-1 ([0-9])*m\^([0-9]+)(.*)
         }
 
         if (cas == Cas.MATHEMATICA) {
