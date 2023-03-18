@@ -544,7 +544,9 @@ public class ExternalCAS {
     static String executeReduce (String command, int timeLimit) {
         if (Start.dryRun)
             return "";
-        // System.out.println("reduce in = " + command);
+        if (Start.debug) {
+            System.out.println("reduce in = " + command);
+        }
         String output = ExternalCAS.execute("echo '" + command + "' | reduce", timeLimit);
         String[] outputLines = output.split("\n");
         int i = 0;
@@ -569,7 +571,9 @@ public class ExternalCAS {
             }
             i++;
         }
-        // System.out.println("reduce out = " + retval);
+        if (Start.debug) {
+            System.out.println("reduce out = " + retval);
+        }
         return retval.toString();
     }
 }

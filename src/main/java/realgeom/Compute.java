@@ -357,6 +357,66 @@ public class Compute {
         return response;
     }
 
+    public static String qeExists(String vars, String expr, Cas cas, Tool tool, Log log,
+                                         int timelimit, String qepcadN, String qepcadL) {
+        // TODO: Unify this with the other computations.
+        String code;
+        formulas = "";
+        response = "";
+        vars = vars.replace(" ", ",");
+        maxLogLevel = log;
+
+        if (cas == Cas.REDLOG) {
+            String exists = "ex({" + vars + "}";
+            formulas = expr.replace("/\\", " and ").replace("\\/", " or ")
+                    .replace("m ", "m*").replaceAll("([0-9]+) ", "$1*");
+
+            code = "rlqe(" + exists + ", " + formulas + "));";
+            appendResponse("LOG: code=" + code, Log.VERBOSE);
+            String result = ExternalCAS.executeRedlog(code, timelimit);
+            appendResponse("LOG: result=" + result, Log.VERBOSE);
+            // remove trailing $
+            int l = result.length();
+            if (l > 0) {
+                result = result.substring(0, result.length() - 1);
+            }
+            // hacky way to convert RedLog formula to Mathematica formula FIXME
+            String rewrite = result.replace(" and ", " && ").replace("=", "==").
+                    replace(">==", ">=").replace("<==", "<=").replace("**", "^").
+                    replace(" or ", " || ").replace("<>", "!=");
+            // appendResponse("LOG: rewrite=" + rewrite, Log.INFO);
+            String real = rewriteMathematica(rewrite, timelimit);
+            appendResponse(real, Log.INFO);
+        }
+
+
+        if (cas == Cas.TARSKI) {
+            code = "(qepcad-api-call [ex " + vars + "[" + expr + "]])";
+            appendResponse("LOG: code=" + code, Log.VERBOSE);
+            // System.out.println(code);
+            String result = ExternalCAS.executeTarskiPipe(code, 1, timelimit);
+            appendResponse("LOG: result=" + result, Log.VERBOSE);
+            // hacky way to convert QEPCAD formula to Mathematica formula FIXME
+            String rewrite = result.replace("/\\", "&&").replace("=", "==").
+                    replace(">==", ">=").replace("<==", "<=").
+                    replace("true", "True").replace(":tar", "");
+            String real = rewriteMathematica(rewrite, timelimit);
+            appendResponse(real, Log.INFO);
+        }
+
+        if (cas == Cas.MATHEMATICA) {
+            formulas = expr.replace("/\\", " && ").replace("\\/", " || ")
+                    .replace("=", "==");
+            code = "Reduce[Resolve[Exists[{" + vars + "}," + formulas + "],Reals],Reals]";
+            appendResponse("LOG: code=" + code, Log.VERBOSE);
+            String result = ExternalCAS.executeMathematica(code, timelimit);
+            appendResponse(result, Log.INFO);
+        }
+
+        return response;
+    }
+
+
     static String ggbGiac(String in) {
         String[] ins = in.split("\n");
         StringBuilder out = new StringBuilder();
