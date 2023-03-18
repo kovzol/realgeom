@@ -34,6 +34,8 @@ public class Start {
 
     public static String supported = "";
 
+    public static boolean debug = false;
+
     public static void fatalError (String error) {
         System.err.println("FATAL ERROR: " + error);
         System.exit(2);
@@ -360,6 +362,10 @@ public class Start {
         dryrunOption.setRequired(false);
         options.addOption(dryrunOption);
 
+        Option debugOption = new Option("D", "debug", false, "show debug information");
+        debugOption.setRequired(false);
+        options.addOption(debugOption);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd;
@@ -397,6 +403,10 @@ public class Start {
 
         if (cmd.hasOption("g")) {
             geogebra = true;
+        }
+
+        if (cmd.hasOption("D")) {
+            debug = true;
         }
 
         supported = test(timeLimit, qepcadN, qepcadL);

@@ -12,7 +12,9 @@ class GiacCAS {
         gen g = new gen(command, C);
         g = g.eval(1, C);
         String ret = g.print(C);
-        System.err.println("GIAC: " + command + " -> " + ret);
+        if (Start.debug) {
+            System.err.println("GIAC: " + command + " -> " + ret);
+        }
         return ret;
     }
 }

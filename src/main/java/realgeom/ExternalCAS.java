@@ -344,7 +344,9 @@ public class ExternalCAS {
                     OutputStream qepcadIn = qepcadChild.getOutputStream();
                     for (int i = 0; i < responseLinesExpected.length; ++i) {
                         output = new StringBuilder(); // reset
-                        System.out.println(commands[i]);
+                        if (Start.debug) {
+                            System.out.println(commands[i]);
+                        }
                         byte[] b = commands[i].getBytes(StandardCharsets.UTF_8);
                         qepcadIn.write(b);
                         qepcadIn.write('\n'); // press ENTER
@@ -460,7 +462,9 @@ public class ExternalCAS {
         if (Start.state == State.INITIALIZATION_REQUIRED) {
             restartTarskiConnection();
         }
-        System.out.println(result);
+        if (Start.debug) {
+            System.out.println(result);
+        }
         return getTarskiOutput(result);
     }
 
