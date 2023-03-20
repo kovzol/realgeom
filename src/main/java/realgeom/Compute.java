@@ -113,7 +113,7 @@ public class Compute {
         if (!supported.contains("mathematica")) {
             fatalError("Mathematica required for rewrite, cannot continue");
         }
-        String mathcode = "Reduce[" + formula + ",m,Reals]";
+        String mathcode = "Simplify[ToRadicals[Reduce[" + formula + ",m,Reals],Cubics->False]]";
         appendResponse("LOG: mathcode=" + mathcode, Log.VERBOSE);
         return ExternalCAS.executeMathematica(mathcode, timeLimit);
     }
@@ -301,7 +301,7 @@ public class Compute {
             }
             vars += "b,c}";
 
-            code = "Reduce[Resolve[Exists[" + vars + "," + formulas + "],Reals],Reals]";
+            code = "Simplify[ToRadicals[Reduce[Resolve[Exists[" + vars + "," + formulas + "],Reals],Reals],Cubics->False]]";
             appendResponse("LOG: code=" + code, Log.VERBOSE);
             String result = ExternalCAS.executeMathematica(code, timelimit);
             appendResponse(result, Log.INFO);
@@ -391,30 +391,37 @@ public class Compute {
 
 
         if (cas == Cas.TARSKI) {
-            code = "(qepcad-api-call [ex " + vars + "[" + expr + "]])";
+            // code = "(qepcad-api-call [ex " + vars + "[" + expr + "]])";
+            code = epcDef() + " (epc [ex " + vars + "[" + expr + "]])";
             appendResponse("LOG: code=" + code, Log.VERBOSE);
-            // System.out.println(code);
-            String result = ExternalCAS.executeTarskiPipe(code, 1, timelimit);
+            if (debug) {
+                System.out.println(code);
+            }
+            String result = ExternalCAS.executeTarskiPipe(code, 4, timelimit);
             appendResponse("LOG: result=" + result, Log.VERBOSE);
             // hacky way to convert Tarski formula to Mathematica formula FIXME
             String rewrite = result.replace("/\\", "&&").replace("\\/", "||").
                     replace("=", "==").
                     replace(">==", ">=").replace("<==", "<=").
                     replace("true", "True").replace(":tar", "").
+                    replace(":void\n", "").
                     replace("[", "(").replace("]", ")");
             rewrite = rewrite.replaceAll("_root_-([0-9]+) ([0-9\\ ]*)m\\^([0-9]+)(.*)", "Root[$2 m^$3$4,$3-$1+1]");
             rewrite = rewrite.replaceAll("_root_([0-9]+) ([0-9\\ ]*)m\\^([0-9]+)(.*)", "Root[$2 m^$3$4,$1]");
-            System.out.println(rewrite);
+            if (debug) {
+                System.out.println(rewrite);
+            }
             String real = rewriteMathematica(rewrite, timelimit);
-            System.out.println(real);
+            if (debug) {
+                System.out.println(real);
+            }
             appendResponse(real, Log.INFO);
-            // _root_-1 ([0-9])*m\^([0-9]+)(.*)
         }
 
         if (cas == Cas.MATHEMATICA) {
             formulas = expr.replace("/\\", " && ").replace("\\/", " || ")
                     .replace("=", "==");
-            code = "Reduce[Resolve[Exists[{" + vars + "}," + formulas + "],Reals],Reals]";
+            code = "Simplify[ToRadicals[Reduce[Resolve[Exists[{" + vars + "}," + formulas + "],Reals],Reals],Cubics->False]]";
             appendResponse("LOG: code=" + code, Log.VERBOSE);
             String result = ExternalCAS.executeMathematica(code, timelimit);
             appendResponse(result, Log.INFO);
@@ -1097,8 +1104,7 @@ public class Compute {
             for (String s : polys2Array) appendIneqs(s + "==0", cas, tool);
             // Remove m completely:
             vars = vars.replace("m", "");
-            // code = "ToRadicals[Reduce[Resolve[Exists[{" + vars + "}," + formulas + "],Reals],Reals],Cubics->False]";
-            code = "Resolve[Exists[{" + vars + "}," + formulas + "],Reals]";
+            code = "ToRadicals[Reduce[Resolve[Exists[{" + vars + "}," + formulas + "],Reals],Reals],Cubics->False]";
             appendResponse("LOG: code=" + code, Log.VERBOSE);
             String result = ExternalCAS.executeMathematica(code, timelimit);
             result = result.replace("False", "false");
