@@ -12,11 +12,11 @@ dependencies {
     compile "org.apache.commons:commons-csv:1.5"
     compile "commons-cli:commons-cli:1.4"
     compile ":JLink"
-    runtime "fr.ujf-grenoble:javagiac:69689:natives-linux-amd64"
-    runtime "fr.ujf-grenoble:javagiac:69689:natives-macosx-universal"
-    runtime "fr.ujf-grenoble:javagiac:69689:natives-linux-arm"
-    runtime "fr.ujf-grenoble:javagiac:69689:natives-windows-i586"
-    runtime "fr.ujf-grenoble:javagiac:69689:natives-windows-amd64"
+    runtime "tk.tarski:javagiac:20230917:natives-linux-amd64",
+            "tk.tarski:javagiac:20230917:natives-macosx-universal",
+            "tk.tarski:javagiac:20230917:natives-windows-i586",
+            "tk.tarski:javagiac:20230917:natives-windows-amd64",
+            "tk.tarski:javagiac:20230917:natives-linux-arm"
 }
 
 mainClassName = "realgeom.Start"
